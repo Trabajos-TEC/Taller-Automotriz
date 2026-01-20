@@ -1,4 +1,4 @@
-/* src/styles/Login.css - VERSIÓN CON COLUMNAS SEPARADAS Y ROMBOIDE FULL HEIGHT */
+/* src/styles/Login.css - VERSIÓN CON RESPONSIVE CORREGIDO */
 * {
   margin: 0;
   padding: 0;
@@ -268,10 +268,6 @@
   background: #4b5563;
 }
 
-.switch-icon {
-  font-size: 14px;
-}
-
 /* ================== VERSIÓN DEL SISTEMA ================== */
 .system-version {
   color: #9aa4b2;
@@ -310,10 +306,8 @@
 }
 
 .romboid-content {
-  /* SOLO la imagen de fondo - SIN gradiente naranja */
   background: 
     url('/1969-ford-mustang-mach-1-428-cobra-jet-r-code-fastback.png') center/cover no-repeat;
-  
   padding: 50px 40px;
   border-radius: 0;
   transform: skewX(-8deg) translateX(-40px);
@@ -330,7 +324,7 @@
   margin-left: 30px;
 }
 
-/* Capa oscura semi-transparente para mejorar legibilidad del texto */
+/* Capa oscura semi-transparente */
 .romboid-content::before {
   content: '';
   position: absolute;
@@ -338,30 +332,10 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4); /* Fondo oscuro semi-transparente */
+  background: rgba(0, 0, 0, 0.4);
   pointer-events: none;
   z-index: 1;
 }
-
-/* O si prefieres un gradiente oscuro más elegante: */
-/*
-.romboid-content::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(0, 0, 0, 0.6) 0%,
-    rgba(0, 0, 0, 0.4) 50%,
-    rgba(0, 0, 0, 0.6) 100%
-  );
-  pointer-events: none;
-  z-index: 1;
-}
-*/
 
 .romboid-content::after {
   content: '';
@@ -384,7 +358,7 @@
   transform: skewX(8deg);
   flex-shrink: 0;
   position: relative;
-  z-index: 2; /* Encima de la capa oscura */
+  z-index: 2;
 }
 
 .romboid-icon {
@@ -406,37 +380,7 @@
   z-index: 2;
 }
 
-/* ================== CONTENIDO DEL ROMBOIDE CON SCROLL ================== */
-.romboid-scroll-content {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 10px;
-  transform: skewX(8deg);
-  position: relative;
-  z-index: 2;
-}
-
-/* Estilos para la scrollbar dentro del romboide */
-.romboid-scroll-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.romboid-scroll-content::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-.romboid-scroll-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.romboid-scroll-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4);
-}
-
-/* ================== GRID DE INFORMACIÓN SOBRE IMAGEN ================== */
+/* ================== GRID DE INFORMACIÓN ================== */
 .romboid-info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -447,11 +391,11 @@
 }
 
 .info-item {
-  background: rgba(20, 20, 20, 0.3); /* Muy transparente */
+  background: rgba(20, 20, 20, 0.3);
   border-radius: 12px;
   padding: 22px;
-  backdrop-filter: blur(3px); /* Muy poco blur */
-  border: 1px solid rgba(255, 255, 255, 0.15); /* Borde casi invisible */
+  backdrop-filter: blur(3px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   transition: all 0.4s ease;
   display: flex;
   flex-direction: column;
@@ -510,160 +454,7 @@
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
 }
 
-/* ================== FOOTER DEL ROMBOIDE ================== */
-.romboid-footer {
-  margin-top: 40px;
-  text-align: center;
-  color: white;
-  transform: skewX(8deg);
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  flex-shrink: 0;
-  position: relative;
-  z-index: 2;
-  backdrop-filter: blur(5px);
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
-}
-
-.romboid-footer p {
-  font-size: 13px;
-  margin: 5px 0;
-  opacity: 0.95;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
-}
-
-/* ================== RESPONSIVE ================== */
-@media (max-width: 1024px) {
-  .login-two-columns {
-    flex-direction: column;
-    height: auto;
-    min-height: 100vh;
-  }
-  
-  .login-left-column {
-    flex: 0 0 auto;
-    width: 100%;
-    max-width: none;
-    padding: 30px 20px;
-    min-height: 70vh;
-  }
-  
-  .login-right-column {
-    flex: 0 0 auto;
-    width: 100%;
-    height: auto;
-    min-height: 30vh;
-  }
-  
-  .romboid-content {
-    transform: skewX(0) translateX(0);
-    width: 100%;
-    height: auto;
-    padding: 30px 20px;
-    border-radius: 0;
-  }
-  
-  .romboid-header,
-  .romboid-scroll-content,
-  .romboid-footer {
-    transform: skewX(0);
-  }
-  
-  .romboid-info-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  
-  .login-content {
-    max-width: 400px;
-  }
-}
-
-@media (max-width: 768px) {
-  .login-left-column {
-    padding: 25px 15px;
-    min-height: 60vh;
-  }
-  
-  .login-right-column {
-    min-height: 40vh;
-  }
-  
-  .login-form-taller {
-    padding: 25px;
-  }
-  
-  .taller-title h1 {
-    font-size: 22px;
-  }
-  
-  .options-taller {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  
-  .romboid-content {
-    padding: 25px 15px;
-  }
-  
-  .romboid-header h2 {
-    font-size: 22px;
-  }
-  
-  .info-item {
-    padding: 18px;
-  }
-}
-
-@media (max-width: 480px) {
-  .login-left-column {
-    padding: 20px 10px;
-  }
-  
-  .login-form-taller {
-    padding: 20px;
-  }
-  
-  .input-group-taller input {
-    padding: 12px 14px 12px 42px;
-    font-size: 13px;
-  }
-  
-  .btn-taller-login,
-  .btn-switch-user {
-    padding: 13px 16px;
-    font-size: 14px;
-  }
-  
-  .romboid-content {
-    padding: 20px 10px;
-  }
-  
-  .romboid-info-grid {
-    gap: 15px;
-  }
-  
-  .info-item {
-    padding: 15px;
-  }
-  
-  .info-icon {
-    font-size: 28px;
-  }
-  
-  .info-content h3 {
-    font-size: 14px;
-  }
-  
-  .info-content p {
-    font-size: 13px;
-  }
-}
-
-/* ================== ANIMACIONES MEJORADAS ================== */
+/* ================== ANIMACIONES ================== */
 @keyframes fadeIn {
   from { 
     opacity: 0; 
@@ -697,7 +488,7 @@
   }
 }
 
-/* Aplicar animaciones */
+/* Aplicar animaciones en desktop */
 .login-left-column {
   animation: slideInFromLeft 0.6s ease-out;
 }
@@ -710,7 +501,6 @@
   animation: fadeIn 0.5s ease-out both;
 }
 
-/* Animar items con delay escalonado */
 .info-item:nth-child(1) { animation-delay: 0.1s; }
 .info-item:nth-child(2) { animation-delay: 0.2s; }
 .info-item:nth-child(3) { animation-delay: 0.3s; }
@@ -720,12 +510,12 @@
 
 /* ================== ESTILOS PARA ÍCONOS SVG ================== */
 .input-icon svg {
-  filter: brightness(0) invert(0.8); /* Convierte negro a gris claro */
+  filter: brightness(0) invert(0.8);
   transition: all 0.3s ease;
 }
 
 .input-group-taller:focus-within .input-icon svg {
-  filter: brightness(0) invert(1); /* Convierte negro a blanco en focus */
+  filter: brightness(0) invert(1);
 }
 
 .btn-taller-login svg,
@@ -764,4 +554,229 @@
 
 .system-version svg {
   opacity: 0.7;
+}
+
+/* ================== RESPONSIVE PRINCIPAL (1170px) ================== */
+@media (max-width: 1170px) {
+  .login-taller-container {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .login-two-columns {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .login-left-column {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    padding: 50px 20px;
+    min-height: auto;
+    order: 1;
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  .login-right-column {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin-left: 0;
+    left: 0;
+    order: 2;
+    background: rgba(0, 0, 0, 0.4);
+  }
+  
+  /* TRANSFORMAR ROMBOIDE EN SECCIÓN RECTANGULAR NORMAL */
+  .romboid-info-container {
+    width: 100%;
+    height: auto;
+    justify-content: center;
+    margin-right: 0;
+    perspective: none;
+    transform-style: flat;
+  }
+  
+  .romboid-content {
+    /* ELIMINAR EFECTO ROMBOIDE */
+    transform: none !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto;
+    padding: 60px 40px !important;
+    margin-left: 0 !important;
+    border-radius: 0 !important;
+    
+    /* MANTENER IMAGEN DE FONDO CON OVERLAY MÁS OSCURO */
+    background: 
+      linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.9)),
+      url('/1969-ford-mustang-mach-1-428-cobra-jet-r-code-fastback.png') center/cover no-repeat !important;
+    
+    /* SOMBRA SIMPLE */
+    box-shadow: 
+      0 5px 30px rgba(0, 0, 0, 0.5) !important;
+    
+    /* ANIMACIÓN PARA MÓVIL */
+    animation: fadeIn 0.8s ease-out 0.3s both;
+  }
+  
+  /* ELIMINAR SKEW DE TODOS LOS ELEMENTOS INTERNOS */
+  .romboid-header,
+  .romboid-info-grid,
+  .info-item {
+    transform: none !important;
+  }
+  
+  .romboid-header {
+    margin-bottom: 50px;
+  }
+  
+  .romboid-header h2 {
+    font-size: 28px;
+  }
+  
+  /* GRID RESPONSIVE */
+  .romboid-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    max-width: 1000px;
+    margin: 0 auto 50px;
+  }
+  
+  .login-content {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  /* ELIMINAR ANIMACIÓN DE DESKTOP PARA LA COLUMNA DERECHA */
+  .login-right-column {
+    animation: fadeIn 0.8s ease-out 0.2s both;
+  }
+}
+
+/* ================== RESPONSIVE PARA TABLETS (900px) ================== */
+@media (max-width: 900px) {
+  .romboid-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+  
+  .romboid-content {
+    padding: 50px 30px !important;
+  }
+  
+  .info-item {
+    padding: 25px 20px;
+  }
+}
+
+/* ================== RESPONSIVE PARA TABLETS PEQUEÑAS (768px) ================== */
+@media (max-width: 768px) {
+  .login-left-column {
+    padding: 40px 20px;
+  }
+  
+  .romboid-content {
+    padding: 45px 25px !important;
+  }
+  
+  .romboid-info-grid {
+    grid-template-columns: 1fr; /* UNA COLUMNA EN TABLETS */
+    gap: 25px;
+    max-width: 600px;
+  }
+  
+  .romboid-header h2 {
+    font-size: 26px;
+  }
+  
+  .login-form-taller {
+    padding: 30px 25px;
+  }
+  
+  .taller-title h1 {
+    font-size: 24px;
+  }
+  
+  .options-taller {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+}
+
+/* ================== RESPONSIVE PARA MÓVILES (600px) ================== */
+@media (max-width: 600px) {
+  .login-left-column {
+    padding: 35px 15px;
+  }
+  
+  .romboid-content {
+    padding: 40px 20px !important;
+  }
+  
+  .romboid-info-grid {
+    gap: 20px;
+  }
+  
+  .info-item {
+    padding: 22px 18px;
+  }
+  
+  .info-icon {
+    font-size: 28px;
+  }
+  
+  .info-content h3 {
+    font-size: 14px;
+  }
+  
+  .info-content p {
+    font-size: 13px;
+  }
+}
+
+/* ================== RESPONSIVE PARA MÓVILES PEQUEÑOS (480px) ================== */
+@media (max-width: 480px) {
+  .login-left-column {
+    padding: 30px 12px;
+  }
+  
+  .romboid-content {
+    padding: 35px 15px !important;
+  }
+  
+  .romboid-header h2 {
+    font-size: 24px;
+  }
+  
+  .romboid-info-grid {
+    gap: 18px;
+  }
+  
+  .info-item {
+    padding: 20px 15px;
+  }
+  
+  .login-form-taller {
+    padding: 25px 20px;
+  }
+  
+  .input-group-taller input {
+    padding: 12px 14px 12px 42px;
+    font-size: 13px;
+  }
+  
+  .btn-taller-login,
+  .btn-switch-user {
+    padding: 14px 16px;
+    font-size: 14px;
+  }
 }
