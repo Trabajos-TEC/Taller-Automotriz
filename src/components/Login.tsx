@@ -79,7 +79,7 @@ const Login: React.FC = () => {
               <div className="input-group-taller">
                 <div className="input-icon">
                   {/* Silueta de email en negro */}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
                     <rect x="2" y="4" width="20" height="16" rx="2"/>
                     <path d="M22 6l-10 7L2 6"/>
                   </svg>
@@ -98,7 +98,7 @@ const Login: React.FC = () => {
               <div className="input-group-taller">
                 <div className="input-icon">
                   {/* Silueta de candado en negro */}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ece4e4" strokeWidth="2">
                     <rect x="5" y="11" width="14" height="10" rx="2"/>
                     <path d="M12 15v2"/>
                     <circle cx="12" cy="8" r="4" strokeWidth="2"/>
@@ -176,7 +176,7 @@ const Login: React.FC = () => {
               <div className="romboid-header">
                 <div className="romboid-icon">
                   {/* Silueta de edificio industrial en negro */}
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
                     <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
                     <path d="M9 22V12h6v10"/>
                   </svg>
@@ -188,7 +188,7 @@ const Login: React.FC = () => {
                 <div className="info-item">
                   <div className="info-icon">
                     {/* Silueta de ubicación en negro */}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f5ebeb" strokeWidth="2">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
                       <circle cx="12" cy="10" r="3"/>
                     </svg>
@@ -202,7 +202,7 @@ const Login: React.FC = () => {
                 <div className="info-item">
                   <div className="info-icon">
                     {/* Silueta de teléfono en negro */}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fffafa" strokeWidth="2">
                       <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
                     </svg>
                   </div>
@@ -216,7 +216,7 @@ const Login: React.FC = () => {
                 <div className="info-item">
                   <div className="info-icon">
                     {/* Silueta de reloj en negro */}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
                       <circle cx="12" cy="12" r="10"/>
                       <path d="M12 6v6l4 2"/>
                     </svg>
@@ -231,7 +231,7 @@ const Login: React.FC = () => {
                 <div className="info-item">
                   <div className="info-icon">
                     {/* Silueta de llave inglesa en negro */}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
                       <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
                     </svg>
                   </div>
@@ -245,7 +245,7 @@ const Login: React.FC = () => {
                 <div className="info-item">
                   <div className="info-icon">
                     {/* Silueta de automóvil en negro */}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f8f8f8" strokeWidth="2">
                       <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 002 12v4c0 .6.4 1 1 1h2"/>
                       <circle cx="7" cy="17" r="2"/>
                       <path d="M9 17h6"/>
@@ -262,7 +262,7 @@ const Login: React.FC = () => {
                 <div className="info-item">
                   <div className="info-icon">
                     {/* Silueta de trofeo en negro */}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
                       <path d="M6 9H4.5a2.5 2.5 0 010-5H6"/>
                       <path d="M18 9h1.5a2.5 2.5 0 000-5H18"/>
                       <path d="M4 22h16"/>
