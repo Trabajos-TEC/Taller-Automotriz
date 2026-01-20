@@ -1,4 +1,4 @@
-// src/components/LoginForm.tsx - VERSIÓN TALLER AUTOMOTRIZ
+// src/components/LoginForm.tsx - VERSIÓN ACTUALIZADA
 import React, { useState } from 'react';
 import '../styles/Login.css';
 
@@ -41,8 +41,16 @@ const Login: React.FC = () => {
     setErrors(newErrors);
     
     if (!newErrors.email && !newErrors.password) {
-      alert('Inicio de sesión exitoso!');
-      // Aquí iría la llamada a la API
+      // Guardar autenticación en localStorage
+      localStorage.setItem('taller-auth', 'true');
+      
+      // Si marcó "Recordar sesión", guardar por más tiempo
+      if (formData.rememberMe) {
+        localStorage.setItem('taller-remember', 'true');
+      }
+      
+      // Redirigir a la página de Clientes
+      window.location.href = '/clientes';
     }
   };
 
@@ -113,7 +121,7 @@ const Login: React.FC = () => {
           </button>
 
           {/* BOTÓN CAMBIAR USUARIO */}
-          <button type="button" className="btn-switch-user">
+          <button type="button" className="btn-switch-user" onClick={() => alert('Funcionalidad de cambio de usuario')}>
             <span className="switch-icon">⇄</span>
             CAMBIAR USUARIO
           </button>

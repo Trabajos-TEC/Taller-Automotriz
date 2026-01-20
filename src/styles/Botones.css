@@ -1,0 +1,139 @@
+/* src/styles/Botones.css - SOLO ESTRUCTURA Y TAMAÑOS */
+/* ESTILOS GENERALES PARA BOTONES */
+.boton {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* TAMAÑOS DE BOTONES */
+.boton-pequeno {
+  padding: 6px 12px;
+  font-size: 12px;
+  min-height: 32px;
+}
+
+.boton-mediano {
+  padding: 10px 20px;
+  font-size: 14px;
+  min-height: 40px;
+}
+
+.boton-grande {
+  padding: 12px 24px;
+  font-size: 16px;
+  min-height: 44px;
+}
+
+/* ESTADOS DE BOTONES */
+.boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.boton:focus {
+  outline: 2px solid rgba(0, 123, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* ICONOS DENTRO DE BOTONES */
+.boton .icono {
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.boton-pequeno .icono {
+  font-size: 14px;
+}
+
+.boton-grande .icono {
+  font-size: 18px;
+}
+
+/* GRUPOS DE BOTONES */
+.grupo-botones {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.grupo-botones-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* BOTONES EN TABLAS */
+.data-table .boton {
+  margin: 2px;
+  min-width: 70px;
+}
+
+/* BOTONES ESPECIALES */
+.boton-icono {
+  padding: 8px;
+  min-width: auto;
+  aspect-ratio: 1/1;
+}
+
+.boton-redondo {
+  border-radius: 50%;
+  padding: 12px;
+  min-width: auto;
+  aspect-ratio: 1/1;
+}
+
+/* EFECTOS COMUNES */
+.boton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.boton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* BOTONES DE ACCIÓN */
+.boton-accion {
+  min-width: 100px;
+  text-align: center;
+}
+
+/* BOTONES EN FORMULARIOS */
+.formulario .boton {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .boton-grande {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  
+  .grupo-botones {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .grupo-botones .boton {
+    width: 100%;
+  }
+}
