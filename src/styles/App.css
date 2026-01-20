@@ -1,0 +1,8 @@
+/* src/styles/App.css - DEJAR SOLO ESTO */
+.App {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* O mejor aún, DEJARLO VACÍO */

@@ -1,0 +1,425 @@
+/* src/styles/Login.css - VERSIÓN TALLER AUTOMOTRIZ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* CONTENEDOR PRINCIPAL */
+.login-taller-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  font-weight: 500;
+}
+
+/* FONDO INDUSTRIAL */
+.login-background-industrial {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%),
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 165, 0, 0.05) 10px,
+      rgba(255, 165, 0, 0.05) 20px
+    );
+  z-index: 0;
+}
+
+/* EFECTO DE TEXTURA METÁLICA */
+.login-background-industrial::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(255, 140, 0, 0.1) 2px, transparent 2px),
+    radial-gradient(circle at 80% 70%, rgba(255, 140, 0, 0.1) 1px, transparent 1px),
+    radial-gradient(circle at 40% 90%, rgba(255, 140, 0, 0.1) 3px, transparent 3px);
+  background-size: 300px 300px;
+  opacity: 0.3;
+}
+
+/* CONTENIDO CENTRADO */
+.login-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 450px;
+  padding: 0 25px;
+  text-align: center;
+}
+
+/* LOGO TALLER */
+.taller-logo-header {
+  margin-bottom: 50px;
+  color: #ffffff;
+  position: relative;
+}
+
+.logo-symbol {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 20px;
+}
+
+.gear-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70px;
+  height: 70px;
+  background: 
+    radial-gradient(circle at center, #ff8c00 0%, transparent 70%),
+    repeating-conic-gradient(
+      from 0deg,
+      #ff8c00 0deg 30deg,
+      transparent 30deg 60deg
+    );
+  border-radius: 50%;
+  animation: rotate 20s linear infinite;
+}
+
+.wheel-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background: #333;
+  border: 5px solid #ff8c00;
+  border-radius: 50%;
+}
+
+@keyframes rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.taller-title h1 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: #ff8c00;
+  text-transform: uppercase;
+}
+
+/* FORMULARIO */
+.login-form-taller {
+  background: rgba(40, 40, 40, 0.9);
+  border: 2px solid #ff8c00;
+  border-radius: 4px;
+  padding: 35px 30px;
+  margin-bottom: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.input-group-taller {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.input-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ff8c00;
+  font-size: 18px;
+  z-index: 1;
+}
+
+.input-group-taller input {
+  width: 100%;
+  padding: 16px 20px 16px 50px;
+  background: rgba(30, 30, 30, 0.8);
+  border: 2px solid #555;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s;
+  text-transform: uppercase;
+}
+
+.input-group-taller input:focus {
+  outline: none;
+  border-color: #ff8c00;
+  background: rgba(40, 40, 40, 0.9);
+  box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.3);
+}
+
+.input-group-taller input::placeholder {
+  color: #888;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+
+.input-error-taller {
+  border-color: #ff3333 !important;
+  background: rgba(60, 0, 0, 0.8) !important;
+}
+
+.error-taller {
+  color: #ff3333;
+  font-size: 12px;
+  font-weight: 600;
+  margin: -15px 0 15px 5px;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* OPCIONES */
+.options-taller {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 25px 0;
+  padding: 0 5px;
+}
+
+.checkbox-taller {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ccc;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.checkbox-taller input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #ff8c00;
+  cursor: pointer;
+}
+
+.link-taller {
+  color: #ff8c00;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 700;
+  transition: all 0.2s;
+  padding: 5px 10px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.link-taller:hover {
+  color: #ffffff;
+  background: rgba(255, 140, 0, 0.2);
+}
+
+/* BOTÓN PRINCIPAL */
+.btn-taller-login {
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(to bottom, #ff8c00 0%, #cc7000 100%);
+  color: #000000;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  box-shadow: 0 4px 0 #994d00;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-taller-login:hover {
+  background: linear-gradient(to bottom, #ff9900 0%, #d97a00 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #994d00;
+}
+
+.btn-taller-login:active {
+  transform: translateY(1px);
+  box-shadow: 0 3px 0 #994d00;
+}
+
+.btn-taller-login::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-taller-login:hover::after {
+  left: 100%;
+}
+
+/* BOTÓN CAMBIAR USUARIO */
+.btn-switch-user {
+  width: 100%;
+  padding: 14px;
+  background: rgba(60, 60, 60, 0.8);
+  color: #cccccc;
+  border: 1px solid #666;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-switch-user:hover {
+  background: rgba(80, 80, 80, 0.9);
+  border-color: #ff8c00;
+  color: #ffffff;
+}
+
+.switch-icon {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* INFORMACIÓN TÉCNICA */
+.taller-info-technical {
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 20px;
+  margin: 25px 0;
+  text-align: left;
+}
+
+.info-line {
+  display: flex;
+  margin-bottom: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.info-line:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  color: #ff8c00;
+  font-weight: 700;
+  min-width: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-line span:last-child {
+  color: #cccccc;
+  font-weight: 500;
+  flex: 1;
+}
+
+/* VERSIÓN DEL SISTEMA */
+.system-version {
+  color: #666;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding-top: 15px;
+  border-top: 1px solid #444;
+}
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+  .login-content {
+    max-width: 340px;
+    padding: 0 15px;
+  }
+  
+  .taller-title h1 {
+    font-size: 22px;
+    letter-spacing: 1.5px;
+  }
+  
+  .subtitle {
+    font-size: 10px;
+  }
+  
+  .login-form-taller {
+    padding: 25px 20px;
+  }
+  
+  .input-group-taller input {
+    padding: 14px 18px 14px 45px;
+    font-size: 13px;
+  }
+  
+  .btn-taller-login {
+    padding: 16px;
+    font-size: 13px;
+  }
+  
+  .info-line {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .info-label {
+    min-width: auto;
+  }
+}
+
+/* EFECTO DE LUZ INDUSTRIAL */
+.login-content::before {
+  content: '';
+  position: absolute;
+  top: -100px;
+  left: -100px;
+  right: -100px;
+  bottom: -100px;
+  background: radial-gradient(circle at center, rgba(255, 140, 0, 0.1) 0%, transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+  animation: pulseLight 4s infinite alternate;
+}
+
+@keyframes pulseLight {
+  0% { opacity: 0.3; }
+  100% { opacity: 0.6; }
+}
