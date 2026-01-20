@@ -1,4 +1,4 @@
-// src/pages/Clientes.tsx - VERSIÓN CON MÁS CLIENTES Y BOTONES REORGANIZADOS
+// src/pages/Clientes.tsx - VERSIÓN SIN BOTONES EN LISTA
 import React, { useState } from 'react';
 import '../styles/pages/Clientes.css';
 import '../styles/Botones.css';
@@ -176,11 +176,9 @@ const Clientes: React.FC = () => {
   return (
     <div className="gestion-clientes">
       <div className="header-section">
-        <h1>🏁 Gestión de Clientes</h1>
         <div className="stats">
           <span className="stat-item">Total: {clientes.length} clientes</span>
           <span className="stat-item">Mostrando: {clientesFiltrados.length}</span>
-          <span className="stat-item">Hoy: {new Date().toLocaleDateString('es-ES')}</span>
         </div>
       </div>
 
@@ -217,7 +215,7 @@ const Clientes: React.FC = () => {
                   <th>Cédula</th>
                   <th>Teléfono</th>
                   <th>Correo</th>
-                  <th>Acciones</th>
+                  {/* COLUMNA ACCIONES ELIMINADA */}
                 </tr>
               </thead>
               <tbody>
@@ -231,32 +229,7 @@ const Clientes: React.FC = () => {
                     <td>{cliente.cedula}</td>
                     <td>{cliente.numero || 'N/A'}</td>
                     <td>{cliente.correo || 'N/A'}</td>
-                    <td className="acciones-cell">
-                      <div className="acciones-vertical">
-                        <button 
-                          className="boton boton-editar boton-pequeno"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelected(cliente);
-                            setShowModalEditar(true);
-                            limpiarErrores();
-                          }}
-                        >
-                          <span className="icono">✏️</span>
-                          Editar
-                        </button>
-                        <button 
-                          className="boton boton-eliminar boton-pequeno"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            eliminarCliente(cliente.cedula);
-                          }}
-                        >
-                          <span className="icono">🗑️</span>
-                          Eliminar
-                        </button>
-                      </div>
-                    </td>
+                    {/* CELDA DE ACCIONES ELIMINADA */}
                   </tr>
                 ))}
               </tbody>
