@@ -3,12 +3,29 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; 
 }
 
+/* ===== FONDO DE LA APLICACIÓN ===== */
+.App {
+  min-height: 100vh;
+  background: 
+    url('/american racing-vf529-18x8-19x10-chrome-1970 chevrolet chevelle 29.png') center/cover no-repeat fixed;
+}
+
+/* Asegurar que todo cubra 100vh */
+body, html, #root {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
 /* ===== ESTILOS GENERALES ===== */
 body {
-  margin: 0;
-  background: #0b0c10;
-  color: #e5e7eb;
+  display: block;
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  background: transparent;
+  color: #e5e7eb;
 }
 
 h1, h2, h3 { 
@@ -48,24 +65,28 @@ label {
 }
 
 .home { 
-  max-width: none;
   width: 100%;
+  max-width: none;
   margin: 0;
-  padding: 24px 0;
+  padding: 24px 20px;
+  box-sizing: border-box;
 }
 
-/* Central Panel Base */
+/* Central Panel Base CON TRANSICIÓN SUAVE */
 .center-panel {
-  background: rgba(43, 60, 59, 0.9);
-  padding: 40px 30px;
+  padding: 20px 5px; /* ← Reducido un poco */
   border-radius: 16px;
-  width: 75%;
+  width: 76%;
   max-width: none;
-  margin: 0 auto 40px auto;
-  min-height: 600px;
-  box-shadow: 0 6px 25px rgba(0,0,0,0.6);
+  margin: 0 auto 30px auto; /* ← Margen inferior reducido */
+  min-height: auto; /* ← Cambiado a auto */
+  height: auto; /* ← Se ajusta al contenido */
   color: #fff;
-  transition: all 0.4s ease-in-out;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.6);
+  box-sizing: border-box;
+  /* TRANSICIÓN SUAVE PARA COLORES */
+  transition: background 0.7s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* CLASES DE COLOR DINÁMICAS */
@@ -106,9 +127,12 @@ label {
 
 .panel-content {
   width: 100%;
-  margin: 16px auto;
+  margin: 0 auto;
   position: relative;
-  min-height: 500px;
+  min-height: auto; /* ← Auto también aquí */
+  height: auto;
+  /* Animación suave para el contenido */
+  animation: fadeInContent 0.5s ease-in-out;
 }
 
 /* ===== HOME HEAD ===== */
@@ -231,20 +255,49 @@ label {
   }
 }
 
+@keyframes fadeInContent {
+  from {
+    opacity: 0.8;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
+  .home {
+    padding: 20px 15px;
+  }
+  
   .center-panel {
-    width: 95%;
     padding: 30px 20px;
+    min-height: 500px;
   }
   
   .home-head {
-    width: 95%;
-    padding: 10px 20px;
+    padding: 10px 0;
+  }
+  
+  .home-head h1 {
+    font-size: 1.5rem;
   }
   
   .modal {
     width: 95%;
     padding: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .center-panel {
+    padding: 20px 15px;
+    min-height: 400px;
+  }
+  
+  .home-head h1 {
+    font-size: 1.3rem;
   }
 }

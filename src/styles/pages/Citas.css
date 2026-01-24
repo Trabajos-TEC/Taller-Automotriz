@@ -1,0 +1,832 @@
+/* src/styles/pages/Citas.css - ACTUALIZADO PARA SER IGUAL A INVENTARIO */
+/*============================= Gestion de Citas =================================*/
+.gestion-citas {
+  width: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.gestion-citas h2 {
+  text-align: left;
+  margin-bottom: 10px;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 0;
+}
+
+/* ================== HEADER SECTION ================== */
+.gestion-citas .header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.gestion-citas .header-section h1 {
+  font-size: 28px;
+  color: #fff;
+  margin: 0;
+}
+
+.gestion-citas .stats {
+  display: flex;
+  gap: 15px;
+  color: #d4b64c;
+  font-size: 14px;
+}
+
+.gestion-citas .stat-item {
+  padding: 4px 12px;
+  background: rgba(122, 86, 12, 0.3);
+  border-radius: 6px;
+  border: 1px solid rgba(122, 86, 12, 0.5);
+}
+
+/* ================== CONTENEDOR PRINCIPAL ================== */
+.gestion-citas .contenedor-principal {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 200px - 30px);
+  min-height: 500px;
+  flex: 1;
+}
+
+/* ================== CONTENEDOR IZQUIERDO (Lista) ================== */
+.gestion-citas .contenedor-lista {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-height: 100%;
+}
+
+/* ================== BARRA DE BÚSQUEDA ================== */
+.gestion-citas .busqueda-agregar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 0 5px;
+  box-sizing: border-box;
+}
+
+.gestion-citas .search-bar {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #7a560c;
+  background: rgba(122, 86, 12, 0.15);
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.gestion-citas .search-bar:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+}
+
+/* ================== TABLA CONTAINER ================== */
+.gestion-citas .table-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: auto;
+  max-height: calc(100vh - 250px - 30px - 10px);
+  position: relative;
+  border: 1px solid rgba(122, 86, 12, 0.4);
+}
+
+/* Tabla dentro del contenedor */
+.gestion-citas .data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+  margin: 0;
+}
+
+/* CABECERA */
+.gestion-citas .data-table thead {
+  background: rgba(122, 86, 12, 0.95);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  position: relative;
+  z-index: 2;
+  border-bottom: 2px solid rgba(255, 215, 0, 0.2);
+}
+
+/* Celdas de la cabecera */
+.gestion-citas .data-table th {
+  padding: 16px 15px;
+  text-align: left;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid rgba(255, 215, 0, 0.2);
+  position: relative;
+  background: inherit;
+}
+
+/* Cuerpo de la tabla */
+.gestion-citas .data-table tbody {
+  position: relative;
+}
+
+.gestion-citas .data-table td {
+  padding: 14px 15px;
+  color: #e5e7eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+}
+
+/* Primera fila del cuerpo */
+.gestion-citas .data-table tbody tr:first-child td {
+  border-top: none;
+}
+
+.gestion-citas .data-table tbody tr {
+  transition: background 0.2s;
+  cursor: pointer;
+  background: transparent;
+}
+
+.gestion-citas .data-table tbody tr:hover {
+  background: rgba(122, 86, 12, 0.1);
+}
+
+.gestion-citas .data-table tbody tr.selected-row {
+  background: rgba(122, 86, 12, 0.2);
+}
+
+/* Columnas específicas */
+.gestion-citas .data-table .placa-column {
+  font-weight: 600;
+  color: #ffd700;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+/* ================== BADGE DE ESTADO ================== */
+.gestion-citas .estado-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 80px;
+  text-align: center;
+}
+
+/* ================== MENSAJE SIN RESULTADOS ================== */
+.gestion-citas .no-results {
+  text-align: center;
+  padding: 60px 20px;
+  color: #d4b64c;
+  font-style: italic;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gestion-citas .no-results i {
+  font-size: 48px;
+  color: rgba(122, 86, 12, 0.5);
+  margin-bottom: 10px;
+}
+
+/* ================== SCROLLBAR PERSONALIZADO ================== */
+.gestion-citas .table-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.gestion-citas .table-container::-webkit-scrollbar-track {
+  background: rgba(122, 86, 12, 0.1);
+  border-radius: 5px;
+}
+
+.gestion-citas .table-container::-webkit-scrollbar-thumb {
+  background: #7a560c;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.gestion-citas .table-container::-webkit-scrollbar-thumb:hover {
+  background: #a3780f;
+  background-clip: content-box;
+}
+
+/* Firefox */
+.gestion-citas .table-container {
+  scrollbar-width: thin;
+  scrollbar-color: #7a560c rgba(122, 86, 12, 0.1);
+}
+
+/* ================== CONTENEDOR DERECHO (Detalles) ================== */
+.gestion-citas .contenedor-detalles {
+  flex: 1;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.gestion-citas .sidebar-details {
+  background: rgba(122, 86, 12, 0.1);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(122, 86, 12, 0.3);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateX(20px);
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.gestion-citas .sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gestion-citas .sidebar-header h4 {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+}
+
+.gestion-citas .sidebar-body {
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.gestion-citas .detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gestion-citas .detail-item:last-child {
+  border-bottom: none;
+}
+
+.gestion-citas .detail-item.full-width {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.gestion-citas .descripcion-text {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.gestion-citas .detail-label {
+  color: #d4b64c;
+  font-weight: 500;
+  min-width: 120px;
+  font-size: 0.9rem;
+}
+
+.gestion-citas .detail-value {
+  color: #fff;
+  font-weight: 600;
+  text-align: right;
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.gestion-citas .placa-value {
+  color: #ffd700;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+.gestion-citas .sidebar-footer {
+  display: flex;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gestion-citas .estado-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* ================== BOTONES ================== */
+
+
+.gestion-citas .boton-agregar {
+  background: #7a560c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.gestion-citas .boton-editar {
+  background: #7a560c;
+  color: white;
+}
+
+.gestion-citas .boton-eliminar {
+  background: #983e3e;
+  color: white;
+}
+
+.gestion-citas .boton-guardar {
+  background: #11695c;
+  color: white;
+}
+
+.gestion-citas .boton-cancelar {
+  background: #7a560c;
+  color: white;
+}
+
+.gestion-citas .boton-aceptar {
+  background: #7a560c;
+  color: white;
+}
+
+.gestion-citas .boton-completar {
+  background: #7a560c;
+  color: white;
+}
+
+/* Botón grande */
+.gestion-citas .boton-grande {
+  padding: 12px 24px;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gestion-citas .icono {
+  font-size: 16px;
+}
+
+/* Hover effects */
+.gestion-citas .boton-agregar:hover {
+  background: #a3780f;
+  transform: translateY(-1px);
+}
+
+.gestion-citas .boton-editar:hover {
+  background: #a3780f;
+}
+
+.gestion-citas .boton-eliminar:hover {
+  background: #983e3e;
+}
+
+.gestion-citas .boton-guardar:hover {
+  background: #a3780f;
+}
+
+.gestion-citas .boton-cancelar:hover {
+  background: #a3780f;
+}
+
+.gestion-citas .boton-aceptar:hover {
+  background: #a3780f;
+}
+
+.gestion-citas .boton-completar:hover {
+  background: #a3780f;
+}
+
+/* ================== FORMULARIOS EN MODALES ================== */
+.gestion-citas .form-group {
+  margin-bottom: 20px;
+}
+
+.gestion-citas .form-group label {
+  color: #d4b64c;
+  margin-bottom: 8px;
+  font-weight: 500;
+  display: block;
+  font-size: 0.95rem;
+}
+
+.gestion-citas .form-group input,
+.gestion-citas .form-group select,
+.gestion-citas .form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #7a560c;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+.gestion-citas .form-group input:focus,
+.gestion-citas .form-group select:focus,
+.gestion-citas .form-group textarea:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+}
+
+.gestion-citas .input-error {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.gestion-citas .input-disabled {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #d4b64c !important;
+  cursor: not-allowed;
+}
+
+.gestion-citas .error-message {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 5px;
+  display: block;
+}
+
+.gestion-citas .field-info {
+  color: #d4b64c;
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+}
+
+/* Form row para columnas */
+.gestion-citas .form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.gestion-citas .half-width {
+  flex: 1;
+}
+
+/* Estilos para textarea */
+.gestion-citas .form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ================== INFO BOXES ================== */
+.gestion-citas .info-cliente,
+.gestion-citas .info-cita {
+  background: rgba(122, 86, 12, 0.2);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  padding: 15px;
+  margin: 15px 0;
+}
+
+.gestion-citas .info-cliente p,
+.gestion-citas .info-cita p {
+  margin: 5px 0;
+  color: #fff;
+}
+
+.gestion-citas .info-cliente strong,
+.gestion-citas .info-cita strong {
+  color: #ffd700;
+}
+
+/* ================== MODALES MEJORADOS ================== */
+.gestion-citas .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.gestion-citas .modal {
+  background: linear-gradient(135deg, 
+    rgba(22, 25, 29, 0.95) 0%, 
+    rgba(122, 86, 12, 0.9) 100%);
+  border-radius: 16px;
+  padding: 35px;
+  box-shadow: 
+    0 25px 60px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 215, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  max-width: 520px;
+  width: 90%;
+  animation: modalAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.gestion-citas .modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #7a560c, #ffd700, #7a560c);
+  z-index: 1;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.gestion-citas .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+  position: relative;
+}
+
+.gestion-citas .modal-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent);
+}
+
+.gestion-citas .modal-header h3 {
+  margin: 0;
+  color: #ffd700;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.gestion-citas .modal-body {
+  margin-bottom: 30px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.gestion-citas .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.gestion-citas .modal-body::-webkit-scrollbar-track {
+  background: rgba(122, 86, 12, 0.1);
+  border-radius: 4px;
+}
+
+.gestion-citas .modal-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #7a560c, #ffd700);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.gestion-citas .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding-top: 25px;
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+/* ================== BOTÓN CERRAR MODAL MEJORADO ================== */
+.gestion-citas .btn-close {
+  background: rgba(122, 86, 12, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: #ffd700;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.gestion-citas .btn-close:hover {
+  background: rgba(255, 215, 0, 0.3);
+  color: #ffffff;
+  transform: rotate(90deg);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+  border-color: #ffd700;
+}
+
+.gestion-citas .btn-close::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 215, 0, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.gestion-citas .btn-close:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+/* ================== WARNING MESSAGE ================== */
+.gestion-citas .warning-message {
+  background: rgba(122, 12, 12, 0.2);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 15px 0;
+}
+
+.gestion-citas .cita-existente {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+
+.gestion-citas .warning-text {
+  color: #ffd700;
+  font-weight: 600;
+  margin-top: 15px;
+  text-align: center;
+  font-size: 16px;
+}
+
+/* ================== MODALES ESPECIALES ================== */
+.gestion-citas .modal-wide {
+  max-width: 600px;
+}
+
+.gestion-citas .modal-alerta {
+  max-width: 550px;
+  background: linear-gradient(135deg, 
+    rgba(22, 25, 29, 0.95) 0%, 
+    rgba(51, 27, 27, 0.9) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.gestion-citas .modal-alerta::before {
+  background: linear-gradient(90deg, #7b2c25, #ef4444, #7b2c25);
+}
+
+/* ================== RESPONSIVE ================== */
+@media (max-width: 1588px) {
+  .gestion-citas .contenedor-principal {
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
+  }
+  
+  .gestion-citas .contenedor-lista {
+    width: 100%;
+    height: 60vh;
+    min-height: 400px;
+  }
+  
+  .gestion-citas .contenedor-detalles {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 200px;
+    margin-top: 20px;
+  }
+  
+  .gestion-citas .sidebar-details {
+    height: auto;
+    min-height: 200px;
+  }
+  
+  .gestion-citas .table-container {
+    max-height: 60vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .gestion-citas .busqueda-agregar {
+    flex-direction: column;
+  }
+  
+  .gestion-citas .sidebar-footer,
+  .gestion-citas .estado-actions,
+  .gestion-citas .modal-footer {
+    flex-direction: column;
+  }
+  
+  .gestion-citas .detail-item {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .gestion-citas .detail-label,
+  .gestion-citas .detail-value {
+    min-width: auto;
+    text-align: left;
+  }
+  
+  .gestion-citas .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .gestion-citas .modal,
+  .gestion-citas .modal-wide,
+  .gestion-citas .modal-alerta {
+    padding: 25px;
+    width: 95%;
+  }
+}
+
+/* ================== ANIMACIONES ================== */
+.gestion-citas .fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ================== ESTILOS ADICIONALES ================== */
+.gestion-citas .descripcion-text {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.gestion-citas .search-bar::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
