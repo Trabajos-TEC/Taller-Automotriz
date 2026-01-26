@@ -289,3 +289,35 @@
     min-width: 180px;
   }
 }
+
+/* ===== SEPARADORES DEL MENÚ ===== */
+
+/* ===== INFORMACIÓN DEL USUARIO EN EL MENÚ ===== */
+.user-info-header {
+  padding: 15px;
+  text-align: center;
+  color: rgb(209, 199, 199);
+  background: rgba(79, 87, 92, 0.3);
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+.user-role {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== SEPARADOR ===== */
+.separator {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 15px 0;
+  width: 100%;
+}

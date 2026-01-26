@@ -1,0 +1,1023 @@
+/* src/styles/pages/GestionTrabajos.css - TEMA MORADO */
+/*============================= Gestion de Trabajos =================================*/
+.gestion-trabajos {
+  width: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.gestion-trabajos h2 {
+  text-align: left;
+  margin-bottom: 10px;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 0;
+}
+
+/* ================== HEADER SECTION ================== */
+.gestion-trabajos .header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.gestion-trabajos .header-section h1 {
+  font-size: 28px;
+  color: #fff;
+  margin: 0;
+}
+
+.gestion-trabajos .stats {
+  display: flex;
+  gap: 15px;
+  color: #9aa4b2;
+  font-size: 14px;
+}
+
+.gestion-trabajos .stat-item {
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+/* ================== CONTENEDOR PRINCIPAL ================== */
+.gestion-trabajos .contenedor-principal {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 200px - 30px);
+  min-height: 500px;
+  flex: 1;
+}
+
+/* ================== CONTENEDOR IZQUIERDO (Lista) ================== */
+.gestion-trabajos .contenedor-lista {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-height: 100%;
+}
+
+/* ================== BARRA DE BÚSQUEDA ================== */
+.gestion-trabajos .busqueda-agregar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 0 5px;
+  box-sizing: border-box;
+}
+
+.gestion-trabajos .search-bar {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #34273a;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.gestion-trabajos .search-bar:focus {
+  outline: none;
+  border-color: #6d28d9;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+}
+
+/* ================== TABLA CONTAINER ================== */
+.gestion-trabajos .table-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: auto;
+  max-height: calc(100vh - 250px - 30px - 10px);
+  position: relative;
+  border: 1px solid rgba(109, 40, 217, 0.3);
+}
+
+/* Tabla dentro del contenedor */
+.gestion-trabajos .data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+  margin: 0;
+}
+
+/* CABECERA */
+.gestion-trabajos .data-table thead {
+  background: rgba(109, 40, 217, 0.95);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  position: relative;
+  z-index: 2;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Celdas de la cabecera */
+.gestion-trabajos .data-table th {
+  padding: 16px 15px;
+  text-align: left;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  background: inherit;
+}
+
+/* Cuerpo de la tabla */
+.gestion-trabajos .data-table tbody {
+  position: relative;
+}
+
+.gestion-trabajos .data-table td {
+  padding: 14px 15px;
+  color: #e5e7eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+}
+
+/* Primera fila del cuerpo */
+.gestion-trabajos .data-table tbody tr:first-child td {
+  border-top: none;
+}
+
+.gestion-trabajos .data-table tbody tr {
+  transition: background 0.2s;
+  cursor: pointer;
+  background: transparent;
+}
+
+.gestion-trabajos .data-table tbody tr:hover {
+  background: rgba(109, 40, 217, 0.08);
+}
+
+.gestion-trabajos .data-table tbody tr.selected-row {
+  background: rgba(109, 40, 217, 0.15);
+}
+
+/* Columnas específicas */
+.gestion-trabajos .data-table .codigo-column {
+  font-weight: 600;
+  color: #d8b4fe;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+.gestion-trabajos .data-table .nombre-column {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.gestion-trabajos .data-table .total-column {
+  font-weight: 700;
+  color: #10b981;
+}
+
+/* ================== ESTADOS BADGE ================== */
+.gestion-trabajos .estado-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.gestion-trabajos .estado-pendiente {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.gestion-trabajos .estado-en-proceso {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.gestion-trabajos .estado-finalizada {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.gestion-trabajos .estado-cancelada {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* ================== MENSAJE SIN RESULTADOS ================== */
+.gestion-trabajos .no-results {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9aa4b2;
+  font-style: italic;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gestion-trabajos .no-results i {
+  font-size: 48px;
+  color: rgba(109, 40, 217, 0.5);
+  margin-bottom: 10px;
+}
+
+/* ================== SCROLLBAR PERSONALIZADO ================== */
+.gestion-trabajos .table-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.gestion-trabajos .table-container::-webkit-scrollbar-track {
+  background: rgba(109, 40, 217, 0.1);
+  border-radius: 5px;
+}
+
+.gestion-trabajos .table-container::-webkit-scrollbar-thumb {
+  background: #6d28d9;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.gestion-trabajos .table-container::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed;
+  background-clip: content-box;
+}
+
+/* Firefox */
+.gestion-trabajos .table-container {
+  scrollbar-width: thin;
+  scrollbar-color: #6d28d9 rgba(109, 40, 217, 0.1);
+}
+
+/* ================== CONTENEDOR DERECHO (Detalles) ================== */
+.gestion-trabajos .contenedor-detalles {
+  flex: 1;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.gestion-trabajos .sidebar-details {
+  background: rgba(109, 40, 217, 0.1);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(109, 40, 217, 0.3);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateX(20px);
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.gestion-trabajos .sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gestion-trabajos .sidebar-header h4 {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+}
+
+.gestion-trabajos .sidebar-body {
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.gestion-trabajos .detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gestion-trabajos .detail-item:last-child {
+  border-bottom: none;
+}
+
+.gestion-trabajos .detail-label {
+  color: #9aa4b2;
+  font-weight: 500;
+  min-width: 120px;
+  font-size: 0.9rem;
+}
+
+.gestion-trabajos .detail-value {
+  color: #fff;
+  font-weight: 600;
+  text-align: right;
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.gestion-trabajos .codigo-value {
+  color: #d8b4fe;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+.gestion-trabajos .sidebar-footer {
+  display: flex;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ================== BOTONES ================== */
+.gestion-trabajos .boton-agregar {
+  background: #6d28d9;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.gestion-trabajos .boton-editar {
+  background: #6d28d9;
+  color: white;
+}
+
+.gestion-trabajos .boton-eliminar {
+  background: #1f4f70;
+  color: white;
+}
+
+.gestion-trabajos .boton-guardar {
+  background: #11695c;
+  color: white;
+}
+
+.gestion-trabajos .boton-cancelar {
+  background: #334155;
+  color: white;
+}
+
+/* Hover effects */
+.gestion-trabajos .boton-agregar:hover {
+  background: #7c3aed;
+  transform: translateY(-1px);
+}
+
+.gestion-trabajos .boton-editar:hover {
+  background: #7c3aed;
+}
+
+.gestion-trabajos .boton-eliminar:hover {
+  background: #2c6da0;
+}
+
+.gestion-trabajos .boton-guardar:hover {
+  background: #148571;
+}
+
+.gestion-trabajos .boton-cancelar:hover {
+  background: #4b5563;
+}
+
+/* ================== FORMULARIOS EN MODALES ================== */
+.gestion-trabajos .form-group {
+  margin-bottom: 20px;
+}
+
+.gestion-trabajos .form-group label {
+  color: #c1c5cc;
+  margin-bottom: 8px;
+  font-weight: 500;
+  display: block;
+  font-size: 0.95rem;
+}
+
+.gestion-trabajos .form-group input,
+.gestion-trabajos .form-group select,
+.gestion-trabajos .form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #4b5563;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.gestion-trabajos .form-group input:focus,
+.gestion-trabajos .form-group select:focus,
+.gestion-trabajos .form-group textarea:focus {
+  outline: none;
+  border-color: #6d28d9;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+}
+
+.gestion-trabajos .input-error {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.gestion-trabajos .input-disabled {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #9aa4b2 !important;
+  cursor: not-allowed;
+}
+
+.gestion-trabajos .error-message {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 5px;
+  display: block;
+}
+
+.gestion-trabajos .field-info {
+  color: #9aa4b2;
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+}
+
+/* ================== MODALES MEJORADOS ================== */
+.gestion-trabajos .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.gestion-trabajos .modal {
+  background: linear-gradient(135deg, 
+    rgba(22, 25, 29, 0.95) 0%, 
+    rgba(52, 39, 58, 0.9) 100%);
+  border-radius: 16px;
+  padding: 35px;
+  box-shadow: 
+    0 25px 60px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(109, 40, 217, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  max-width: 520px;
+  width: 90%;
+  animation: modalAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.gestion-trabajos .modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #6d28d9, #a78bfa, #6d28d9);
+  z-index: 1;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.gestion-trabajos .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+  position: relative;
+}
+
+.gestion-trabajos .modal-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.5), transparent);
+}
+
+.gestion-trabajos .modal-header h3 {
+  margin: 0;
+  color: #d8b4fe;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.gestion-trabajos .modal-body {
+  margin-bottom: 30px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.gestion-trabajos .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.gestion-trabajos .modal-body::-webkit-scrollbar-track {
+  background: rgba(109, 40, 217, 0.1);
+  border-radius: 4px;
+}
+
+.gestion-trabajos .modal-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #6d28d9, #a78bfa);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.gestion-trabajos .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding-top: 25px;
+  border-top: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+/* ================== BOTÓN CERRAR MODAL MEJORADO ================== */
+.gestion-trabajos .btn-close {
+  background: rgba(109, 40, 217, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: #d8b4fe;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.gestion-trabajos .btn-close:hover {
+  background: rgba(168, 85, 247, 0.3);
+  color: #ffffff;
+  transform: rotate(90deg);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+  border-color: #a78bfa;
+}
+
+.gestion-trabajos .btn-close::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(168, 85, 247, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.gestion-trabajos .btn-close:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+/* ================== MODAL GRANDE ================== */
+.gestion-trabajos .modal-grande {
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ================== SECCIONES MODAL GRANDE ================== */
+.gestion-trabajos .seccion-info,
+.gestion-trabajos .seccion-items,
+.gestion-trabajos .seccion-notas {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gestion-trabajos .seccion-info:last-child,
+.gestion-trabajos .seccion-items:last-child,
+.gestion-trabajos .seccion-notas:last-child {
+  border-bottom: none;
+}
+
+.gestion-trabajos .seccion-info h4,
+.gestion-trabajos .seccion-items h4,
+.gestion-trabajos .seccion-notas h4 {
+  color: #a78bfa;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+/* ================== GRID DE INFORMACIÓN ================== */
+.gestion-trabajos .grid-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.gestion-trabajos .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.gestion-trabajos .info-item label {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+}
+
+.gestion-trabajos .info-item span {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ================== TABLA SCROLLABLE ================== */
+.gestion-trabajos .table-scrollable {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.gestion-trabajos .items-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.gestion-trabajos .items-table th {
+  background: rgba(109, 40, 217, 0.8);
+  padding: 12px 15px;
+  color: #fff;
+  font-weight: 600;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.gestion-trabajos .items-table td {
+  padding: 10px 15px;
+  color: #e5e7eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gestion-trabajos .items-table tr:hover {
+  background: rgba(109, 40, 217, 0.08);
+}
+
+.gestion-trabajos .no-items {
+  text-align: center;
+  color: #9aa4b2;
+  font-style: italic;
+  padding: 20px !important;
+}
+
+/* ================== FORMULARIOS INLINE ================== */
+.gestion-trabajos .form-group-inline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.gestion-trabajos .form-group-inline input {
+  flex: 1;
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: 1px solid #4b5563;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* ================== LISTA DE NOTAS ================== */
+.gestion-trabajos .lista-notas {
+  margin-bottom: 15px;
+}
+
+.gestion-trabajos .nota-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-left: 4px solid #a78bfa;
+}
+
+.gestion-trabajos .nota-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.gestion-trabajos .nota-fecha {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+}
+
+.gestion-trabajos .nota-texto {
+  color: #fff;
+  line-height: 1.5;
+}
+
+/* ================== FORMULARIO AGREGAR NOTA ================== */
+.gestion-trabajos .agregar-nota-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gestion-trabajos .agregar-nota-form textarea {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #4b5563;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 15px;
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ================== TOTAL RESUMEN ================== */
+.gestion-trabajos .total-resumen {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.gestion-trabajos .total-label {
+  color: #10b981;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.gestion-trabajos .total-valor {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+/* ================== ACCIONES FINALES ================== */
+.gestion-trabajos .acciones-finales {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ================== BOTONES PEQUEÑOS ================== */
+.gestion-trabajos .boton-eliminar-pequeno {
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.gestion-trabajos .boton-eliminar-pequeno:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.gestion-trabajos .boton-agregar-pequeno {
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  background: rgba(109, 40, 217, 0.2);
+  color: #a78bfa;
+  border: 1px solid rgba(109, 40, 217, 0.3);
+}
+
+.gestion-trabajos .boton-agregar-pequeno:hover {
+  background: rgba(109, 40, 217, 0.3);
+}
+
+.gestion-trabajos .boton-agregar-pequeno:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ================== INFO USUARIO ================== */
+.gestion-trabajos .info-usuario {
+  background: rgba(109, 40, 217, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(109, 40, 217, 0.3);
+}
+
+.gestion-trabajos .info-text {
+  color: #d8b4fe;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.gestion-trabajos .warning-text {
+  color: #f59e0b;
+  font-size: 0.9rem;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+/* ================== NOTA COMPLETA ================== */
+.gestion-trabajos .nota-completa {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border-left: 4px solid #a78bfa;
+}
+
+.gestion-trabajos .nota-meta {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gestion-trabajos .nota-meta p {
+  color: #9aa4b2;
+  margin: 0;
+}
+
+.gestion-trabajos .nota-contenido {
+  color: #fff;
+  line-height: 1.6;
+  font-size: 1.05rem;
+  white-space: pre-line;
+}
+
+/* ================== INFO SISTEMA ================== */
+.gestion-trabajos .info-sistema {
+  text-align: center;
+  padding: 15px;
+  color: #9aa4b2;
+  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(109, 40, 217, 0.3);
+}
+
+/* ================== RESPONSIVE ================== */
+@media (max-width: 1588px) {
+  .gestion-trabajos .contenedor-principal {
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
+  }
+  
+  .gestion-trabajos .contenedor-lista {
+    width: 100%;
+    height: 60vh;
+    min-height: 400px;
+  }
+  
+  .gestion-trabajos .contenedor-detalles {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 200px;
+    margin-top: 20px;
+  }
+  
+  .gestion-trabajos .sidebar-details {
+    height: auto;
+    min-height: 200px;
+  }
+  
+  .gestion-trabajos .table-container {
+    max-height: 60vh;
+  }
+}
+
+@media (max-width: 1024px) {
+  .gestion-trabajos .grid-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .gestion-trabajos .modal-grande {
+    width: 95%;
+    margin: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .gestion-trabajos .busqueda-agregar {
+    flex-direction: column;
+  }
+  
+  .gestion-trabajos .sidebar-footer,
+  .gestion-trabajos .modal-footer {
+    flex-direction: column;
+  }
+  
+  .gestion-trabajos .detail-item {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .gestion-trabajos .detail-label,
+  .gestion-trabajos .detail-value {
+    min-width: auto;
+    text-align: left;
+  }
+  
+  .gestion-trabajos .form-group-inline {
+    flex-direction: column;
+  }
+  
+  .gestion-trabajos .form-group-inline input,
+  .gestion-trabajos .form-group-inline button {
+    width: 100%;
+  }
+  
+  .gestion-trabajos .acciones-finales {
+    flex-direction: column;
+  }
+  
+  .gestion-trabajos .modal-footer {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .gestion-trabajos .modal {
+    padding: 25px;
+    width: 95%;
+  }
+}
+
+/* ================== ANIMACIONES ================== */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.gestion-trabajos .modal-grande {
+  animation: slideInRight 0.3s ease-out;
+}

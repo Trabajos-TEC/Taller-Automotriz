@@ -7,13 +7,17 @@ interface MenuProps {
   currentSection?: string;
   onSectionChange?: (section: string) => void;
   isAdmin?: boolean;
+  userName?: string;
+  userRole?: string;
 }
 
 const Menu: React.FC<MenuProps> = ({ 
   onLogout, 
   currentSection = 'clientes',
   onSectionChange,
-  isAdmin = false 
+  isAdmin = false,
+  userName = 'Usuario',
+  userRole = 'mecanico'
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -65,6 +69,15 @@ const Menu: React.FC<MenuProps> = ({
       </button>
 
       <div className={`dropdown-menu ${menuOpen ? 'show' : ''}`}>
+        {/* Agregado: Información del usuario arriba */}
+        <div className="user-info-header">
+          <div className="user-name">{userName}</div>
+          <div className="user-role">{userRole === 'admin' ? 'Administrador' : 'Mecánico'}</div>
+        </div>
+        
+        {/* Agregado: Separador */}
+        <div className="separator"></div>
+        
         <div className="menu-items">
           {menuItems.map(item => (
             <button

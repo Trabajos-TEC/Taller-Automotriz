@@ -293,7 +293,6 @@ const InventarioAdmin: React.FC = () => {
   return (
     <div className="gestion-inventario">
       <div className="header-section">
-        <h1>Gestión de Inventario</h1>
         <div className="stats">
           <span className="stat-item">Total: {totalRepuestos} repuestos</span>
           <span className="stat-item">Valor: ${totalValor.toFixed(2)}</span>

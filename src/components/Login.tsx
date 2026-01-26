@@ -1,4 +1,4 @@
-// src/components/LoginForm.tsx - VERSIÓN SIN EMOJIS Y SILUETAS NEGRAS
+// src/components/Login.tsx - VERSIÓN SIN EMOJIS Y SILUETAS NEGRAS
 import React, { useState } from 'react';
 import '../styles/Login.css';
 
