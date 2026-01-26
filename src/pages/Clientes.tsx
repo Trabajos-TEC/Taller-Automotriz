@@ -1,60 +1,25 @@
-// src/pages/Clientes.tsx - VERSIÓN SIN BOTONES EN LISTA
-import React, { useState } from 'react';
+// src/pages/Clientes.tsx - VERSIÓN CORREGIDA CON VERBATIM MODULE SYNTAX
+import React, { useState, useEffect, useCallback } from 'react';
+import { clienteService } from '../services/cliente.service';
+import type { Cliente } from '../services/cliente.service'; // Importación type-only
 import '../styles/pages/Clientes.css';
 import '../styles/Botones.css';
 
-interface Cliente {
-  nombre: string;
-  cedula: string;
-  correo: string;
-  numero: string;
-}
-
 const Clientes: React.FC = () => {
-  // Estado para la lista de clientes (más de 10 para probar scroll)
-  const [clientes, setClientes] = useState<Cliente[]>([
-    { nombre: 'Juan Pérez', cedula: '123456789', correo: 'juan@email.com', numero: '88889999' },
-    { nombre: 'María García', cedula: '987654321', correo: 'maria@email.com', numero: '77776666' },
-    { nombre: 'Carlos López', cedula: '456789123', correo: 'carlos@email.com', numero: '66665555' },
-    { nombre: 'Ana Rodríguez', cedula: '321654987', correo: 'ana@email.com', numero: '55554444' },
-    { nombre: 'Pedro Martínez', cedula: '789123456', correo: 'pedro@email.com', numero: '44443333' },
-    { nombre: 'Laura Fernández', cedula: '654123987', correo: 'laura@email.com', numero: '33332222' },
-    { nombre: 'Miguel Sánchez', cedula: '159753486', correo: 'miguel@email.com', numero: '22221111' },
-    { nombre: 'Isabel Gómez', cedula: '357951852', correo: 'isabel@email.com', numero: '11110000' },
-    { nombre: 'David Torres', cedula: '258147369', correo: 'david@email.com', numero: '99998888' },
-    { nombre: 'Carmen Ruiz', cedula: '741852963', correo: 'carmen@email.com', numero: '88887777' },
-    { nombre: 'Jorge Díaz', cedula: '369258147', correo: 'jorge@email.com', numero: '77776666' },
-    { nombre: 'Elena Castro', cedula: '852369147', correo: 'elena@email.com', numero: '66665555' },
-    { nombre: 'Francisco Ortega', cedula: '147258369', correo: 'francisco@email.com', numero: '55554444' },
-    { nombre: 'Sofía Navarro', cedula: '963852741', correo: 'sofia@email.com', numero: '44443333' },
-    { nombre: 'Raúl Jiménez', cedula: '321789654', correo: 'raul@email.com', numero: '33332222' },
-    { nombre: 'Patricia Molina', cedula: '654987321', correo: 'patricia@email.com', numero: '22221111' },
-    { nombre: 'Andrés Guerrero', cedula: '987321654', correo: 'andres@email.com', numero: '11110000' },
-    { nombre: 'Beatriz Ramos', cedula: '123987456', correo: 'beatriz@email.com', numero: '99998888' },
-    { nombre: 'José Ángel Santos', cedula: '456321789', correo: 'jose@email.com', numero: '88887777' },
-    { nombre: 'Teresa Flores', cedula: '789654123', correo: 'teresa@email.com', numero: '77776666' },
-    { nombre: 'Alberto Vázquez', cedula: '321456987', correo: 'alberto@email.com', numero: '66665555' },
-    { nombre: 'Rosa Marín', cedula: '654789321', correo: 'rosa@email.com', numero: '55554444' },
-    { nombre: 'Manuel León', cedula: '987123456', correo: 'manuel@email.com', numero: '44443333' },
-    { nombre: 'Cristina Herrera', cedula: '159357486', correo: 'cristina@email.com', numero: '33332222' },
-    { nombre: 'Sergio Peña', cedula: '357159852', correo: 'sergio@email.com', numero: '22221111' },
-  ]);
-
-  // Estados para búsqueda y selección
+  // Estados
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Cliente | null>(null);
   const [showModalAgregar, setShowModalAgregar] = useState(false);
   const [showModalEditar, setShowModalEditar] = useState(false);
-  
-  // Estado para nuevo cliente
-  const [newCliente, setNewCliente] = useState<Cliente>({ 
+  const [newCliente, setNewCliente] = useState<Omit<Cliente, 'id'>>({ 
     nombre: '', 
     cedula: '', 
     correo: '', 
     numero: ''
   });
-
-  // Estados para mensajes de error
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   // Validaciones
@@ -62,15 +27,61 @@ const Clientes: React.FC = () => {
   const soloNumeros = /^\d+$/;
   const formatoCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  // Filtrar clientes
+  // Cargar clientes
+  const cargarClientes = useCallback(async (searchTerm?: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await clienteService.getClientes(searchTerm);
+      
+      // Manejo flexible de respuestas
+      if (response && Array.isArray(response)) {
+        setClientes(response);
+      } else if (response && (response as any).data && Array.isArray((response as any).data)) {
+        setClientes((response as any).data);
+      } else if (response && (response as any).success && Array.isArray((response as any).data)) {
+        setClientes((response as any).data);
+      } else {
+        console.error('Formato de respuesta inesperado:', response);
+        setClientes([]);
+      }
+    } catch (error: any) {
+      console.error('Error cargando clientes:', error);
+      setError(error.message || 'Error al cargar clientes');
+      setClientes([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Cargar clientes al iniciar
+  useEffect(() => {
+    cargarClientes();
+  }, [cargarClientes]);
+
+  // Filtrar clientes localmente
   const clientesFiltrados = clientes.filter(c =>
     c.nombre.toLowerCase().includes(search.toLowerCase()) ||
     c.cedula.includes(search) ||
     (c.correo && c.correo.toLowerCase().includes(search.toLowerCase()))
   );
 
+  // Manejar búsqueda con debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search.trim() !== '') {
+        cargarClientes(search);
+      } else {
+        cargarClientes();
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search, cargarClientes]);
+
   /* === VALIDAR FORMULARIO === */
-  const validarCliente = (cliente: Cliente, isEdit: boolean = false) => {
+  const validarCliente = (cliente: Omit<Cliente, 'id'>) => {
     const newErrors: {[key: string]: string} = {};
 
     // Validar nombre
@@ -87,22 +98,16 @@ const Clientes: React.FC = () => {
       newErrors.cedula = 'Solo números';
     } else if (cliente.cedula.trim().length !== 9) {
       newErrors.cedula = 'Debe tener 9 dígitos';
-    } else if (!isEdit) {
-      // Solo validar duplicado al agregar, no al editar
-      const existe = clientes.find(c => c.cedula === cliente.cedula.trim());
-      if (existe) {
-        newErrors.cedula = 'Cédula ya registrada';
-      }
     }
 
-    // Validar número telefónico
+    // Validar número telefónico - CORRECCIÓN: usar ?. para opcionales
     if (cliente.numero && !soloNumeros.test(cliente.numero.trim())) {
       newErrors.numero = 'Solo números';
     } else if (cliente.numero && cliente.numero.trim().length < 8) {
       newErrors.numero = 'Mínimo 8 dígitos';
     }
 
-    // Validar correo
+    // Validar correo - CORRECCIÓN: usar ?. para opcionales
     if (cliente.correo && !formatoCorreo.test(cliente.correo.trim())) {
       newErrors.correo = 'Formato inválido';
     }
@@ -111,7 +116,7 @@ const Clientes: React.FC = () => {
   };
 
   /* === AGREGAR CLIENTE === */
-  const agregarCliente = () => {
+  const agregarCliente = async () => {
     const validationErrors = validarCliente(newCliente);
     
     if (Object.keys(validationErrors).length > 0) {
@@ -119,53 +124,105 @@ const Clientes: React.FC = () => {
       return;
     }
 
-    // Crear cliente con datos limpios
-    const cliente: Cliente = {
-      nombre: newCliente.nombre.trim(),
-      cedula: newCliente.cedula.trim(),
-      correo: newCliente.correo.trim(),
-      numero: newCliente.numero.trim()
-    };
+    try {
+      setLoading(true);
+      
+      // Crear cliente sin el campo id - CORRECCIÓN: manejar undefined
+      const clienteParaCrear: Omit<Cliente, 'id'> = {
+        nombre: newCliente.nombre.trim(),
+        cedula: newCliente.cedula.trim(),
+        correo: newCliente.correo?.trim() || undefined,
+        numero: newCliente.numero?.trim() || undefined
+      };
 
-    setClientes([...clientes, cliente]);
-    
-    // Limpiar formulario y errores
-    setNewCliente({ nombre: '', cedula: '', correo: '', numero: '' });
-    setErrors({});
-    setShowModalAgregar(false);
-    
-    alert('Cliente agregado exitosamente');
+      const response = await clienteService.createCliente(clienteParaCrear);
+      
+      // Verificar si la creación fue exitosa
+      if (response) {
+        // Recargar clientes
+        await cargarClientes();
+        
+        // Limpiar y cerrar
+        setNewCliente({ nombre: '', cedula: '', correo: '', numero: '' });
+        setErrors({});
+        setShowModalAgregar(false);
+        
+        alert('Cliente agregado exitosamente');
+      }
+    } catch (error: any) {
+      console.error('Error agregando cliente:', error);
+      
+      // Manejar error específico de cédula duplicada
+      if (error.message && error.message.includes('cédula') || 
+          error.message && error.message.includes('Cédula')) {
+        setErrors({ ...errors, cedula: 'La cédula ya está registrada' });
+      } else {
+        alert('Error al agregar cliente: ' + (error.message || 'Error desconocido'));
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* === EDITAR CLIENTE === */
-  const guardarEdicion = () => {
+  const guardarEdicion = async () => {
     if (!selected) return;
 
-    const validationErrors = validarCliente(selected, true);
+    const validationErrors = validarCliente(selected);
     
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    // Actualizar cliente en la lista
-    setClientes(clientes.map(c => 
-      c.cedula === selected.cedula ? selected : c
-    ));
-    
-    setErrors({});
-    setShowModalEditar(false);
-    
-    alert('Cliente actualizado exitosamente');
+    try {
+      setLoading(true);
+      
+      // Preparar datos para actualizar
+      const datosActualizar: Partial<Cliente> = {
+        nombre: selected.nombre.trim(),
+        correo: selected.correo?.trim() || undefined,
+        numero: selected.numero?.trim() || undefined
+      };
+
+      const response = await clienteService.updateCliente(selected.cedula, datosActualizar);
+      
+      if (response) {
+        await cargarClientes();
+        setErrors({});
+        setShowModalEditar(false);
+        
+        alert('Cliente actualizado exitosamente');
+      }
+    } catch (error: any) {
+      console.error('Error actualizando cliente:', error);
+      alert('Error al actualizar cliente: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* === ELIMINAR CLIENTE === */
-  const eliminarCliente = (cedula: string) => {
+  const eliminarCliente = async (cedula: string) => {
     if (!confirm('¿Está seguro de eliminar este cliente?')) return;
 
-    setClientes(clientes.filter(c => c.cedula !== cedula));
-    setSelected(null);
-    alert('Cliente eliminado');
+    try {
+      setLoading(true);
+      
+      const response = await clienteService.deleteCliente(cedula);
+      
+      if (response) {
+        await cargarClientes();
+        setSelected(null);
+        
+        alert('Cliente eliminado exitosamente');
+      }
+    } catch (error: any) {
+      console.error('Error eliminando cliente:', error);
+      alert('Error al eliminar cliente: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* === LIMPIAR ERRORES === */
@@ -179,20 +236,21 @@ const Clientes: React.FC = () => {
         <div className="stats">
           <span className="stat-item">Total: {clientes.length} clientes</span>
           <span className="stat-item">Mostrando: {clientesFiltrados.length}</span>
+          {loading && <span className="stat-item loading">Cargando...</span>}
+          {error && <span className="stat-item error">{error}</span>}
         </div>
       </div>
 
-      {/* CONTENEDOR PRINCIPAL CON LISTA Y DETALLES */}
       <div className="contenedor-principal">
         {/* CONTENEDOR IZQUIERDO - LISTA DE CLIENTES */}
         <div className="contenedor-lista">
-          {/* BARRA DE BÚSQUEDA Y BOTÓN */}
           <div className="busqueda-agregar">
             <input
               className="search-bar"
               placeholder="Buscar por nombre, cédula o correo..."
               value={search}
               onChange={e => setSearch(e.target.value)}
+              disabled={loading}
             />
             <button
               className="boton boton-agregar boton-grande"
@@ -200,50 +258,56 @@ const Clientes: React.FC = () => {
                 setShowModalAgregar(true);
                 limpiarErrores();
               }}
+              disabled={loading}
             >
               <span className="icono">+</span>
               Agregar Cliente
             </button>
           </div>
 
-          {/* TABLA DE CLIENTES CON SCROLL */}
           <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Cédula</th>
-                  <th>Teléfono</th>
-                  <th>Correo</th>
-                  {/* COLUMNA ACCIONES ELIMINADA */}
-                </tr>
-              </thead>
-              <tbody>
-                {clientesFiltrados.map((cliente, index) => (
-                  <tr 
-                    key={`${cliente.cedula}-${index}`}
-                    className={selected?.cedula === cliente.cedula ? 'selected-row' : ''}
-                    onClick={() => setSelected(cliente)}
-                  >
-                    <td>{cliente.nombre}</td>
-                    <td>{cliente.cedula}</td>
-                    <td>{cliente.numero || 'N/A'}</td>
-                    <td>{cliente.correo || 'N/A'}</td>
-                    {/* CELDA DE ACCIONES ELIMINADA */}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            
-            {clientesFiltrados.length === 0 && (
-              <div className="no-results">
-                {search ? 'No se encontraron clientes' : 'No hay clientes registrados'}
-              </div>
+            {loading && clientes.length === 0 ? (
+              <div className="loading">Cargando clientes...</div>
+            ) : error ? (
+              <div className="error-message">Error: {error}</div>
+            ) : (
+              <>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Nombre</th>
+                      <th>Cédula</th>
+                      <th>Teléfono</th>
+                      <th>Correo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {clientesFiltrados.map((cliente) => (
+                      <tr 
+                        key={cliente.cedula}
+                        className={selected?.cedula === cliente.cedula ? 'selected-row' : ''}
+                        onClick={() => setSelected(cliente)}
+                      >
+                        <td>{cliente.nombre}</td>
+                        <td>{cliente.cedula}</td>
+                        <td>{cliente.numero || 'N/A'}</td>
+                        <td>{cliente.correo || 'N/A'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                {clientesFiltrados.length === 0 && !loading && (
+                  <div className="no-results">
+                    {search ? 'No se encontraron clientes' : 'No hay clientes registrados'}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
 
-        {/* CONTENEDOR DERECHO - DETALLES DEL CLIENTE SELECCIONADO */}
+        {/* DETALLES DEL CLIENTE */}
         {selected && !showModalEditar && (
           <div className="contenedor-detalles">
             <div className="sidebar-details">
@@ -283,12 +347,14 @@ const Clientes: React.FC = () => {
                     setShowModalEditar(true);
                     limpiarErrores();
                   }}
+                  disabled={loading}
                 >
                   Editar Cliente
                 </button>
                 <button 
                   className="boton boton-eliminar"
                   onClick={() => eliminarCliente(selected.cedula)}
+                  disabled={loading}
                 >
                   Eliminar
                 </button>
@@ -300,16 +366,14 @@ const Clientes: React.FC = () => {
 
       {/* MODAL AGREGAR CLIENTE */}
       {showModalAgregar && (
-        <div className="modal-overlay" onClick={() => {
-          setShowModalAgregar(false);
-          limpiarErrores();
-        }}>
+        <div className="modal-overlay" onClick={() => !loading && setShowModalAgregar(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Agregar Nuevo Cliente</h3>
               <button 
                 className="btn-close" 
-                onClick={() => setShowModalAgregar(false)}
+                onClick={() => !loading && setShowModalAgregar(false)}
+                disabled={loading}
               >
                 ×
               </button>
@@ -323,6 +387,7 @@ const Clientes: React.FC = () => {
                   value={newCliente.nombre}
                   onChange={e => setNewCliente({ ...newCliente, nombre: e.target.value })}
                   className={errors.nombre ? 'input-error' : ''}
+                  disabled={loading}
                 />
                 {errors.nombre && <span className="error-message">{errors.nombre}</span>}
               </div>
@@ -334,6 +399,7 @@ const Clientes: React.FC = () => {
                   value={newCliente.cedula}
                   onChange={e => setNewCliente({ ...newCliente, cedula: e.target.value })}
                   className={errors.cedula ? 'input-error' : ''}
+                  disabled={loading}
                 />
                 {errors.cedula && <span className="error-message">{errors.cedula}</span>}
               </div>
@@ -342,9 +408,10 @@ const Clientes: React.FC = () => {
                 <label>Correo Electrónico</label>
                 <input
                   placeholder="ejemplo@email.com"
-                  value={newCliente.correo}
-                  onChange={e => setNewCliente({ ...newCliente, correo: e.target.value })}
+                  value={newCliente.correo || ''} 
+                  onChange={e => setNewCliente({ ...newCliente, correo: e.target.value || undefined })}
                   className={errors.correo ? 'input-error' : ''}
+                  disabled={loading}
                 />
                 {errors.correo && <span className="error-message">{errors.correo}</span>}
               </div>
@@ -353,19 +420,28 @@ const Clientes: React.FC = () => {
                 <label>Número Telefónico</label>
                 <input
                   placeholder="8 dígitos, solo números"
-                  value={newCliente.numero}
-                  onChange={e => setNewCliente({ ...newCliente, numero: e.target.value })}
+                  value={newCliente.numero || ''} 
+                  onChange={e => setNewCliente({ ...newCliente, numero: e.target.value || undefined })}
                   className={errors.numero ? 'input-error' : ''}
+                  disabled={loading}
                 />
                 {errors.numero && <span className="error-message">{errors.numero}</span>}
               </div>
             </div>
             
             <div className="modal-footer">
-              <button className="boton boton-guardar" onClick={agregarCliente}>
-                Guardar Cliente
+              <button 
+                className="boton boton-guardar" 
+                onClick={agregarCliente}
+                disabled={loading}
+              >
+                {loading ? 'Guardando...' : 'Guardar Cliente'}
               </button>
-              <button className="boton boton-cancelar" onClick={() => setShowModalAgregar(false)}>
+              <button 
+                className="boton boton-cancelar" 
+                onClick={() => !loading && setShowModalAgregar(false)}
+                disabled={loading}
+              >
                 Cancelar
               </button>
             </div>
@@ -375,16 +451,14 @@ const Clientes: React.FC = () => {
 
       {/* MODAL EDITAR CLIENTE */}
       {showModalEditar && selected && (
-        <div className="modal-overlay" onClick={() => {
-          setShowModalEditar(false);
-          limpiarErrores();
-        }}>
+        <div className="modal-overlay" onClick={() => !loading && setShowModalEditar(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Editar Cliente</h3>
               <button 
                 className="btn-close" 
-                onClick={() => setShowModalEditar(false)}
+                onClick={() => !loading && setShowModalEditar(false)}
+                disabled={loading}
               >
                 ×
               </button>
@@ -408,6 +482,7 @@ const Clientes: React.FC = () => {
                   value={selected.nombre}
                   onChange={e => setSelected({ ...selected, nombre: e.target.value })}
                   className={errors.nombre ? 'input-error' : ''}
+                  disabled={loading}
                 />
                 {errors.nombre && <span className="error-message">{errors.nombre}</span>}
               </div>
@@ -416,9 +491,10 @@ const Clientes: React.FC = () => {
                 <label>Correo Electrónico</label>
                 <input
                   placeholder="ejemplo@email.com"
-                  value={selected.correo}
-                  onChange={e => setSelected({ ...selected, correo: e.target.value })}
+                  value={selected.correo || ''}
+                  onChange={e => setSelected({ ...selected, correo: e.target.value || undefined })}
                   className={errors.correo ? 'input-error' : ''}
+                  disabled={loading}
                 />
                 {errors.correo && <span className="error-message">{errors.correo}</span>}
               </div>
@@ -427,19 +503,28 @@ const Clientes: React.FC = () => {
                 <label>Número Telefónico</label>
                 <input
                   placeholder="8 dígitos, solo números"
-                  value={selected.numero}
-                  onChange={e => setSelected({ ...selected, numero: e.target.value })}
+                  value={selected.numero || ''} 
+                  onChange={e => setSelected({ ...selected, numero: e.target.value || undefined })}
                   className={errors.numero ? 'input-error' : ''}
+                  disabled={loading}
                 />
                 {errors.numero && <span className="error-message">{errors.numero}</span>}
               </div>
             </div>
             
             <div className="modal-footer">
-              <button className="boton boton-guardar" onClick={guardarEdicion}>
-                Guardar Cambios
+              <button 
+                className="boton boton-guardar" 
+                onClick={guardarEdicion}
+                disabled={loading}
+              >
+                {loading ? 'Guardando...' : 'Guardar Cambios'}
               </button>
-              <button className="boton boton-cancelar" onClick={() => setShowModalEditar(false)}>
+              <button 
+                className="boton boton-cancelar" 
+                onClick={() => !loading && setShowModalEditar(false)}
+                disabled={loading}
+              >
                 Cancelar
               </button>
             </div>
