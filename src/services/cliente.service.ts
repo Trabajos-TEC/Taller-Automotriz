@@ -1,16 +1,16 @@
-﻿import { fetchApi } from './api';
-import type { ApiResponse } from './api'; // Importación type-only
+﻿// src/services/cliente.service.ts - VERSIÓN SIN DIRECCIÓN
+import { fetchApi } from './api';
+import type { ApiResponse } from './api';
 
-// Interfaz para Cliente
 export interface Cliente {
   id?: number;
   nombre: string;
   cedula: string;
   correo?: string;
   numero?: string;
+  created_at?: string;
 }
 
-// Servicios específicos para Clientes
 export const clienteService = {
   // Obtener todos los clientes
   async getClientes(search?: string): Promise<ApiResponse<Cliente[]>> {
@@ -51,5 +51,3 @@ export const clienteService = {
     });
   },
 };
-
-export default clienteService;

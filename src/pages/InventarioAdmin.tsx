@@ -1,6 +1,19 @@
-// src/pages/InventarioAdmin.tsx
-import React, { useState, useEffect } from 'react';
+// src/pages/InventarioAdmin.tsx - VERSIÓN CON MANEJO DE ERRORES
+import React, { useState, useEffect, useCallback } from 'react';
+import { vehiculoBaseService } from '../services/vehiculo_base.service';
+import { inventarioService } from '../services/inventario.service';
+import type { VehiculoBase as VehiculoBaseServicio } from '../services/vehiculo_base.service';
 import '../styles/pages/Inventario.css';
+import '../styles/Botones.css';
+
+// Interfaces locales
+interface VehiculoBase {
+  id: number;
+  marca: string;
+  modelo: string;
+  tipo: string;
+  anio: number;
+}
 
 interface Repuesto {
   id: number;
@@ -12,59 +25,26 @@ interface Repuesto {
   vehiculoId: number | null;
 }
 
-interface VehiculoBase {
-  id: number;
-  marca: string;
-  modelo: string;
-  tipo: string;
-  anio: number;
-}
-
 const InventarioAdmin: React.FC = () => {
-  // Estado para vehículos base
-  const [vehiculos, setVehiculos] = useState<VehiculoBase[]>([
-    { id: 1, marca: 'Toyota', modelo: 'Corolla', tipo: 'Sedán', anio: 2020 },
-    { id: 2, marca: 'Honda', modelo: 'Civic', tipo: 'Sedán', anio: 2019 },
-    { id: 3, marca: 'Ford', modelo: 'Ranger', tipo: 'Pickup', anio: 2021 },
-    { id: 4, marca: 'Chevrolet', modelo: 'Spark', tipo: 'Hatchback', anio: 2018 },
-    { id: 5, marca: 'Nissan', modelo: 'Sentra', tipo: 'Sedán', anio: 2022 },
-    { id: 6, marca: 'Mitsubishi', modelo: 'Montero', tipo: 'SUV', anio: 2017 },
-    { id: 7, marca: 'Hyundai', modelo: 'Tucson', tipo: 'SUV', anio: 2020 },
-    { id: 8, marca: 'Kia', modelo: 'Rio', tipo: 'Sedán', anio: 2019 },
-  ]);
-
-  // Estado para la lista de repuestos
-  const [repuestos, setRepuestos] = useState<Repuesto[]>([
-    { id: 1, codigo: 'FIT001', nombre: 'Filtro de Aceite', descripcion: 'Filtro de aceite estándar', cantidad: 25, precio: 15.99, vehiculoId: 1 },
-    { id: 2, codigo: 'PAS001', nombre: 'Pastillas de Freno', descripcion: 'Pastillas delanteras', cantidad: 18, precio: 45.50, vehiculoId: 1 },
-    { id: 3, codigo: 'BAT001', nombre: 'Batería 12V', descripcion: 'Batería de 60 amperios', cantidad: 12, precio: 120.00, vehiculoId: 2 },
-    { id: 4, codigo: 'ACE001', nombre: 'Aceite 5W-30', descripcion: 'Aceite sintético 1L', cantidad: 50, precio: 8.99, vehiculoId: null },
-    { id: 5, codigo: 'FIL002', nombre: 'Filtro de Aire', descripcion: 'Filtro de aire de alto flujo', cantidad: 30, precio: 22.50, vehiculoId: 3 },
-    { id: 6, codigo: 'BUJ001', nombre: 'Bujías NGK', descripcion: 'Bujías de platino', cantidad: 40, precio: 12.75, vehiculoId: null },
-    { id: 7, codigo: 'COR001', nombre: 'Correa de Distribución', descripcion: 'Kit completo', cantidad: 8, precio: 85.00, vehiculoId: 2 },
-    { id: 8, codigo: 'DIS001', nombre: 'Disco de Freno', descripcion: 'Disco ventilado', cantidad: 15, precio: 65.00, vehiculoId: 4 },
-    { id: 9, codigo: 'AMO001', nombre: 'Amortiguador Delantero', descripcion: 'Par de amortiguadores', cantidad: 6, precio: 95.00, vehiculoId: 5 },
-    { id: 10, codigo: 'RAD001', nombre: 'Líquido Refrigerante', descripcion: 'Anticongelante concentrado', cantidad: 35, precio: 10.25, vehiculoId: null },
-    { id: 11, codigo: 'BOM001', nombre: 'Bomba de Agua', descripcion: 'Bomba de agua original', cantidad: 7, precio: 75.00, vehiculoId: 6 },
-    { id: 12, codigo: 'EMB001', nombre: 'Embrague', descripcion: 'Kit de embrague completo', cantidad: 4, precio: 220.00, vehiculoId: 7 },
-    { id: 13, codigo: 'ALT001', nombre: 'Alternador', descripcion: 'Alternador 120A', cantidad: 5, precio: 180.00, vehiculoId: 8 },
-    { id: 14, codigo: 'DIR001', nombre: 'Líquido de Dirección', descripcion: 'ATF para dirección', cantidad: 20, precio: 7.50, vehiculoId: null },
-    { id: 15, codigo: 'ESC001', nombre: 'Escobillas Limpiaparabrisas', descripcion: 'Par de escobillas', cantidad: 60, precio: 18.99, vehiculoId: null },
-  ]);
-
+  // Estados para vehículos base
+  const [vehiculos, setVehiculos] = useState<VehiculoBase[]>([]);
+  const [repuestos, setRepuestos] = useState<Repuesto[]>([]);
+  
   // Estados para búsqueda y selección
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Repuesto | null>(null);
   const [showModalAgregar, setShowModalAgregar] = useState(false);
   const [showModalAgregarVehiculo, setShowModalAgregarVehiculo] = useState(false);
   const [showModalEditar, setShowModalEditar] = useState(false);
-  
-  // Estados para vehículos expandidos
   const [vehiculosExpandidos, setVehiculosExpandidos] = useState<number[]>([]);
+  
+  // Estados para carga y errores
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loadingVehiculos, setLoadingVehiculos] = useState(false);
 
   // Estado para nuevo repuesto
-  const [newRepuesto, setNewRepuesto] = useState<Repuesto>({ 
-    id: 0,
+  const [newRepuesto, setNewRepuesto] = useState<Omit<Repuesto, 'id'>>({ 
     codigo: '', 
     nombre: '', 
     descripcion: '', 
@@ -74,213 +54,601 @@ const InventarioAdmin: React.FC = () => {
   });
 
   // Estado para nuevo vehículo
-  const [newVehiculo, setNewVehiculo] = useState<VehiculoBase>({
-    id: 0,
+  const [newVehiculo, setNewVehiculo] = useState<Omit<VehiculoBase, 'id'>>({
     marca: '',
     modelo: '',
-    tipo: '',
+    tipo: 'Sedán',
     anio: new Date().getFullYear()
   });
 
   // Estados para mensajes de error
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
-  // Tipos predefinidos
-  const tiposVehiculo = ['Sedán', 'SUV', 'Pickup', 'Hatchback', 'Wagon', 'Camioneta', 'Deportivo', 'Motocicleta'];
-  const marcasVehiculo = ['Toyota', 'Honda', 'Ford', 'Chevrolet', 'Nissan', 'Mitsubishi', 'Hyundai', 'Kia', 'Volkswagen', 'Mazda', 'Subaru', 'BMW', 'Mercedes', 'Audi', 'Volvo'];
+  // Estados para marcas y tipos disponibles desde API
+  const [marcasDisponibles, setMarcasDisponibles] = useState<string[]>([]);
+  const [tiposDisponibles, setTiposDisponibles] = useState<string[]>([]);
 
-  // Texto de búsqueda en minúsculas
-  const textoBusqueda = search.toLowerCase();
-
-  /* === FUNCIONES DE FILTRADO JERÁRQUICO === */
-
-  // Repuestos universales que coinciden con la búsqueda
-  const repuestosUniversales = repuestos.filter(
-    (r) => !r.vehiculoId && (
-      r.codigo.toLowerCase().includes(textoBusqueda) ||
-      r.nombre.toLowerCase().includes(textoBusqueda) ||
-      r.descripcion.toLowerCase().includes(textoBusqueda)
-    )
-  );
-
-  // Vehículos filtrados por búsqueda de marca/modelo/tipo o repuestos que coincidan
-  const vehiculosFiltrados = vehiculos.filter((v) => {
-    const nombreVehiculo = `${v.marca} ${v.modelo} ${v.tipo}`.toLowerCase();
-
-    // Todos los repuestos de este vehículo
-    const repuestosDelVehiculo = repuestos.filter((r) => r.vehiculoId === v.id);
-
-    // ¿Algún repuesto coincide con la búsqueda?
-    const repuestosCoinciden = repuestosDelVehiculo.some((r) =>
-      r.codigo.toLowerCase().includes(textoBusqueda) ||
-      r.nombre.toLowerCase().includes(textoBusqueda) ||
-      r.descripcion.toLowerCase().includes(textoBusqueda)
-    );
-
-    // Mostrar vehículo si: coincide la marca/modelo/tipo O algún repuesto coincide
-    return nombreVehiculo.includes(textoBusqueda) || repuestosCoinciden;
+  // Función para transformar vehículo del servicio a local
+  const transformarVehiculo = (vehiculo: VehiculoBaseServicio): VehiculoBase => ({
+    id: vehiculo.id || 0,
+    marca: vehiculo.marca || '',
+    modelo: vehiculo.modelo || '',
+    tipo: vehiculo.tipo || 'Sedán',
+    anio: vehiculo.anio || new Date().getFullYear()
   });
 
-  // Función para obtener repuestos filtrados para un vehículo
-  const repuestosPorVehiculo = (vehiculoId: number) => {
-    const vehiculo = vehiculos.find(v => v.id === vehiculoId);
-    const nombreVehiculo = vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.tipo}`.toLowerCase() : '';
-    const todosRepuestos = repuestos.filter((r) => r.vehiculoId === vehiculoId);
+  // Función para transformar producto del servicio a repuesto local - MEJORADA
+  const transformarProducto = (producto: any): Repuesto => {
+    try {
+      // Asegurar que tenemos un objeto válido
+      if (!producto || typeof producto !== 'object') {
+        console.error('❌ Producto no es un objeto válido:', producto);
+        return {
+          id: 0,
+          codigo: 'ERROR',
+          nombre: 'Error en datos',
+          descripcion: '',
+          cantidad: 0,
+          precio: 0,
+          vehiculoId: null
+        };
+      }
 
-    // Si el vehículo coincide con la búsqueda, mostramos todos sus repuestos
-    if (nombreVehiculo.includes(textoBusqueda)) return todosRepuestos;
-
-    // Si no, mostramos solo los repuestos que coincidan con la búsqueda
-    return todosRepuestos.filter((r) =>
-      r.codigo.toLowerCase().includes(textoBusqueda) ||
-      r.nombre.toLowerCase().includes(textoBusqueda) ||
-      r.descripcion.toLowerCase().includes(textoBusqueda)
-    );
+      let vehiculoId: number | null = null;
+      
+      // Manejar vehiculos_asociados de forma segura
+      if (producto.vehiculos_asociados !== undefined && producto.vehiculos_asociados !== null) {
+        if (Array.isArray(producto.vehiculos_asociados) && producto.vehiculos_asociados.length > 0) {
+          const primerVehiculo = producto.vehiculos_asociados[0];
+          if (primerVehiculo && primerVehiculo.id !== undefined && primerVehiculo.id !== null) {
+            // Convertir a número si es necesario
+            vehiculoId = Number(primerVehiculo.id);
+          }
+        }
+      }
+      
+      // Asegurar tipos correctos
+      return {
+        id: Number(producto.id) || 0,
+        codigo: String(producto.codigo || ''),
+        nombre: String(producto.nombre || ''),
+        descripcion: String(producto.descripcion || ''),
+        cantidad: Number(producto.cantidad) || 0,
+        precio: Number(producto.precio_venta) || 0,
+        vehiculoId: vehiculoId
+      };
+    } catch (error) {
+      console.error('❌ Error en transformarProducto:', error, 'Producto:', producto);
+      return {
+        id: 0,
+        codigo: 'ERROR',
+        nombre: 'Error de transformación',
+        descripcion: '',
+        cantidad: 0,
+        precio: 0,
+        vehiculoId: null
+      };
+    }
   };
 
-  // Verificar si no hay repuestos para mostrar
-  const noHayRepuestos = repuestosUniversales.length === 0 && vehiculosFiltrados.length === 0;
+  // Cargar vehículos base desde API
+  const cargarVehiculosBase = useCallback(async (searchTerm?: string) => {
+    try {
+      setLoadingVehiculos(true);
+      setError(null);
+      
+      const response = await vehiculoBaseService.getVehiculosBase(searchTerm);
+      
+      // MANEJO FLEXIBLE
+      let vehiculosData: any[] = [];
+      
+      if (response && Array.isArray(response)) {
+        vehiculosData = response;
+      } else if (response && (response as any).data && Array.isArray((response as any).data)) {
+        vehiculosData = (response as any).data;
+      } else if (response && (response as any).success && Array.isArray((response as any).data)) {
+        vehiculosData = (response as any).data;
+      } else {
+        console.error('Formato de respuesta de vehículos inesperado:', response);
+        vehiculosData = [];
+      }
+      
+      const vehiculosTransformados = vehiculosData.map(transformarVehiculo);
+      setVehiculos(vehiculosTransformados);
+      
+      // Extraer marcas y tipos únicos
+      const marcasUnicas = [...new Set(vehiculosTransformados.map(v => v.marca))].filter(Boolean);
+      setMarcasDisponibles(marcasUnicas);
+      
+      const tiposUnicos = [...new Set(vehiculosTransformados.map(v => v.tipo))].filter(Boolean);
+      setTiposDisponibles(tiposUnicos);
+      
+    } catch (error: any) {
+      console.error('Error cargando vehículos base:', error);
+      setError('Error al cargar vehículos base: ' + (error.message || 'Error desconocido'));
+      setVehiculos([]);
+    } finally {
+      setLoadingVehiculos(false);
+    }
+  }, []);
 
-  // Calcular estadísticas
-  const totalRepuestos = repuestos.length;
-  const totalValor = repuestos.reduce((sum, r) => sum + (r.cantidad * r.precio), 0);
-  const repuestosBajos = repuestos.filter(r => r.cantidad < 10).length;
+  // Cargar productos del inventario desde API - CON CAPTURA DE ERRORES
+  const cargarProductos = useCallback(async (searchTerm?: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('🔍 Cargando productos...');
+      const response = await inventarioService.getProductos(searchTerm);
+      console.log('📦 Respuesta recibida:', response);
+      
+      let productosData: any[] = [];
+      
+      if (response && Array.isArray(response)) {
+        console.log('✅ Respuesta es array directo');
+        productosData = response;
+      } else if (response && (response as any).data && Array.isArray((response as any).data)) {
+        console.log('✅ Respuesta tiene .data que es array');
+        productosData = (response as any).data;
+      } else if (response && (response as any).success && Array.isArray((response as any).data)) {
+        console.log('✅ Respuesta tiene .success y .data que es array');
+        productosData = (response as any).data;
+      } else if (response && typeof response === 'object') {
+        // Intentar cualquier propiedad que pueda contener datos
+        console.log('⚠️ Respuesta inesperada, buscando datos...');
+        const keys = Object.keys(response);
+        console.log('🔑 Claves disponibles:', keys);
+        
+        for (const key of keys) {
+          if (Array.isArray((response as any)[key])) {
+            console.log(`✅ Encontrado array en propiedad: ${key}`);
+            productosData = (response as any)[key];
+            break;
+          }
+        }
+      } else {
+        console.error('❌ Formato de respuesta completamente inesperado:', response);
+        productosData = [];
+      }
+      
+      console.log(`📊 Productos a transformar: ${productosData.length}`);
+      
+      if (productosData.length > 0) {
+        console.log('🔍 Ejemplo de producto sin transformar:', productosData[0]);
+      }
+      
+      // Transformar con manejo de errores individuales
+      const repuestosTransformados: Repuesto[] = [];
+      
+      for (let i = 0; i < productosData.length; i++) {
+        try {
+          const repuesto = transformarProducto(productosData[i]);
+          repuestosTransformados.push(repuesto);
+        } catch (error) {
+          console.error(`❌ Error transformando producto ${i}:`, error, 'Datos:', productosData[i]);
+          // Continuar con el siguiente producto
+        }
+      }
+      
+      console.log(`✅ Productos transformados exitosamente: ${repuestosTransformados.length}`);
+      setRepuestos(repuestosTransformados);
+      
+    } catch (error: any) {
+      console.error('❌ Error en cargarProductos:', error);
+      setError('Error al cargar productos del inventario: ' + (error.message || 'Error desconocido'));
+      setRepuestos([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Función para expandir/colapsar vehículo
-  const toggleExpandirVehiculo = (vehiculoId: number) => {
-    setVehiculosExpandidos(prev => 
-      prev.includes(vehiculoId) 
-        ? prev.filter(id => id !== vehiculoId)
-        : [...prev, vehiculoId]
-    );
-  };
-
-  // Expandir todos los vehículos cuando hay búsqueda
+  // Cargar datos iniciales
   useEffect(() => {
-    if (search && vehiculosFiltrados.length > 0) {
-      setVehiculosExpandidos(vehiculosFiltrados.map(v => v.id));
+    cargarVehiculosBase();
+    cargarProductos();
+  }, [cargarVehiculosBase, cargarProductos]);
+
+  // Búsqueda con debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search.trim() !== '') {
+        cargarVehiculosBase(search);
+        cargarProductos(search);
+      } else {
+        cargarVehiculosBase();
+        cargarProductos();
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search, cargarVehiculosBase, cargarProductos]);
+
+  // Función para agregar nuevo vehículo base
+  const agregarVehiculo = async () => {
+    try {
+      // Validaciones
+      const validationErrors: { [key: string]: string } = {};
+      
+      if (!newVehiculo.marca.trim()) {
+        validationErrors.marca = 'La marca es requerida';
+      }
+      
+      if (!newVehiculo.modelo.trim()) {
+        validationErrors.modelo = 'El modelo es requerido';
+      }
+      
+      if (newVehiculo.anio < 1900 || newVehiculo.anio > new Date().getFullYear() + 1) {
+        validationErrors.anio = 'Año inválido';
+      }
+      
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+      }
+      
+      setLoadingVehiculos(true);
+      setErrors({});
+      
+      // Datos para enviar
+      const vehiculoData = {
+        marca: newVehiculo.marca,
+        modelo: newVehiculo.modelo,
+        tipo: newVehiculo.tipo,
+        anio: newVehiculo.anio
+      };
+      
+      console.log('🚗 Enviando vehículo:', vehiculoData);
+      
+      const response = await vehiculoBaseService.createVehiculoBase(vehiculoData);
+      
+      if (response) {
+        // Resetear formulario
+        setNewVehiculo({
+          marca: '',
+          modelo: '',
+          tipo: 'Sedán',
+          anio: new Date().getFullYear()
+        });
+        
+        setShowModalAgregarVehiculo(false);
+        alert('Vehículo creado exitosamente');
+        
+        // Recargar lista de vehículos
+        await cargarVehiculosBase();
+      }
+    } catch (error: any) {
+      console.error('Error agregando vehículo:', error);
+      setError('Error al crear vehículo: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setLoadingVehiculos(false);
     }
-  }, [search]);
-
-  /* === VALIDACIONES === */
-  const soloDecimales = /^\d+(\.\d{1,2})?$/;
-
-  const validarRepuesto = (repuesto: Repuesto, isEdit: boolean = false) => {
-    const newErrors: {[key: string]: string} = {};
-
-    if (!repuesto.codigo.trim()) {
-      newErrors.codigo = 'El código es obligatorio';
-    } else if (!isEdit) {
-      const existe = repuestos.find(r => r.codigo === repuesto.codigo.trim());
-      if (existe) newErrors.codigo = 'Código ya registrado';
-    }
-
-    if (!repuesto.nombre.trim()) {
-      newErrors.nombre = 'El nombre es obligatorio';
-    }
-
-    if (repuesto.cantidad < 0) {
-      newErrors.cantidad = 'La cantidad no puede ser negativa';
-    }
-
-    if (repuesto.precio < 0) {
-      newErrors.precio = 'El precio no puede ser negativo';
-    } else if (!soloDecimales.test(repuesto.precio.toString())) {
-      newErrors.precio = 'Formato de precio inválido';
-    }
-
-    return newErrors;
   };
 
-  const validarVehiculo = (vehiculo: VehiculoBase) => {
-    const newErrors: {[key: string]: string} = {};
-
-    if (!vehiculo.marca.trim()) {
-      newErrors.marca = 'La marca es obligatoria';
+  // Función para agregar nuevo repuesto
+  const agregarRepuesto = async () => {
+    try {
+      // Validaciones
+      const validationErrors: { [key: string]: string } = {};
+      
+      if (!newRepuesto.codigo.trim()) {
+        validationErrors.codigo = 'El código es requerido';
+      }
+      
+      if (!newRepuesto.nombre.trim()) {
+        validationErrors.nombre = 'El nombre es requerido';
+      }
+      
+      if (newRepuesto.cantidad < 0) {
+        validationErrors.cantidad = 'La cantidad no puede ser negativa';
+      }
+      
+      if (newRepuesto.precio <= 0) {
+        validationErrors.precio = 'El precio debe ser mayor a 0';
+      }
+      
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+      }
+      
+      setLoading(true);
+      setErrors({});
+      
+      // Preparar datos para enviar según tu modelo
+      const productoData = {
+        codigo: newRepuesto.codigo.toUpperCase(),
+        nombre: newRepuesto.nombre,
+        descripcion: newRepuesto.descripcion,
+        categoria: 'Repuesto', // Por defecto
+        cantidad: newRepuesto.cantidad,
+        cantidad_minima: 5, // Valor por defecto
+        precio_compra: newRepuesto.precio, // Usamos el mismo precio para compra
+        precio_venta: newRepuesto.precio,
+        proveedor: 'N/A', // Por defecto
+      };
+      
+      // Array de IDs de vehículos a asociar (si hay)
+      const vehiculosIds = newRepuesto.vehiculoId ? [newRepuesto.vehiculoId] : [];
+      
+      console.log('📦 Enviando producto:', productoData);
+      console.log('🚗 IDs de vehículos a asociar:', vehiculosIds);
+      
+      const response = await inventarioService.createProducto(productoData, vehiculosIds);
+      
+      if (response) {
+        // Resetear formulario
+        setNewRepuesto({
+          codigo: '',
+          nombre: '',
+          descripcion: '',
+          cantidad: 0,
+          precio: 0,
+          vehiculoId: null
+        });
+        
+        setShowModalAgregar(false);
+        alert('Repuesto agregado exitosamente');
+        
+        // Recargar lista de productos
+        await cargarProductos();
+      }
+    } catch (error: any) {
+      console.error('Error agregando repuesto:', error);
+      
+      // Manejar error de código duplicado
+      if (error.message?.includes('código ya está registrado') || error.message?.includes('409')) {
+        setErrors({ codigo: 'El código ya existe' });
+      } else {
+        setError('Error al agregar repuesto: ' + (error.message || 'Error desconocido'));
+      }
+    } finally {
+      setLoading(false);
     }
-
-    if (!vehiculo.modelo.trim()) {
-      newErrors.modelo = 'El modelo es obligatorio';
-    }
-
-    if (vehiculo.anio < 1900 || vehiculo.anio > new Date().getFullYear() + 1) {
-      newErrors.anio = 'Año inválido';
-    }
-
-    return newErrors;
   };
 
-  /* === OPERACIONES CRUD === */
-  const agregarRepuesto = () => {
-    const validationErrors = validarRepuesto(newRepuesto);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    const repuesto: Repuesto = {
-      id: repuestos.length > 0 ? Math.max(...repuestos.map(r => r.id)) + 1 : 1,
-      codigo: newRepuesto.codigo.trim().toUpperCase(),
-      nombre: newRepuesto.nombre.trim(),
-      descripcion: newRepuesto.descripcion.trim(),
-      cantidad: newRepuesto.cantidad,
-      precio: parseFloat(newRepuesto.precio.toFixed(2)),
-      vehiculoId: newRepuesto.vehiculoId,
-    };
-
-    setRepuestos([...repuestos, repuesto]);
-    setNewRepuesto({ id: 0, codigo: '', nombre: '', descripcion: '', cantidad: 0, precio: 0, vehiculoId: null });
-    setErrors({});
-    setShowModalAgregar(false);
-    alert('Repuesto agregado exitosamente');
-  };
-
-  const agregarVehiculo = () => {
-    const validationErrors = validarVehiculo(newVehiculo);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    const vehiculo: VehiculoBase = {
-      id: vehiculos.length > 0 ? Math.max(...vehiculos.map(v => v.id)) + 1 : 1,
-      marca: newVehiculo.marca.trim(),
-      modelo: newVehiculo.modelo.trim(),
-      tipo: newVehiculo.tipo,
-      anio: newVehiculo.anio
-    };
-
-    setVehiculos([...vehiculos, vehiculo]);
-    setNewVehiculo({ id: 0, marca: '', modelo: '', tipo: '', anio: new Date().getFullYear() });
-    setErrors({});
-    setShowModalAgregarVehiculo(false);
-    alert('Vehículo base agregado exitosamente');
-  };
-
-  const guardarEdicion = () => {
+  // Función para guardar edición de repuesto
+  const guardarEdicion = async () => {
     if (!selected) return;
-
-    const validationErrors = validarRepuesto(selected, true);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
+    
+    try {
+      // Validaciones
+      const validationErrors: { [key: string]: string } = {};
+      
+      if (!selected.nombre.trim()) {
+        validationErrors.nombre = 'El nombre es requerido';
+      }
+      
+      if (selected.cantidad < 0) {
+        validationErrors.cantidad = 'La cantidad no puede ser negativa';
+      }
+      
+      if (selected.precio <= 0) {
+        validationErrors.precio = 'El precio debe ser mayor a 0';
+      }
+      
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+      }
+      
+      setLoading(true);
+      setErrors({});
+      
+      // Preparar datos para actualizar
+      const updateData = {
+        nombre: selected.nombre,
+        descripcion: selected.descripcion,
+        cantidad: selected.cantidad,
+        precio_venta: selected.precio,
+        precio_compra: selected.precio,
+      };
+      
+      // Array de IDs de vehículos a asociar (si hay)
+      const vehiculosIds = selected.vehiculoId ? [selected.vehiculoId] : [];
+      
+      console.log('✏️ Actualizando producto:', updateData);
+      console.log('🚗 IDs de vehículos a asociar:', vehiculosIds);
+      
+      const response = await inventarioService.updateProducto(
+        selected.codigo, 
+        updateData, 
+        vehiculosIds
+      );
+      
+      if (response) {
+        setShowModalEditar(false);
+        alert('Repuesto actualizado exitosamente');
+        
+        // Recargar datos
+        await cargarProductos();
+        await cargarVehiculosBase();
+        
+        // Actualizar el selected con los nuevos datos
+        const productos = await inventarioService.getProductos();
+        if (productos && Array.isArray(productos.data)) {
+          const productoActualizado = productos.data.find((p: any) => p.codigo === selected.codigo);
+          if (productoActualizado) {
+            setSelected(transformarProducto(productoActualizado));
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error('Error actualizando repuesto:', error);
+      setError('Error al actualizar repuesto: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setLoading(false);
     }
-
-    setRepuestos(repuestos.map(r => r.id === selected.id ? selected : r));
-    setErrors({});
-    setShowModalEditar(false);
-    alert('Repuesto actualizado exitosamente');
   };
 
-  const eliminarRepuesto = (id: number) => {
-    if (!confirm('¿Está seguro de eliminar este repuesto?')) return;
-    setRepuestos(repuestos.filter(r => r.id !== id));
-    setSelected(null);
-    alert('Repuesto eliminado');
-  };
+  // FUNCIONES DE RENDERIZADO CON MANEJO DE ERRORES
+  const renderRepuestos = () => {
+    try {
+      if (repuestos.length === 0) {
+        return (
+          <div className="no-results">
+            {search ? 'No se encontraron resultados' : 'No hay repuestos en inventario'}
+          </div>
+        );
+      }
 
-  const limpiarErrores = () => {
-    setErrors({});
+      // Texto de búsqueda en minúsculas
+      const textoBusqueda = search.toLowerCase();
+
+      /* === FUNCIONES DE FILTRADO JERÁRQUICO === */
+      const repuestosUniversales = repuestos.filter(
+        (r) => !r.vehiculoId && (
+          r.codigo.toLowerCase().includes(textoBusqueda) ||
+          r.nombre.toLowerCase().includes(textoBusqueda) ||
+          r.descripcion.toLowerCase().includes(textoBusqueda)
+        )
+      );
+
+      const vehiculosFiltrados = vehiculos.filter((v) => {
+        const nombreVehiculo = `${v.marca} ${v.modelo} ${v.tipo}`.toLowerCase();
+        const repuestosDelVehiculo = repuestos.filter((r) => r.vehiculoId === v.id);
+        const repuestosCoinciden = repuestosDelVehiculo.some((r) =>
+          r.codigo.toLowerCase().includes(textoBusqueda) ||
+          r.nombre.toLowerCase().includes(textoBusqueda) ||
+          r.descripcion.toLowerCase().includes(textoBusqueda)
+        );
+
+        return nombreVehiculo.includes(textoBusqueda) || repuestosCoinciden;
+      });
+
+      const repuestosPorVehiculo = (vehiculoId: number) => {
+        const vehiculo = vehiculos.find(v => v.id === vehiculoId);
+        const nombreVehiculo = vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.tipo}`.toLowerCase() : '';
+        const todosRepuestos = repuestos.filter((r) => r.vehiculoId === vehiculoId);
+
+        if (nombreVehiculo.includes(textoBusqueda)) return todosRepuestos;
+
+        return todosRepuestos.filter((r) =>
+          r.codigo.toLowerCase().includes(textoBusqueda) ||
+          r.nombre.toLowerCase().includes(textoBusqueda) ||
+          r.descripcion.toLowerCase().includes(textoBusqueda)
+        );
+      };
+
+      const noHayRepuestos = repuestosUniversales.length === 0 && vehiculosFiltrados.length === 0;
+
+      if (noHayRepuestos) {
+        return (
+          <div className="no-results">
+            {search ? 'No se encontraron resultados' : 'No hay repuestos en inventario'}
+          </div>
+        );
+      }
+
+      return (
+        <>
+          {/* REPUESTOS UNIVERSALES */}
+          {repuestosUniversales.length > 0 && (
+            <div className="categoria-repuestos">
+              <div className="categoria-header">
+                <h4> Repuestos Universales</h4>
+                <span className="contador">{repuestosUniversales.length}</span>
+              </div>
+              <div className="repuestos-lista">
+                {repuestosUniversales.map((repuesto) => (
+                  <div 
+                    key={repuesto.id}
+                    className={`repuesto-item ${selected?.id === repuesto.id ? 'selected' : ''}`}
+                    onClick={() => setSelected(repuesto)}
+                  >
+                    <div className="repuesto-info">
+                      <span className="repuesto-codigo">{repuesto.codigo}</span>
+                      <span className="repuesto-nombre">{repuesto.nombre}</span>
+                    </div>
+                    <div className="repuesto-stats">
+                      <span className={`cantidad ${repuesto.cantidad < 10 ? 'baja' : ''}`}>
+                        {repuesto.cantidad} uni
+                      </span>
+                      <span className="precio">${repuesto.precio.toFixed(2)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* VEHÍCULOS */}
+          {vehiculosFiltrados.length > 0 && (
+            <div className="categoria-vehiculos">
+              <div className="categoria-header">
+                <h4> Vehículos Específicos</h4>
+                <span className="contador">{vehiculosFiltrados.length}</span>
+              </div>
+              {vehiculosFiltrados.map((vehiculo) => {
+                const repuestosVehiculo = repuestosPorVehiculo(vehiculo.id);
+                const expandido = vehiculosExpandidos.includes(vehiculo.id);
+                
+                return (
+                  <div key={vehiculo.id} className="vehiculo-item">
+                    <div 
+                      className="vehiculo-header"
+                      onClick={() => setVehiculosExpandidos(prev => 
+                        prev.includes(vehiculo.id) 
+                          ? prev.filter(id => id !== vehiculo.id)
+                          : [...prev, vehiculo.id]
+                      )}
+                    >
+                      <div className="vehiculo-info">
+                        <span className="icono-expandir">{expandido ? '▼' : '▶'}</span>
+                        <span className="vehiculo-nombre">
+                          {vehiculo.marca} {vehiculo.modelo} ({vehiculo.tipo})
+                        </span>
+                      </div>
+                      <div className="vehiculo-stats">
+                        <span className="contador-repuestos">{repuestosVehiculo.length} repuestos</span>
+                      </div>
+                    </div>
+                    
+                    {expandido && (
+                      <div className="repuestos-vehiculo">
+                        {repuestosVehiculo.length === 0 ? (
+                          <div className="no-repuestos-vehiculo">
+                            No hay repuestos para este vehículo
+                          </div>
+                        ) : (
+                          repuestosVehiculo.map((repuesto) => (
+                            <div 
+                              key={repuesto.id}
+                              className={`repuesto-item ${selected?.id === repuesto.id ? 'selected' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelected(repuesto);
+                              }}
+                            >
+                              <div className="repuesto-info">
+                                <span className="repuesto-codigo">{repuesto.codigo}</span>
+                                <span className="repuesto-nombre">{repuesto.nombre}</span>
+                              </div>
+                              <div className="repuesto-stats">
+                                <span className={`cantidad ${repuesto.cantidad < 10 ? 'baja' : ''}`}>
+                                  {repuesto.cantidad} uni
+                                </span>
+                                <span className="precio">${repuesto.precio.toFixed(2)}</span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      );
+    } catch (error) {
+      console.error('❌ Error en renderRepuestos:', error);
+      return (
+        <div className="error-message">
+          Error al mostrar repuestos: {error instanceof Error ? error.message : 'Error desconocido'}
+        </div>
+      );
+    }
   };
 
   // Función para obtener nombre del vehículo
@@ -294,10 +662,11 @@ const InventarioAdmin: React.FC = () => {
     <div className="gestion-inventario">
       <div className="header-section">
         <div className="stats">
-          <span className="stat-item">Total: {totalRepuestos} repuestos</span>
-          <span className="stat-item">Valor: ${totalValor.toFixed(2)}</span>
-          <span className="stat-item">Bajos: {repuestosBajos}</span>
-          <span className="stat-item">Mostrando: {repuestosUniversales.length + vehiculosFiltrados.reduce((sum, v) => sum + repuestosPorVehiculo(v.id).length, 0)}</span>
+          <span className="stat-item">Total: {repuestos.length} repuestos</span>
+          <span className="stat-item">Vehículos: {vehiculos.length}</span>
+          <span className="stat-item">Mostrando: {search ? 'búsqueda...' : 'todos'}</span>
+          {loading && <span className="stat-item">Cargando...</span>}
+          {error && <span className="stat-item error">Error: {error}</span>}
         </div>
       </div>
 
@@ -312,13 +681,15 @@ const InventarioAdmin: React.FC = () => {
               placeholder="Buscar repuesto, vehículo o modelo..."
               value={search}
               onChange={e => setSearch(e.target.value)}
+              disabled={loading || loadingVehiculos}
             />
             <button
               className="boton boton-agregar boton-grande"
               onClick={() => {
                 setShowModalAgregarVehiculo(true);
-                limpiarErrores();
+                setErrors({});
               }}
+              disabled={loading || loadingVehiculos}
             >
               <span className="icono">+</span>
               Agregar Vehículo
@@ -327,8 +698,9 @@ const InventarioAdmin: React.FC = () => {
               className="boton boton-agregar boton-grande"
               onClick={() => {
                 setShowModalAgregar(true);
-                limpiarErrores();
+                setErrors({});
               }}
+              disabled={loading || loadingVehiculos}
             >
               <span className="icono">+</span>
               Agregar Repuesto
@@ -338,107 +710,10 @@ const InventarioAdmin: React.FC = () => {
           {/* LISTA JERÁRQUICA DE INVENTARIO */}
           <div className="table-container inventario-jerarquico">
             <div className="lista-inventario">
-              {noHayRepuestos ? (
-                <div className="no-results">
-                  {search ? 'No se encontraron resultados' : 'No hay repuestos en inventario'}
-                </div>
+              {loading ? (
+                <div className="loading">Cargando inventario...</div>
               ) : (
-                <>
-                  {/* REPUESTOS UNIVERSALES */}
-                  {repuestosUniversales.length > 0 && (
-                    <div className="categoria-repuestos">
-                      <div className="categoria-header">
-                        <h4> Repuestos Universales</h4>
-                        <span className="contador">{repuestosUniversales.length}</span>
-                      </div>
-                      <div className="repuestos-lista">
-                        {repuestosUniversales.map((repuesto) => (
-                          <div 
-                            key={repuesto.id}
-                            className={`repuesto-item ${selected?.id === repuesto.id ? 'selected' : ''}`}
-                            onClick={() => setSelected(repuesto)}
-                          >
-                            <div className="repuesto-info">
-                              <span className="repuesto-codigo">{repuesto.codigo}</span>
-                              <span className="repuesto-nombre">{repuesto.nombre}</span>
-                            </div>
-                            <div className="repuesto-stats">
-                              <span className={`cantidad ${repuesto.cantidad < 10 ? 'baja' : ''}`}>
-                                {repuesto.cantidad} uni
-                              </span>
-                              <span className="precio">${repuesto.precio.toFixed(2)}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* VEHÍCULOS */}
-                  {vehiculosFiltrados.length > 0 && (
-                    <div className="categoria-vehiculos">
-                      <div className="categoria-header">
-                        <h4> Vehículos Específicos</h4>
-                        <span className="contador">{vehiculosFiltrados.length}</span>
-                      </div>
-                      {vehiculosFiltrados.map((vehiculo) => {
-                        const repuestosVehiculo = repuestosPorVehiculo(vehiculo.id);
-                        const expandido = vehiculosExpandidos.includes(vehiculo.id);
-                        
-                        return (
-                          <div key={vehiculo.id} className="vehiculo-item">
-                            <div 
-                              className="vehiculo-header"
-                              onClick={() => toggleExpandirVehiculo(vehiculo.id)}
-                            >
-                              <div className="vehiculo-info">
-                                <span className="icono-expandir">{expandido ? '▼' : '▶'}</span>
-                                <span className="vehiculo-nombre">
-                                  {vehiculo.marca} {vehiculo.modelo} ({vehiculo.tipo})
-                                </span>
-                              </div>
-                              <div className="vehiculo-stats">
-                                <span className="contador-repuestos">{repuestosVehiculo.length} repuestos</span>
-                              </div>
-                            </div>
-                            
-                            {expandido && (
-                              <div className="repuestos-vehiculo">
-                                {repuestosVehiculo.length === 0 ? (
-                                  <div className="no-repuestos-vehiculo">
-                                    No hay repuestos para este vehículo
-                                  </div>
-                                ) : (
-                                  repuestosVehiculo.map((repuesto) => (
-                                    <div 
-                                      key={repuesto.id}
-                                      className={`repuesto-item ${selected?.id === repuesto.id ? 'selected' : ''}`}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelected(repuesto);
-                                      }}
-                                    >
-                                      <div className="repuesto-info">
-                                        <span className="repuesto-codigo">{repuesto.codigo}</span>
-                                        <span className="repuesto-nombre">{repuesto.nombre}</span>
-                                      </div>
-                                      <div className="repuesto-stats">
-                                        <span className={`cantidad ${repuesto.cantidad < 10 ? 'baja' : ''}`}>
-                                          {repuesto.cantidad} uni
-                                        </span>
-                                        <span className="precio">${repuesto.precio.toFixed(2)}</span>
-                                      </div>
-                                    </div>
-                                  ))
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </>
+                renderRepuestos()
               )}
             </div>
           </div>
@@ -491,14 +766,34 @@ const InventarioAdmin: React.FC = () => {
                   className="boton boton-editar"
                   onClick={() => {
                     setShowModalEditar(true);
-                    limpiarErrores();
+                    setErrors({});
                   }}
+                  disabled={loading}
                 >
                   Editar Repuesto
                 </button>
                 <button 
                   className="boton boton-eliminar"
-                  onClick={() => eliminarRepuesto(selected.id)}
+                  onClick={async () => {
+                    if (!confirm('¿Está seguro de eliminar este repuesto?')) return;
+                    
+                    try {
+                      setLoading(true);
+                      const response = await inventarioService.deleteProducto(selected.codigo);
+                      
+                      if (response) {
+                        await cargarProductos();
+                        setSelected(null);
+                        alert('Repuesto eliminado exitosamente');
+                      }
+                    } catch (error: any) {
+                      console.error('Error eliminando repuesto:', error);
+                      alert('Error al eliminar repuesto: ' + (error.message || 'Error desconocido'));
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
                 >
                   Eliminar
                 </button>
@@ -508,18 +803,16 @@ const InventarioAdmin: React.FC = () => {
         )}
       </div>
 
-      {/* MODAL AGREGAR VEHÍCULO BASE - COMPLETO */}
+      {/* MODALES */}
       {showModalAgregarVehiculo && (
-        <div className="modal-overlay" onClick={() => {
-          setShowModalAgregarVehiculo(false);
-          limpiarErrores();
-        }}>
+        <div className="modal-overlay" onClick={() => !loadingVehiculos && setShowModalAgregarVehiculo(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Agregar Vehículo Base</h3>
               <button 
                 className="btn-close" 
-                onClick={() => setShowModalAgregarVehiculo(false)}
+                onClick={() => !loadingVehiculos && setShowModalAgregarVehiculo(false)}
+                disabled={loadingVehiculos}
               >
                 ×
               </button>
@@ -532,11 +825,21 @@ const InventarioAdmin: React.FC = () => {
                   value={newVehiculo.marca}
                   onChange={e => setNewVehiculo({ ...newVehiculo, marca: e.target.value })}
                   className={errors.marca ? 'input-error' : ''}
+                  disabled={loadingVehiculos}
                 >
                   <option value="">Seleccione una marca</option>
-                  {marcasVehiculo.map(marca => (
-                    <option key={marca} value={marca}>{marca}</option>
-                  ))}
+                  {marcasDisponibles.length > 0 ? (
+                    marcasDisponibles.map(marca => (
+                      <option key={marca} value={marca}>{marca}</option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Toyota">Toyota</option>
+                      <option value="Honda">Honda</option>
+                      <option value="Ford">Ford</option>
+                      <option value="Chevrolet">Chevrolet</option>
+                    </>
+                  )}
                 </select>
                 {errors.marca && <span className="error-message">{errors.marca}</span>}
               </div>
@@ -548,6 +851,7 @@ const InventarioAdmin: React.FC = () => {
                   value={newVehiculo.modelo}
                   onChange={e => setNewVehiculo({ ...newVehiculo, modelo: e.target.value })}
                   className={errors.modelo ? 'input-error' : ''}
+                  disabled={loadingVehiculos}
                 />
                 {errors.modelo && <span className="error-message">{errors.modelo}</span>}
               </div>
@@ -557,10 +861,21 @@ const InventarioAdmin: React.FC = () => {
                 <select
                   value={newVehiculo.tipo}
                   onChange={e => setNewVehiculo({ ...newVehiculo, tipo: e.target.value })}
+                  disabled={loadingVehiculos}
                 >
-                  {tiposVehiculo.map(tipo => (
-                    <option key={tipo} value={tipo}>{tipo}</option>
-                  ))}
+                  <option value="">Seleccione tipo</option>
+                  {tiposDisponibles.length > 0 ? (
+                    tiposDisponibles.map(tipo => (
+                      <option key={tipo} value={tipo}>{tipo}</option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Sedán">Sedán</option>
+                      <option value="SUV">SUV</option>
+                      <option value="Pickup">Pickup</option>
+                      <option value="Hatchback">Hatchback</option>
+                    </>
+                  )}
                 </select>
               </div>
               
@@ -572,16 +887,25 @@ const InventarioAdmin: React.FC = () => {
                   value={newVehiculo.anio}
                   onChange={e => setNewVehiculo({ ...newVehiculo, anio: parseInt(e.target.value) || new Date().getFullYear() })}
                   className={errors.anio ? 'input-error' : ''}
+                  disabled={loadingVehiculos}
                 />
                 {errors.anio && <span className="error-message">{errors.anio}</span>}
               </div>
             </div>
             
             <div className="modal-footer">
-              <button className="boton boton-guardar" onClick={agregarVehiculo}>
-                Guardar Vehículo
+              <button 
+                className="boton boton-guardar" 
+                onClick={agregarVehiculo}
+                disabled={loadingVehiculos}
+              >
+                {loadingVehiculos ? 'Guardando...' : 'Guardar Vehículo'}
               </button>
-              <button className="boton boton-cancelar" onClick={() => setShowModalAgregarVehiculo(false)}>
+              <button 
+                className="boton boton-cancelar" 
+                onClick={() => !loadingVehiculos && setShowModalAgregarVehiculo(false)}
+                disabled={loadingVehiculos}
+              >
                 Cancelar
               </button>
             </div>
@@ -589,18 +913,16 @@ const InventarioAdmin: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL AGREGAR REPUESTO - COMPLETO */}
+      {/* MODAL AGREGAR REPUESTO */}
       {showModalAgregar && (
-        <div className="modal-overlay" onClick={() => {
-          setShowModalAgregar(false);
-          limpiarErrores();
-        }}>
+        <div className="modal-overlay" onClick={() => !loading && setShowModalAgregar(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Agregar Nuevo Repuesto</h3>
               <button 
                 className="btn-close" 
-                onClick={() => setShowModalAgregar(false)}
+                onClick={() => !loading && setShowModalAgregar(false)}
+                disabled={loading}
               >
                 ×
               </button>
@@ -614,6 +936,7 @@ const InventarioAdmin: React.FC = () => {
                   value={newRepuesto.codigo}
                   onChange={e => setNewRepuesto({ ...newRepuesto, codigo: e.target.value.toUpperCase() })}
                   className={errors.codigo ? 'input-error' : ''}
+                  disabled={loading}
                 />
                 {errors.codigo && <span className="error-message">{errors.codigo}</span>}
               </div>
@@ -625,6 +948,7 @@ const InventarioAdmin: React.FC = () => {
                   value={newRepuesto.nombre}
                   onChange={e => setNewRepuesto({ ...newRepuesto, nombre: e.target.value })}
                   className={errors.nombre ? 'input-error' : ''}
+                  disabled={loading}
                 />
                 {errors.nombre && <span className="error-message">{errors.nombre}</span>}
               </div>
@@ -637,6 +961,7 @@ const InventarioAdmin: React.FC = () => {
                   onChange={e => setNewRepuesto({ ...newRepuesto, descripcion: e.target.value })}
                   rows={3}
                   className="form-control"
+                  disabled={loading}
                 />
               </div>
               
@@ -649,6 +974,7 @@ const InventarioAdmin: React.FC = () => {
                     value={newRepuesto.cantidad || ''}
                     onChange={e => setNewRepuesto({ ...newRepuesto, cantidad: parseInt(e.target.value) || 0 })}
                     className={errors.cantidad ? 'input-error' : ''}
+                    disabled={loading}
                   />
                   {errors.cantidad && <span className="error-message">{errors.cantidad}</span>}
                 </div>
@@ -662,6 +988,7 @@ const InventarioAdmin: React.FC = () => {
                     value={newRepuesto.precio || ''}
                     onChange={e => setNewRepuesto({ ...newRepuesto, precio: parseFloat(e.target.value) || 0 })}
                     className={errors.precio ? 'input-error' : ''}
+                    disabled={loading}
                   />
                   {errors.precio && <span className="error-message">{errors.precio}</span>}
                 </div>
@@ -672,6 +999,7 @@ const InventarioAdmin: React.FC = () => {
                 <select
                   value={newRepuesto.vehiculoId || ''}
                   onChange={e => setNewRepuesto({ ...newRepuesto, vehiculoId: e.target.value ? parseInt(e.target.value) : null })}
+                  disabled={loading}
                 >
                   <option value="">Repuesto Universal</option>
                   {vehiculos.map(vehiculo => (
@@ -685,10 +1013,18 @@ const InventarioAdmin: React.FC = () => {
             </div>
             
             <div className="modal-footer">
-              <button className="boton boton-guardar" onClick={agregarRepuesto}>
-                Guardar Repuesto
+              <button 
+                className="boton boton-guardar" 
+                onClick={agregarRepuesto}
+                disabled={loading}
+              >
+                {loading ? 'Guardando...' : 'Guardar Repuesto'}
               </button>
-              <button className="boton boton-cancelar" onClick={() => setShowModalAgregar(false)}>
+              <button 
+                className="boton boton-cancelar" 
+                onClick={() => !loading && setShowModalAgregar(false)}
+                disabled={loading}
+              >
                 Cancelar
               </button>
             </div>
@@ -696,18 +1032,16 @@ const InventarioAdmin: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL EDITAR REPUESTO - COMPLETO */}
+      {/* MODAL EDITAR REPUESTO */}
       {showModalEditar && selected && (
-        <div className="modal-overlay" onClick={() => {
-          setShowModalEditar(false);
-          limpiarErrores();
-        }}>
+        <div className="modal-overlay" onClick={() => !loading && setShowModalEditar(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Editar Repuesto</h3>
               <button 
                 className="btn-close" 
-                onClick={() => setShowModalEditar(false)}
+                onClick={() => !loading && setShowModalEditar(false)}
+                disabled={loading}
               >
                 ×
               </button>
@@ -731,6 +1065,7 @@ const InventarioAdmin: React.FC = () => {
                   value={selected.nombre}
                   onChange={e => setSelected({ ...selected, nombre: e.target.value })}
                   className={errors.nombre ? 'input-error' : ''}
+                  disabled={loading}
                 />
                 {errors.nombre && <span className="error-message">{errors.nombre}</span>}
               </div>
@@ -743,6 +1078,7 @@ const InventarioAdmin: React.FC = () => {
                   onChange={e => setSelected({ ...selected, descripcion: e.target.value })}
                   rows={3}
                   className="form-control"
+                  disabled={loading}
                 />
               </div>
               
@@ -755,6 +1091,7 @@ const InventarioAdmin: React.FC = () => {
                     value={selected.cantidad || ''}
                     onChange={e => setSelected({ ...selected, cantidad: parseInt(e.target.value) || 0 })}
                     className={errors.cantidad ? 'input-error' : ''}
+                    disabled={loading}
                   />
                   {errors.cantidad && <span className="error-message">{errors.cantidad}</span>}
                 </div>
@@ -768,6 +1105,7 @@ const InventarioAdmin: React.FC = () => {
                     value={selected.precio || ''}
                     onChange={e => setSelected({ ...selected, precio: parseFloat(e.target.value) || 0 })}
                     className={errors.precio ? 'input-error' : ''}
+                    disabled={loading}
                   />
                   {errors.precio && <span className="error-message">{errors.precio}</span>}
                 </div>
@@ -778,6 +1116,7 @@ const InventarioAdmin: React.FC = () => {
                 <select
                   value={selected.vehiculoId || ''}
                   onChange={e => setSelected({ ...selected, vehiculoId: e.target.value ? parseInt(e.target.value) : null })}
+                  disabled={loading}
                 >
                   <option value="">Repuesto Universal</option>
                   {vehiculos.map(vehiculo => (
@@ -790,10 +1129,18 @@ const InventarioAdmin: React.FC = () => {
             </div>
             
             <div className="modal-footer">
-              <button className="boton boton-guardar" onClick={guardarEdicion}>
-                Guardar Cambios
+              <button 
+                className="boton boton-guardar" 
+                onClick={guardarEdicion}
+                disabled={loading}
+              >
+                {loading ? 'Guardando...' : 'Guardar Cambios'}
               </button>
-              <button className="boton boton-cancelar" onClick={() => setShowModalEditar(false)}>
+              <button 
+                className="boton boton-cancelar" 
+                onClick={() => !loading && setShowModalEditar(false)}
+                disabled={loading}
+              >
                 Cancelar
               </button>
             </div>

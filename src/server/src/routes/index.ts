@@ -1,25 +1,21 @@
 import { Router } from 'express';
 import clientesRoutes from './clientes.routes';
+import vehiculosBaseRoutes from './vehiculos_base.routes';  
+import inventarioRoutes from './inventario.routes';       
+import vehiculosClientesRoutes from './vehiculos_clientes.routes';
 
 const router = Router();
 
 // Rutas de clientes
 router.use('/clientes', clientesRoutes);
 
-// Ruta de ejemplo para vehículos (próximamente)
-router.get('/vehiculos', (_req, res) => {
-  res.json({
-    message: 'Lista de vehículos (próximamente)',
-    data: []
-  });
-});
+// Ruta de  para vehiculos_base
+router.use('/vehiculos-base', vehiculosBaseRoutes);  // Nueva
 
-// Ruta de ejemplo para servicios (próximamente)
-router.get('/servicios', (_req, res) => {
-  res.json({
-    message: 'Lista de servicios (próximamente)',
-    data: []
-  });
-});
+// Ruta de  para inventario
+router.use('/inventario', inventarioRoutes);        // Nueva
+
+// Rutas para vehiculos_clientes - NUEVA
+router.use('/vehiculos-clientes', vehiculosClientesRoutes);
 
 export default router;
