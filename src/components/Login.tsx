@@ -2,7 +2,16 @@
 import React, { useState } from 'react';
 import '../styles/Login.css';
 
-const Login: React.FC = () => {
+interface LoginProps {
+  onLogin: (userData: {
+    nombre: string;
+    rol: 'admin' | 'mecanico';
+    email?: string;
+  }) => void;
+}
+
+const Login: React.FC<LoginProps> = () => {
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -27,32 +36,42 @@ const Login: React.FC = () => {
         [name]: ''
       });
     }
-  };
+};
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validación simple
-    const newErrors = {
-      email: formData.email ? '' : 'Email es requerido',
-      password: formData.password ? '' : 'Contraseña es requerida'
-    };
-    
-    setErrors(newErrors);
-    
-    if (!newErrors.email && !newErrors.password) {
-      // Guardar autenticación en localStorage
-      localStorage.setItem('taller-auth', 'true');
-      
-      // Si marcó "Recordar sesión", guardar por más tiempo
-      if (formData.rememberMe) {
-        localStorage.setItem('taller-remember', 'true');
-      }
-      
-      // Redirigir a la página de Clientes
-      window.location.href = '/clientes';
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const res = await fetch("http://localhost:3000/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password
+      })
+    });
+
+    if (!res.ok) {
+      alert("Credenciales incorrectas");
+      return;
     }
-  };
+
+    const user = await res.json();
+
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("taller-auth", "true"); // <-- esto es lo que faltaba
+
+
+    // Redirección según rol
+    if (user.role === "admin") window.location.href = "/admin";
+    else if (user.role === "mecanico") window.location.href = "/taller";
+    else window.location.href = "/clientes";
+
+  } catch (err) {
+    console.error(err);
+    alert("Error de conexión");
+  }
+};
 
   return (
     <div className="login-taller-container">
