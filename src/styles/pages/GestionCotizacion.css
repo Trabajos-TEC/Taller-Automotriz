@@ -1,0 +1,1106 @@
+/* src/components/GestionCotizacion.css - TEMA VERDE AZULADO */
+/*============================= Gestion de Cotizaciones =================================*/
+.gestion-cotizaciones {
+  width: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.gestion-cotizaciones h2 {
+  text-align: left;
+  margin-bottom: 10px;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 0;
+}
+
+/* ================== HEADER SECTION ================== */
+.gestion-cotizaciones .header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.gestion-cotizaciones .header-section h1 {
+  font-size: 28px;
+  color: #fff;
+  margin: 0;
+}
+
+.gestion-cotizaciones .stats {
+  display: flex;
+  gap: 15px;
+  color: #9aa4b2;
+  font-size: 14px;
+}
+
+.gestion-cotizaciones .stat-item {
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+/* ================== CONTENEDOR PRINCIPAL ================== */
+.gestion-cotizaciones .contenedor-principal {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 200px - 30px);
+  min-height: 500px;
+  flex: 1;
+}
+
+/* ================== CONTENEDOR IZQUIERDO (Lista) ================== */
+.gestion-cotizaciones .contenedor-lista {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-height: 100%;
+}
+
+/* ================== BARRA DE BÚSQUEDA ================== */
+.gestion-cotizaciones .busqueda-agregar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 0 5px;
+  box-sizing: border-box;
+}
+
+.gestion-cotizaciones .search-bar {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #334244;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.gestion-cotizaciones .search-bar:focus {
+  outline: none;
+  border-color: #11695c;
+  box-shadow: 0 0 0 3px rgba(17, 105, 92, 0.2);
+}
+
+/* ================== TABLA CONTAINER ================== */
+.gestion-cotizaciones .table-container {
+  background: rgba(51, 69, 66, 0.9);
+  border-radius: 10px;
+  padding: 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: auto;
+  max-height: calc(100vh - 250px - 30px - 10px);
+  position: relative;
+  border: 1px solid rgba(17, 105, 92, 0.3);
+  box-shadow: 0 6px 25px rgba(17, 105, 92, 0.4);
+}
+
+/* Tabla dentro del contenedor */
+.gestion-cotizaciones .data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+  margin: 0;
+}
+
+/* CABECERA */
+.gestion-cotizaciones .data-table thead {
+  background: rgba(17, 105, 92, 0.95);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  position: relative;
+  z-index: 2;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Celdas de la cabecera */
+.gestion-cotizaciones .data-table th {
+  padding: 16px 15px;
+  text-align: left;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  background: inherit;
+}
+
+/* Cuerpo de la tabla */
+.gestion-cotizaciones .data-table tbody {
+  position: relative;
+}
+
+.gestion-cotizaciones .data-table td {
+  padding: 14px 15px;
+  color: #e5e7eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+}
+
+/* Primera fila del cuerpo */
+.gestion-cotizaciones .data-table tbody tr:first-child td {
+  border-top: none;
+}
+
+.gestion-cotizaciones .data-table tbody tr {
+  transition: background 0.2s;
+  cursor: pointer;
+  background: transparent;
+}
+
+.gestion-cotizaciones .data-table tbody tr:hover {
+  background: rgba(17, 105, 92, 0.08);
+}
+
+.gestion-cotizaciones .data-table tbody tr.selected-row {
+  background: rgba(17, 105, 92, 0.15);
+}
+
+/* Columnas específicas */
+.gestion-cotizaciones .data-table .codigo-column {
+  font-weight: 600;
+  color: #5eead4;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+.gestion-cotizaciones .data-table .nombre-column {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.gestion-cotizaciones .data-table .total-column {
+  font-weight: 700;
+  color: #10b981;
+}
+
+/* ================== BADGES ESPECÍFICOS PARA COTIZACIONES ================== */
+/* Badge de tipo (Cotización/Proforma) */
+.gestion-cotizaciones .tipo-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.gestion-cotizaciones .tipo-badge.cotizacion {
+  background: rgba(17, 105, 92, 0.2);
+  color: #5eead4;
+  border: 1px solid rgba(17, 105, 92, 0.3);
+}
+
+.gestion-cotizaciones .tipo-badge.proforma {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Estados de cotización */
+.gestion-cotizaciones .estado-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.gestion-cotizaciones .estado-borrador {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.gestion-cotizaciones .estado-pendiente {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.gestion-cotizaciones .estado-aprobada {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.gestion-cotizaciones .estado-rechazada {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* ================== MENSAJE SIN RESULTADOS ================== */
+.gestion-cotizaciones .no-results {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9aa4b2;
+  font-style: italic;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gestion-cotizaciones .no-results i {
+  font-size: 48px;
+  color: rgba(17, 105, 92, 0.5);
+  margin-bottom: 10px;
+}
+
+/* ================== SCROLLBAR PERSONALIZADO ================== */
+.gestion-cotizaciones .table-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.gestion-cotizaciones .table-container::-webkit-scrollbar-track {
+  background: rgba(17, 105, 92, 0.1);
+  border-radius: 5px;
+}
+
+.gestion-cotizaciones .table-container::-webkit-scrollbar-thumb {
+  background: #11695c;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.gestion-cotizaciones .table-container::-webkit-scrollbar-thumb:hover {
+  background: #148571;
+  background-clip: content-box;
+}
+
+/* Firefox */
+.gestion-cotizaciones .table-container {
+  scrollbar-width: thin;
+  scrollbar-color: #11695c rgba(17, 105, 92, 0.1);
+}
+
+/* ================== CONTENEDOR DERECHO (Detalles) ================== */
+.gestion-cotizaciones .contenedor-detalles {
+  flex: 1;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.gestion-cotizaciones .sidebar-details {
+  background: rgba(51, 69, 66, 0.9);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(17, 105, 92, 0.3);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateX(20px);
+  animation: slideIn 0.3s ease-out forwards;
+  box-shadow: 0 6px 25px rgba(17, 105, 92, 0.4);
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.gestion-cotizaciones .sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gestion-cotizaciones .sidebar-header h4 {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+}
+
+.gestion-cotizaciones .sidebar-body {
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.gestion-cotizaciones .detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gestion-cotizaciones .detail-item:last-child {
+  border-bottom: none;
+}
+
+.gestion-cotizaciones .detail-label {
+  color: #9aa4b2;
+  font-weight: 500;
+  min-width: 120px;
+  font-size: 0.9rem;
+}
+
+.gestion-cotizaciones .detail-value {
+  color: #fff;
+  font-weight: 600;
+  text-align: right;
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.gestion-cotizaciones .sidebar-footer {
+  display: flex;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ================== BOTONES ================== */
+.gestion-cotizaciones .boton-agregar {
+  background: #11695c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.gestion-cotizaciones .boton-editar {
+  background: #11695c;
+  color: white;
+}
+
+.gestion-cotizaciones .boton-eliminar {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.gestion-cotizaciones .boton-guardar {
+  background: #11695c;
+  color: white;
+}
+
+.gestion-cotizaciones .boton-cancelar {
+  background: #334155;
+  color: white;
+}
+
+.gestion-cotizaciones .boton-pdf {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Hover effects */
+.gestion-cotizaciones .boton-agregar:hover {
+  background: #148571;
+  transform: translateY(-1px);
+}
+
+.gestion-cotizaciones .boton-editar:hover {
+  background: #148571;
+}
+
+.gestion-cotizaciones .boton-eliminar:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.gestion-cotizaciones .boton-guardar:hover {
+  background: #148571;
+}
+
+.gestion-cotizaciones .boton-cancelar:hover {
+  background: #4b5563;
+}
+
+.gestion-cotizaciones .boton-pdf:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+/* ================== FORMULARIOS EN MODALES ================== */
+.gestion-cotizaciones .form-group {
+  margin-bottom: 20px;
+}
+
+.gestion-cotizaciones .form-group label {
+  color: #c1c5cc;
+  margin-bottom: 8px;
+  font-weight: 500;
+  display: block;
+  font-size: 0.95rem;
+}
+
+.gestion-cotizaciones .form-group input,
+.gestion-cotizaciones .form-group select,
+.gestion-cotizaciones .form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #4b5563;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.gestion-cotizaciones .form-group input:focus,
+.gestion-cotizaciones .form-group select:focus,
+.gestion-cotizaciones .form-group textarea:focus {
+  outline: none;
+  border-color: #11695c;
+  box-shadow: 0 0 0 3px rgba(17, 105, 92, 0.2);
+}
+
+.gestion-cotizaciones .input-error {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.gestion-cotizaciones .input-disabled {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #9aa4b2 !important;
+  cursor: not-allowed;
+}
+
+/* ================== MODALES MEJORADOS ================== */
+.gestion-cotizaciones .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.gestion-cotizaciones .modal {
+  background: rgba(51, 69, 66, 0.95);
+  border-radius: 16px;
+  padding: 35px;
+  box-shadow: 
+    0 25px 60px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(17, 105, 92, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  max-width: 520px;
+  width: 90%;
+  animation: modalAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.gestion-cotizaciones .modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #11695c, #5eead4, #11695c);
+  z-index: 1;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.gestion-cotizaciones .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(94, 234, 212, 0.3);
+  position: relative;
+}
+
+.gestion-cotizaciones .modal-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(94, 234, 212, 0.5), transparent);
+}
+
+.gestion-cotizaciones .modal-header h3 {
+  margin: 0;
+  color: #5eead4;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.gestion-cotizaciones .modal-body {
+  margin-bottom: 30px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.gestion-cotizaciones .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.gestion-cotizaciones .modal-body::-webkit-scrollbar-track {
+  background: rgba(17, 105, 92, 0.1);
+  border-radius: 4px;
+}
+
+.gestion-cotizaciones .modal-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #11695c, #5eead4);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.gestion-cotizaciones .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding-top: 25px;
+  border-top: 1px solid rgba(94, 234, 212, 0.2);
+}
+
+/* ================== BOTÓN CERRAR MODAL MEJORADO ================== */
+.gestion-cotizaciones .btn-close {
+  background: rgba(17, 105, 92, 0.3);
+  border: 1px solid rgba(94, 234, 212, 0.3);
+  color: #5eead4;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.gestion-cotizaciones .btn-close:hover {
+  background: rgba(94, 234, 212, 0.3);
+  color: #ffffff;
+  transform: rotate(90deg);
+  box-shadow: 0 0 15px rgba(94, 234, 212, 0.4);
+  border-color: #5eead4;
+}
+
+.gestion-cotizaciones .btn-close::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(94, 234, 212, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.gestion-cotizaciones .btn-close:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+/* ================== MODAL GRANDE ================== */
+.gestion-cotizaciones .modal-grande {
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: rgba(51, 69, 66, 0.95);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8),
+              0 6px 25px rgba(17, 105, 92, 0.4);
+}
+
+/* ================== SECCIONES MODAL GRANDE ================== */
+.gestion-cotizaciones .seccion-info,
+.gestion-cotizaciones .seccion-items {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gestion-cotizaciones .seccion-info:last-child,
+.gestion-cotizaciones .seccion-items:last-child {
+  border-bottom: none;
+}
+
+.gestion-cotizaciones .seccion-info h4,
+.gestion-cotizaciones .seccion-items h4 {
+  color: #5eead4;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+/* ================== GRID DE INFORMACIÓN ================== */
+.gestion-cotizaciones .grid-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.gestion-cotizaciones .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.gestion-cotizaciones .info-item label {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+}
+
+.gestion-cotizaciones .info-item input {
+  color: #fff;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #4b5563;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+/* ================== TABLA SCROLLABLE ================== */
+.gestion-cotizaciones .table-scrollable {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(51, 69, 66, 0.9);
+}
+
+.gestion-cotizaciones .items-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.gestion-cotizaciones .items-table th {
+  background: rgba(17, 105, 92, 0.8);
+  padding: 12px 15px;
+  color: #fff;
+  font-weight: 600;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.gestion-cotizaciones .items-table td {
+  padding: 10px 15px;
+  color: #e5e7eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gestion-cotizaciones .items-table tr:hover {
+  background: rgba(17, 105, 92, 0.08);
+}
+
+.gestion-cotizaciones .no-items {
+  text-align: center;
+  color: #9aa4b2;
+  font-style: italic;
+  padding: 20px !important;
+}
+
+/* ================== FORMULARIOS INLINE ================== */
+.gestion-cotizaciones .form-group-inline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.gestion-cotizaciones .form-group-inline input {
+  flex: 1;
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: 1px solid #4b5563;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* ================== DROPDOWN PERSONALIZADO ================== */
+.gestion-cotizaciones .dropdown-container {
+  position: relative;
+  flex: 1;
+}
+
+.gestion-cotizaciones .dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(51, 69, 66, 0.95);
+  border: 1px solid rgba(17, 105, 92, 0.5);
+  border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.gestion-cotizaciones .dropdown-item {
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gestion-cotizaciones .dropdown-item:hover {
+  background: rgba(17, 105, 92, 0.3);
+}
+
+.gestion-cotizaciones .dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.gestion-cotizaciones .dropdown-item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.gestion-cotizaciones .dropdown-item-main strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.gestion-cotizaciones .dropdown-price {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.gestion-cotizaciones .dropdown-item-details {
+  display: flex;
+  gap: 10px;
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+}
+
+.gestion-cotizaciones .dropdown-item-desc {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+.gestion-cotizaciones .dropdown-item-code {
+  color: #5eead4;
+  font-size: 0.85rem;
+  font-family: monospace;
+}
+
+.gestion-cotizaciones .dropdown-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.gestion-cotizaciones .dropdown-badge.universal {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.gestion-cotizaciones .dropdown-badge.specific {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.gestion-cotizaciones .dropdown-stock {
+  color: #9aa4b2;
+}
+
+/* ================== AGREGAR ITEM FORM ================== */
+.gestion-cotizaciones .agregar-item-form {
+  background: rgba(51, 69, 66, 0.9);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ================== RESUMEN DE TOTALES ================== */
+.gestion-cotizaciones .resumen-totales {
+  background: rgba(51, 69, 66, 0.9);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(17, 105, 92, 0.3);
+  margin-top: 20px;
+  box-shadow: 0 6px 25px rgba(17, 105, 92, 0.4);
+}
+
+.gestion-cotizaciones .resumen-totales h4 {
+  color: #5eead4;
+  margin-bottom: 15px;
+  font-size: 18px;
+  text-align: center;
+}
+
+.gestion-cotizaciones .total-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gestion-cotizaciones .total-item:last-child {
+  border-bottom: none;
+}
+
+.gestion-cotizaciones .total-item span:first-child {
+  color: #9aa4b2;
+}
+
+.gestion-cotizaciones .total-item span:last-child {
+  color: #fff;
+  font-weight: 600;
+}
+
+.gestion-cotizaciones .total-item.total-final {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 2px solid rgba(17, 105, 92, 0.3);
+}
+
+.gestion-cotizaciones .total-item.total-final span:first-child {
+  color: #5eead4;
+  font-size: 1.1rem;
+}
+
+.gestion-cotizaciones .total-item.total-final span:last-child {
+  color: #10b981;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* ================== ACCIONES FINALES ================== */
+.gestion-cotizaciones .acciones-finales {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ================== BOTONES PEQUEÑOS ================== */
+.gestion-cotizaciones .boton-eliminar-pequeno {
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.gestion-cotizaciones .boton-eliminar-pequeno:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+/* ================== INFO USUARIO ================== */
+.gestion-cotizaciones .info-usuario {
+  background: rgba(17, 105, 92, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(17, 105, 92, 0.3);
+}
+
+.gestion-cotizaciones .info-text {
+  color: #5eead4;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.gestion-cotizaciones .warning-text {
+  color: #f59e0b;
+  font-size: 0.9rem;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+/* ================== SELECTOR DE COTIZACIÓN ================== */
+.gestion-cotizaciones .separador {
+  text-align: center;
+  margin: 20px 0;
+  color: #9aa4b2;
+  position: relative;
+}
+
+.gestion-cotizaciones .separador:before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 1;
+}
+
+.gestion-cotizaciones .separador span {
+  background: rgba(51, 69, 66, 0.95);
+  padding: 0 20px;
+  display: inline-block;
+  position: relative;
+  z-index: 2;
+}
+
+/* ================== SUBTITULO ================== */
+.gestion-cotizaciones .subtitulo {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+  font-weight: normal;
+  margin-left: 10px;
+}
+
+/* ================== RESPONSIVE ================== */
+@media (max-width: 1588px) {
+  .gestion-cotizaciones .contenedor-principal {
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
+  }
+  
+  .gestion-cotizaciones .contenedor-lista {
+    width: 100%;
+    height: 60vh;
+    min-height: 400px;
+  }
+  
+  .gestion-cotizaciones .contenedor-detalles {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 200px;
+    margin-top: 20px;
+  }
+  
+  .gestion-cotizaciones .sidebar-details {
+    height: auto;
+    min-height: 200px;
+  }
+  
+  .gestion-cotizaciones .table-container {
+    max-height: 60vh;
+  }
+}
+
+@media (max-width: 1024px) {
+  .gestion-cotizaciones .grid-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .gestion-cotizaciones .modal-grande {
+    width: 95%;
+    margin: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .gestion-cotizaciones .busqueda-agregar {
+    flex-direction: column;
+  }
+  
+  .gestion-cotizaciones .sidebar-footer,
+  .gestion-cotizaciones .modal-footer {
+    flex-direction: column;
+  }
+  
+  .gestion-cotizaciones .detail-item {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .gestion-cotizaciones .detail-label,
+  .gestion-cotizaciones .detail-value {
+    min-width: auto;
+    text-align: left;
+  }
+  
+  .gestion-cotizaciones .form-group-inline {
+    flex-direction: column;
+  }
+  
+  .gestion-cotizaciones .form-group-inline input,
+  .gestion-cotizaciones .form-group-inline button {
+    width: 100%;
+  }
+  
+  .gestion-cotizaciones .acciones-finales {
+    flex-direction: column;
+  }
+  
+  .gestion-cotizaciones .modal-footer {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .gestion-cotizaciones .modal {
+    padding: 25px;
+    width: 95%;
+  }
+}
+
+/* ================== ANIMACIONES ================== */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.gestion-cotizaciones .modal-grande {
+  animation: slideInRight 0.3s ease-out;
+}

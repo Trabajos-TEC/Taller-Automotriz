@@ -1,0 +1,769 @@
+/* ReportesAdministrador.css - TEMA VERDE AZULADO (REPORTES) */
+/* ================== REPORTES ADMINISTRADOR ================== */
+.reportes-admin {
+  width: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.reportes-admin h1 {
+  font-size: 28px;
+  color: #fff;
+  margin: 0;
+}
+
+/* ================== HEADER SECTION ================== */
+.reportes-admin .header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.reportes-admin .stats {
+  display: flex;
+  gap: 15px;
+}
+
+.reportes-admin .stat-item {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+}
+
+.reportes-admin .stat-label {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+}
+
+.reportes-admin .stat-value {
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.reportes-admin .estado-pendiente .stat-value {
+  color: #f59e0b;
+}
+
+.reportes-admin .estado-en-proceso .stat-value {
+  color: #3b82f6;
+}
+
+.reportes-admin .estado-atendido .stat-value {
+  color: #10b981;
+}
+
+/* ================== CONTENEDOR PRINCIPAL ================== */
+.reportes-admin .contenedor-principal {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 200px);
+  min-height: 500px;
+  flex: 1;
+}
+
+/* ================== CONTENEDOR IZQUIERDO (Lista) ================== */
+.reportes-admin .contenedor-lista {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-height: 100%;
+}
+
+/* ================== BARRA DE BÚSQUEDA ================== */
+.reportes-admin .busqueda-agregar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 0 5px;
+  box-sizing: border-box;
+}
+
+.reportes-admin .search-bar {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #1f2d38;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.reportes-admin .search-bar:focus {
+  outline: none;
+  border-color: #34495e;
+  box-shadow: 0 0 0 3px rgba(52, 73, 94, 0.2);
+}
+
+/* Filtros rápidos */
+.reportes-admin .filtros-rapidos {
+  display: flex;
+  gap: 8px;
+}
+
+.reportes-admin .btn-filtro-rapido {
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(52, 73, 94, 0.3);
+  background: rgba(31, 45, 56, 0.5);
+  color: #9aa4b2;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.reportes-admin .btn-filtro-rapido:hover {
+  background: rgba(52, 73, 94, 0.3);
+  color: #fff;
+}
+
+.reportes-admin .btn-filtro-rapido.active {
+  background: rgba(52, 73, 94, 0.7);
+  color: #fff;
+  border-color: #34495e;
+}
+
+/* ================== TABLA CONTAINER ================== */
+.reportes-admin .table-container {
+  background: rgba(31, 45, 56, 0.9);
+  border-radius: 10px;
+  padding: 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative;
+  border: 1px solid rgba(52, 73, 94, 0.3);
+  box-shadow: 0 6px 25px rgba(52, 73, 94, 0.4);
+}
+
+/* Loading state */
+.reportes-admin .loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 15px;
+}
+
+.reportes-admin .spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(52, 73, 94, 0.3);
+  border-top-color: #34495e;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ================== LISTA DE REPORTES ================== */
+.reportes-admin .lista-reportes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Categoría */
+.reportes-admin .categoria-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.reportes-admin .categoria-header {
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.3s;
+  background: rgba(52, 73, 94, 0.3);
+}
+
+.reportes-admin .categoria-header:hover {
+  background: rgba(52, 73, 94, 0.4);
+}
+
+.reportes-admin .categoria-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reportes-admin .categoria-icon {
+  font-size: 1.2rem;
+}
+
+.reportes-admin .categoria-nombre {
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.reportes-admin .categoria-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reportes-admin .badge-cantidad {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.reportes-admin .badge-cantidad.active {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.reportes-admin .badge-cantidad.empty {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.reportes-admin .categoria-toggle {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+}
+
+/* Contenido de categoría */
+.reportes-admin .categoria-contenido {
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.reportes-admin .no-reportes-categoria {
+  padding: 20px;
+  text-align: center;
+  color: #9aa4b2;
+  font-style: italic;
+}
+
+/* Item de reporte */
+.reportes-admin .reporte-item {
+  padding: 15px;
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border-left: 4px solid #34495e;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.reportes-admin .reporte-item:hover {
+  background: rgba(52, 73, 94, 0.2);
+  transform: translateX(2px);
+}
+
+.reportes-admin .reporte-item.selected {
+  background: rgba(52, 73, 94, 0.3);
+  border-left-color: #5dade2;
+  box-shadow: 0 4px 12px rgba(52, 73, 94, 0.3);
+}
+
+.reportes-admin .reporte-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.reportes-admin .reporte-usuario {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reportes-admin .estado-indicador {
+  font-size: 1.2rem;
+}
+
+.reportes-admin .estado-indicador.estado-pendiente {
+  color: #f59e0b;
+}
+
+.reportes-admin .estado-indicador.estado-en-proceso {
+  color: #3b82f6;
+}
+
+.reportes-admin .estado-indicador.estado-atendido {
+  color: #10b981;
+}
+
+.reportes-admin .usuario-nombre {
+  color: #fff;
+  font-weight: 600;
+}
+
+.reportes-admin .reporte-fecha {
+  color: #9aa4b2;
+  font-size: 0.85rem;
+}
+
+.reportes-admin .reporte-descripcion {
+  color: #c1c5cc;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.reportes-admin .reporte-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reportes-admin .badge-estado {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.reportes-admin .badge-estado.estado-pendiente {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.reportes-admin .badge-estado.estado-en-proceso {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.reportes-admin .badge-estado.estado-atendido {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* ================== CONTENEDOR DERECHO (Detalles) ================== */
+.reportes-admin .contenedor-detalles {
+  flex: 1;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.reportes-admin .sidebar-details {
+  background: rgba(31, 45, 56, 0.9);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(52, 73, 94, 0.3);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 6px 25px rgba(52, 73, 94, 0.4);
+}
+
+.reportes-admin .sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reportes-admin .sidebar-header h4 {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+}
+
+.reportes-admin .btn-close {
+  background: rgba(52, 73, 94, 0.3);
+  border: 1px solid rgba(91, 173, 226, 0.3);
+  color: #5dade2;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.reportes-admin .btn-close:hover {
+  background: rgba(91, 173, 226, 0.3);
+  color: #ffffff;
+  transform: rotate(90deg);
+}
+
+.reportes-admin .sidebar-body {
+  margin-bottom: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.reportes-admin .detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.reportes-admin .detail-item:last-child {
+  border-bottom: none;
+}
+
+.reportes-admin .detail-label {
+  color: #9aa4b2;
+  font-weight: 500;
+  min-width: 120px;
+  font-size: 0.9rem;
+}
+
+.reportes-admin .detail-value {
+  color: #fff;
+  font-weight: 600;
+  text-align: right;
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.reportes-admin .codigo-value {
+  color: #5dade2;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+/* Estado selector */
+.reportes-admin .estado-selector {
+  flex: 1;
+}
+
+.reportes-admin .select-estado {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #4b5563;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.reportes-admin .select-estado.estado-pendiente {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.reportes-admin .select-estado.estado-en-proceso {
+  border-color: rgba(59, 130, 246, 0.3);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.reportes-admin .select-estado.estado-atendido {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.reportes-admin .select-estado:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(52, 73, 94, 0.2);
+}
+
+/* Secciones de detalles */
+.reportes-admin .detail-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reportes-admin .detail-section h5 {
+  color: #5dade2;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.reportes-admin .reporte-descripcion-completa {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 8px;
+  color: #e5e7eb;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.reportes-admin .detalles-extra {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.reportes-admin .detalle-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.reportes-admin .detalle-item:last-child {
+  border-bottom: none;
+}
+
+.reportes-admin .detalle-label {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+}
+
+.reportes-admin .detalle-value {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Footer */
+.reportes-admin .sidebar-footer {
+  display: flex;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reportes-admin .boton-guardar {
+  flex: 1;
+  background: #34495e;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.reportes-admin .boton-guardar:hover {
+  background: #2c3e50;
+  transform: translateY(-1px);
+}
+
+.reportes-admin .boton-atendido {
+  flex: 1;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.reportes-admin .boton-atendido:hover {
+  background: rgba(16, 185, 129, 0.3);
+}
+
+/* Placeholder */
+.reportes-admin .sidebar-placeholder {
+  background: rgba(31, 45, 56, 0.9);
+  border-radius: 10px;
+  padding: 40px 20px;
+  border: 1px solid rgba(52, 73, 94, 0.3);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 6px 25px rgba(52, 73, 94, 0.4);
+}
+
+.reportes-admin .placeholder-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.reportes-admin .sidebar-placeholder h4 {
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.reportes-admin .subtitulo {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+
+/* ================== NO RESULTS ================== */
+.reportes-admin .no-results {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9aa4b2;
+  font-style: italic;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reportes-admin .no-results-icon {
+  font-size: 48px;
+  color: rgba(52, 73, 94, 0.5);
+  margin-bottom: 10px;
+}
+
+/* ================== SCROLLBAR ================== */
+.reportes-admin .table-container::-webkit-scrollbar,
+.reportes-admin .sidebar-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.reportes-admin .table-container::-webkit-scrollbar-track,
+.reportes-admin .sidebar-body::-webkit-scrollbar-track {
+  background: rgba(52, 73, 94, 0.1);
+  border-radius: 4px;
+}
+
+.reportes-admin .table-container::-webkit-scrollbar-thumb,
+.reportes-admin .sidebar-body::-webkit-scrollbar-thumb {
+  background: #34495e;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.reportes-admin .table-container::-webkit-scrollbar-thumb:hover,
+.reportes-admin .sidebar-body::-webkit-scrollbar-thumb:hover {
+  background: #2c3e50;
+  background-clip: content-box;
+}
+
+/* Firefox */
+.reportes-admin .table-container,
+.reportes-admin .sidebar-body {
+  scrollbar-width: thin;
+  scrollbar-color: #34495e rgba(52, 73, 94, 0.1);
+}
+
+/* ================== ACCESS DENIED ================== */
+.reportes-admin .access-denied {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9aa4b2;
+}
+
+.reportes-admin .access-denied h2 {
+  color: #ef4444;
+  margin-bottom: 20px;
+}
+
+/* ================== RESPONSIVE ================== */
+@media (max-width: 1200px) {
+  .reportes-admin .contenedor-principal {
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
+  }
+  
+  .reportes-admin .contenedor-lista {
+    width: 100%;
+    height: 60vh;
+    min-height: 400px;
+  }
+  
+  .reportes-admin .contenedor-detalles {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 300px;
+    margin-top: 20px;
+  }
+  
+  .reportes-admin .sidebar-details {
+    height: auto;
+    min-height: 300px;
+  }
+  
+  .reportes-admin .table-container {
+    max-height: 60vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .reportes-admin .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .reportes-admin .stats {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .reportes-admin .stat-item {
+    min-width: calc(50% - 8px);
+    margin-bottom: 10px;
+  }
+  
+  .reportes-admin .busqueda-agregar {
+    flex-direction: column;
+  }
+  
+  .reportes-admin .filtros-rapidos {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .reportes-admin .btn-filtro-rapido {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .reportes-admin .sidebar-footer {
+    flex-direction: column;
+  }
+  
+  .reportes-admin .detail-item {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .reportes-admin .detail-label,
+  .reportes-admin .detail-value {
+    min-width: auto;
+    text-align: left;
+  }
+  
+  .reportes-admin .detalle-item {
+    flex-direction: column;
+    gap: 3px;
+  }
+}

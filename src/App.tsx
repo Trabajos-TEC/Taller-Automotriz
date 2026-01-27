@@ -9,6 +9,8 @@ import Vehiculos from './pages/Vehiculos';
 import Inventario from './pages/InventarioAdmin';
 import Citas from './pages/Citas';
 import Trabajos from './pages/GestionTrabajos';
+import Cotizacion from './pages/GestionCotizacion';
+import ReportesAdministrador from './pages/ReportesAdmin';
 import Menu from './components/Menu';
 
 // Interface para la sesión
@@ -74,7 +76,7 @@ const MainLayout = ({ onLogout, session }: { onLogout: () => void, session: Sess
     }
     else if (path.includes('cotizacion')) {
       setCurrentSection('cotizacion');
-      setPageContent(<PlaceholderPage title="Cotizaciones" />);
+      setPageContent(<Cotizacion session={session} />); // ✅ Cambiado de PlaceholderPage a Cotizacion
     }
     else if (path.includes('orden-trabajo')) {
       setCurrentSection('trabajos');
@@ -82,7 +84,7 @@ const MainLayout = ({ onLogout, session }: { onLogout: () => void, session: Sess
     }
     else if (path.includes('reportes')) {
       setCurrentSection('reportes');
-      setPageContent(<PlaceholderPage title="Reportes y Estadísticas" />);
+      setPageContent(<ReportesAdministrador />); // ✅ Cambiado de PlaceholderPage a ReportesAdministrador
     }
     else {
       setCurrentSection('clientes');
@@ -112,7 +114,7 @@ const MainLayout = ({ onLogout, session }: { onLogout: () => void, session: Sess
         window.history.pushState({}, '', '/citas');
         break;
       case 'cotizacion':
-        setPageContent(<PlaceholderPage title="Cotizaciones" />);
+        setPageContent(<Cotizacion session={session} />); // ✅ Cambiado de PlaceholderPage a Cotizacion
         window.history.pushState({}, '', '/cotizacion');
         break;
       case 'trabajos':
@@ -120,7 +122,7 @@ const MainLayout = ({ onLogout, session }: { onLogout: () => void, session: Sess
         window.history.pushState({}, '', '/orden-trabajo');
         break;
       case 'reportes':
-        setPageContent(<PlaceholderPage title="Reportes y Estadísticas" />);
+        setPageContent(<ReportesAdministrador />); // ✅ Cambiado de Cotizacion a ReportesAdministrador
         window.history.pushState({}, '', '/reportes');
         break;
       default:
