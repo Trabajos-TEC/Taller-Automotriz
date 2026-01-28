@@ -2,7 +2,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { testConnection } from './config/database.js';
+import { testConnection } from './config/database';
 import errorHandler from './middlewares/errorHandler';
 import routes from './routes';
 
@@ -58,4 +58,3 @@ const startServer = async () => {
 };
 
 startServer();
-
