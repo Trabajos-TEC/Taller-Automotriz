@@ -1,7 +1,8 @@
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { testConnection } from './config/database';
+import { testConnection } from './config/database.js';
 import errorHandler from './middlewares/errorHandler';
 import routes from './routes';
 
@@ -39,10 +40,10 @@ app.use((_req, res) => {
   });
 });
 
-// Iniciar servidor y probar conexión a la base de datos
+// Iniciar servidor y probar conexiï¿½n a la base de datos
 const startServer = async () => {
   try {
-    // Probar conexión a la base de datos
+    // Probar conexiï¿½n a la base de datos
     await testConnection();
     
     app.listen(PORT, () => {

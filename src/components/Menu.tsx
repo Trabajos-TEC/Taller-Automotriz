@@ -1,6 +1,8 @@
 // src/components/Menu.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import '../styles/Menu.css';
+import AgregarUsuarioModal from './AgregarUsuarioModal';
+
 
 interface MenuProps {
   onLogout: () => void;
@@ -31,7 +33,11 @@ const Menu: React.FC<MenuProps> = ({
     { id: 'cotizacion', name: 'Cotización' },
     { id: 'reportes', name: 'Reportes' },
   ];
+const [showModal, setShowModal] = useState(false);
 
+{showModal && (
+  <AgregarUsuarioModal onClose={() => setShowModal(false)} />
+)}
   // Cerrar menú al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -58,7 +64,8 @@ const Menu: React.FC<MenuProps> = ({
     onLogout();
   };
 
-  return (
+return (
+  <>
     <div className="menu-container" ref={menuRef}>
       <button
         className="btn-menu-toggle"
@@ -69,20 +76,23 @@ const Menu: React.FC<MenuProps> = ({
       </button>
 
       <div className={`dropdown-menu ${menuOpen ? 'show' : ''}`}>
-        {/* Agregado: Información del usuario arriba */}
+        {/* Información del usuario */}
         <div className="user-info-header">
           <div className="user-name">{userName}</div>
-          <div className="user-role">{userRole === 'admin' ? 'Administrador' : 'Mecánico'}</div>
+          <div className="user-role">
+            {userRole === 'admin' ? 'Administrador' : 'Mecánico'}
+          </div>
         </div>
-        
-        {/* Agregado: Separador */}
+
         <div className="separator"></div>
-        
+
         <div className="menu-items">
           {menuItems.map(item => (
             <button
               key={item.id}
-              className={`btn-menu btn-menu-${item.id} ${currentSection === item.id ? 'active' : ''}`}
+              className={`btn-menu btn-menu-${item.id} ${
+                currentSection === item.id ? 'active' : ''
+              }`}
               onClick={() => handleMenuItemClick(item.id)}
               title={`Ir a ${item.name}`}
             >
@@ -90,18 +100,18 @@ const Menu: React.FC<MenuProps> = ({
             </button>
           ))}
         </div>
-        
+
         <div className="menu-actions">
           {isAdmin && (
-            <button 
+            <button
               className="btn-menu btn-menu-action btn-menu-agregar-usuario"
-              onClick={() => alert('Agregar usuario - funcionalidad pendiente')}
-              title="Agregar nuevo usuario"
+              onClick={() => setShowModal(true)}
             >
               Agregar Usuario
             </button>
           )}
-          <button 
+
+          <button
             className="btn-menu btn-menu-action btn-menu-danger"
             onClick={handleLogoutClick}
             title="Cerrar sesión"
@@ -111,7 +121,14 @@ const Menu: React.FC<MenuProps> = ({
         </div>
       </div>
     </div>
-  );
+
+    {/* 🔽 MODAL 🔽 */}
+    {showModal && (
+      <AgregarUsuarioModal onClose={() => setShowModal(false)} />
+    )}
+  </>
+);
+
 };
 
 export default Menu;

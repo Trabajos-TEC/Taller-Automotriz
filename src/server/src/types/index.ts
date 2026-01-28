@@ -17,6 +17,17 @@ export interface Cliente {
   numero?: string;
 }
 
+export interface Usuario {
+  id: number;
+  nombre: string;
+  email: string;
+  cedula: string;
+  password_hash: string;
+  role: 'admin' | 'mecanico' | 'cliente';
+  activo: boolean;
+}
+
+
 export interface Trabajador {
   id?: number;
   taller_id: number;
@@ -25,7 +36,7 @@ export interface Trabajador {
   correo: string;
   numero?: string;
   contrasena: string;
-  rol: 'mecanico' | 'administrador' | 'supervisor';
+  roles: 'mecanico' | 'administrador' | 'supervisor';
 }
 
 export interface ClienteTaller {
@@ -44,4 +55,8 @@ export interface TallerConClientes extends Taller {
 
 export interface TrabajadorConTaller extends Trabajador {
   taller?: Taller;
+}
+
+export interface UsuarioConTaller extends Usuario{
+  usuario?: Usuario[];
 }

@@ -3,7 +3,8 @@ import clientesRoutes from './clientes.routes';
 import vehiculosBaseRoutes from './vehiculos_base.routes';  
 import inventarioRoutes from './inventario.routes';       
 import vehiculosClientesRoutes from './vehiculos_clientes.routes';
-
+import authRoutes from './auth.routes'
+import usuariosRoutes from './usuario.routes';
 const router = Router();
 
 // Rutas de clientes
@@ -17,5 +18,11 @@ router.use('/inventario', inventarioRoutes);        // Nueva
 
 // Rutas para vehiculos_clientes - NUEVA
 router.use('/vehiculos-clientes', vehiculosClientesRoutes);
+
+//
+router.use('/auth', authRoutes);
+
+//
+router.use('/usuarios', usuariosRoutes);
 
 export default router;
