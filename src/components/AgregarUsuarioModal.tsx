@@ -76,8 +76,10 @@ const handleSubmit = async (e: React.FormEvent) => {
           />
 
           <select value={roles} onChange={e => setRol(e.target.value)}>
+            <option value="cliente">Cliente</option>
             <option value="mecanico">Mecánico</option>
             <option value="admin">Admin</option>
+           
           </select>
 
           <div className="modal-actions">

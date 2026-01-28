@@ -66,7 +66,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     // Redirección según rol
     if (user.role === "admin") window.location.href = "/clientes"; // solo para prueba va a dirigir a clientes
-    else if (user.role === "mecanico") window.location.href = "/taller";
+    else if (user.role === "mecanico") window.location.href = "/clientes";
     else window.location.href = "/clientes";
 
   } catch (err) {
