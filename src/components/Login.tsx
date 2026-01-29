@@ -47,33 +47,42 @@ const handleSubmit = async (e: React.FormEvent) => {
     return;
   }
 
-  // Usuarios de prueba (temporal - reemplazar con autenticación real)
-  const testUsers = [
-    { email: 'admin@taller.com', password: 'admin123', nombre: 'Administrador', rol: 'admin' as const },
-    { email: 'mecanico@taller.com', password: 'mecanico123', nombre: 'Juan Pérez', rol: 'mecanico' as const },
-    { email: 'juan.perez@email.com', password: '1234567890', nombre: 'Juan Pérez', rol: 'admin' as const }
-  ];
+  try {
+    // Llamar a la función serverless de Netlify
+    const res = await fetch("/.netlify/functions/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        correo: formData.email,
+        password: formData.password
+      })
+    });
 
-  // Buscar usuario
-  const user = testUsers.find(u => u.email === formData.email && u.password === formData.password);
+    if (!res.ok) {
+      const error = await res.json();
+      alert(error.error || "Credenciales incorrectas");
+      return;
+    }
 
-  if (!user) {
-    alert("Credenciales incorrectas");
-    return;
+    const userData = await res.json();
+
+    // Guardar sesión
+    const sessionData = {
+      nombre: userData.nombre,
+      rol: userData.rol,
+      email: userData.email
+    };
+
+    localStorage.setItem("taller-session", JSON.stringify(sessionData));
+    localStorage.setItem("taller-auth", "true");
+
+    // Redirigir
+    window.location.href = "/clientes";
+
+  } catch (error) {
+    console.error("Error en login:", error);
+    alert("Error de conexión. Por favor intente nuevamente.");
   }
-
-  // Guardar sesión
-  const sessionData = {
-    nombre: user.nombre,
-    rol: user.rol,
-    email: user.email
-  };
-
-  localStorage.setItem("taller-session", JSON.stringify(sessionData));
-  localStorage.setItem("taller-auth", "true");
-
-  // Redirigir
-  window.location.href = "/clientes";
 };
 
   return (

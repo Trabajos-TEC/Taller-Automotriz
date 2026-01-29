@@ -52,12 +52,12 @@ INSERT INTO talleres (nombre, direccion, telefono, ruc) VALUES
 ON CONFLICT (ruc) DO NOTHING;
 
 -- Insertar usuarios del sistema con contraseñas hasheadas
--- Nota: Las contraseñas son las cédulas hasheadas con bcrypt (por defecto)
--- Para generar: await bcrypt.hash('password', 10)
+-- Nota: Por simplicidad, las contraseñas son las cédulas (temporalmente)
+-- En producción, usar bcrypt: await bcrypt.hash('password', 10)
 INSERT INTO usuarios (nombre, correo, cedula, password_hash, roles, activo) VALUES
-    ('Admin Sistema', 'admin@taller.com', '9999999999', '$2b$10$YourHashedPasswordHere', 'admin', true),
-    ('Juan Pérez', 'juan.perez@taller.com', '1234567890', '$2b$10$YourHashedPasswordHere', 'mecanico', true),
-    ('María González', 'maria.gonzalez@taller.com', '0987654321', '$2b$10$YourHashedPasswordHere', 'cliente', true)
+    ('Admin Sistema', 'admin@taller.com', '9999999999', 'admin123', 'admin', true),
+    ('Juan Pérez', 'juan.perez@taller.com', '1234567890', '1234567890', 'mecanico', true),
+    ('María González', 'maria.gonzalez@taller.com', '0987654321', '0987654321', 'cliente', true)
 ON CONFLICT (correo) DO NOTHING;
 
 -- Asociar vehículos de clientes
