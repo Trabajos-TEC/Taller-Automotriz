@@ -55,10 +55,3 @@
 [functions]
   node_bundler = "esbuild"
   directory = "netlify/functions"
-
-# Plugin de Netlify Database (Neon)
-[[plugins]]
-  package = "@netlify/plugin-neon"
-
-  [plugins.inputs]
-    # Configuración opcional del plugin
