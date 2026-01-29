@@ -25,7 +25,6 @@ interface SessionData {
 }
 
 const ReportesAdministrador: React.FC = () => {
-  const [savedSession, setSavedSession] = useState<SessionData | null>(null);
   const [reportes, setReportes] = useState<Reporte[]>([]);
   const [filtroUsuario, setFiltroUsuario] = useState("");
   const [orden, setOrden] = useState<"nuevo" | "antiguo">("nuevo");
@@ -39,18 +38,6 @@ const ReportesAdministrador: React.FC = () => {
     enProceso: 0,
     atendidos: 0,
   });
-
-  // Cargar sesión del localStorage
-  useEffect(() => {
-    const sessionData = localStorage.getItem('taller-session');
-    if (sessionData) {
-      try {
-        setSavedSession(JSON.parse(sessionData));
-      } catch (e) {
-        console.error('Error al cargar sesión:', e);
-      }
-    }
-  }, []);
 
   // 🔄 Cargar reportes desde la API
   const obtenerReportes = async () => {
