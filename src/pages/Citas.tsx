@@ -41,13 +41,13 @@ const Citas: React.FC = () => {
   ]);
 
   // Estados para datos adicionales
-  const [vehiculos, setVehiculos] = useState<Vehiculo[]>([
+  const [vehiculos] = useState<Vehiculo[]>([
     { placa: 'ABC123', marca: 'Toyota', modelo: 'Corolla', clienteCedula: '123456789', clienteNombre: 'Juan Pérez' },
     { placa: 'XYZ789', marca: 'Honda', modelo: 'Civic', clienteCedula: '987654321', clienteNombre: 'María García' },
     { placa: 'DEF456', marca: 'Ford', modelo: 'Ranger', clienteCedula: '456789123', clienteNombre: 'Pedro Martínez' },
   ]);
 
-  const [mecanicos, setMecanicos] = useState<Usuario[]>([
+  const [mecanicos] = useState<Usuario[]>([
     { id: '1', nombre: 'Carlos López', rol: 'mecanico', email: 'carlos@taller.com' },
     { id: '2', nombre: 'Ana Rodríguez', rol: 'mecanico', email: 'ana@taller.com' },
     { id: '3', nombre: 'Miguel Sánchez', rol: 'mecanico', email: 'miguel@taller.com' },

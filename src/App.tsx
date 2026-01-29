@@ -26,7 +26,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
 
-// Componentes placeholder para las otras páginas
+// Componentes placeholder para las otras páginas (actualmente no se usa, se mantiene por si se necesita)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div style={{ padding: '40px', textAlign: 'center' }}>
     <h2>{title}</h2>

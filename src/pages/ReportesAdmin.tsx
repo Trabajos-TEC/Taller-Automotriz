@@ -25,7 +25,7 @@ interface SessionData {
 }
 
 const ReportesAdministrador: React.FC = () => {
-  const [session, setSession] = useState<SessionData | null>(null);
+  const [session] = useState<SessionData | null>(null);
   const [reportes, setReportes] = useState<Reporte[]>([]);
   const [filtroUsuario, setFiltroUsuario] = useState("");
   const [orden, setOrden] = useState<"nuevo" | "antiguo">("nuevo");

@@ -32,12 +32,13 @@ interface Trabajo {
   idCita?: string;
 }
 
-interface Vehiculo {
-  placa: string;
-  marca: string;
-  modelo: string;
-  tipo: string;
-  vehiculoBaseId?: number;
+// Interface Vehiculo definida pero no usada actualmente
+// interface Vehiculo {
+//   placa: string;
+//   marca: string;
+//   modelo: string;
+//   tipo: string;
+//   vehiculoBaseId?: number;
 }
 
 interface Cita {
@@ -449,6 +450,8 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
   };
 
   /* === ABRIR MODAL DE NOTA === */
+  // Función actualmente no usada, se mantiene por si se necesita
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const abrirModalNota = (nota: any) => {
     setNotaSeleccionada(nota);
     setShowModalNota(true);

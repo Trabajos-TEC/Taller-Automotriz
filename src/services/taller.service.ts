@@ -1,4 +1,4 @@
-﻿import { fetchApi, ApiResponse } from './api';
+﻿import { fetchApi, type ApiResponse } from './api';
 
 // Interfaz para Taller
 export interface Taller {
