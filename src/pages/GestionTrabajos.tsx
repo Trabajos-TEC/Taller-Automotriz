@@ -39,7 +39,7 @@ interface Trabajo {
 //   modelo: string;
 //   tipo: string;
 //   vehiculoBaseId?: number;
-}
+// }
 
 interface Cita {
   id: string;
