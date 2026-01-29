@@ -916,3 +916,122 @@
     justify-content: flex-end;
   }
 }
+
+/* ================== ESTILOS PARA DATALIST PERSONALIZADOS ================== */
+/* Estilos para mejorar la apariencia de los datalists nativos */
+.gestion-inventario datalist {
+  background: rgba(27, 51, 29, 0.95) !important;
+  border: 1px solid rgba(30, 107, 58, 0.5) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Estilos para las opciones del datalist */
+.gestion-inventario datalist option {
+  background: rgba(22, 25, 29, 0.95) !important;
+  color: #e5e7eb !important;
+  padding: 12px 15px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  font-size: 14px !important;
+}
+
+.gestion-inventario datalist option:last-child {
+  border-bottom: none !important;
+}
+
+.gestion-inventario datalist option:hover {
+  background: rgba(30, 107, 58, 0.2) !important;
+  color: #86efac !important;
+}
+
+/* Estilos para el input con datalist (ya existen pero los refuerzo) */
+.gestion-inventario .form-group input.select-con-busqueda-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(30, 107, 58, 0.5);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.gestion-inventario .form-group input.select-con-busqueda-input:focus {
+  outline: none;
+  border-color: #1e6b3a;
+  box-shadow: 0 0 0 3px rgba(30, 107, 58, 0.2);
+}
+
+/* ================== ESTILOS ESPECÍFICOS PARA TIPOS DE DATALIST ================== */
+/* Para el datalist de vehículos */
+.gestion-inventario datalist#vehiculos-list,
+.gestion-inventario datalist#vehiculos-list-edit {
+  background: rgba(27, 51, 29, 0.98) !important;
+}
+
+/* Para el datalist de categorías */
+.gestion-inventario datalist#categorias-list,
+.gestion-inventario datalist#categorias-list-edit {
+  background: rgba(27, 51, 29, 0.98) !important;
+}
+
+/* Para el datalist de tipos de vehículo */
+.gestion-inventario datalist#tipos-vehiculo-list {
+  background: rgba(27, 51, 29, 0.98) !important;
+}
+
+/* ================== SCROLLBAR PARA DATALIST ================== */
+.gestion-inventario datalist::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.gestion-inventario datalist::-webkit-scrollbar-track {
+  background: rgba(30, 107, 58, 0.1) !important;
+  border-radius: 4px !important;
+}
+
+.gestion-inventario datalist::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #1e6b3a, #34d399) !important;
+  border-radius: 4px !important;
+}
+
+/* Firefox */
+.gestion-inventario datalist {
+  scrollbar-width: thin !important;
+  scrollbar-color: #1e6b3a rgba(30, 107, 58, 0.1) !important;
+}
+
+/* ================== ANIMACIÓN PARA APARICIÓN DEL DATALIST ================== */
+@keyframes datalistFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gestion-inventario datalist {
+  animation: datalistFadeIn 0.2s ease-out !important;
+}
+
+/* ================== RESPONSIVE PARA DATALIST ================== */
+@media (max-width: 768px) {
+  .gestion-inventario datalist {
+    max-width: 100% !important;
+    min-width: 200px !important;
+  }
+  
+  .gestion-inventario datalist option {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+  }
+}
