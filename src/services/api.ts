@@ -1,5 +1,5 @@
 ﻿// Configuración base de la API
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = '/.netlify/functions';
 
 // Interfaces comunes
 export interface ApiResponse<T> {
