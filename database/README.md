@@ -59,13 +59,13 @@ psql "$NETLIFY_DATABASE_URL" -f database/seed.sql
 5. Ejecuta el script
 6. Repite con `seed.sql`
 
-### Opción 4: Usando código TypeScript con @netlify/neon
+### Opción 4: Usando código TypeScript con @neondatabase/serverless
 
 ```typescript
-import { neon } from '@netlify/neon';
+import { neon } from '@neondatabase/serverless';
 import fs from 'fs';
 
-const sql = neon(); // Usa automáticamente NETLIFY_DATABASE_URL
+const sql = neon(process.env.NETLIFY_DATABASE_URL!);
 
 // Leer y ejecutar schema
 const schema = fs.readFileSync('./database/schema.sql', 'utf8');
@@ -97,10 +97,10 @@ NETLIFY_DATABASE_URL_UNPOOLED=postgresql://[user]:[password]@[host]/[database]?s
 Para usar la base de datos en tus funciones de Netlify:
 
 ```typescript
-import { neon } from '@netlify/neon';
+import { neon } from '@neondatabase/serverless';
 
 export default async (req: Request) => {
-  const sql = neon(); // Automáticamente usa NETLIFY_DATABASE_URL
+  const sql = neon(process.env.NETLIFY_DATABASE_URL!);
   
   const clientes = await sql`SELECT * FROM clientes LIMIT 10`;
   

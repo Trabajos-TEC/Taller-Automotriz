@@ -1,5 +1,5 @@
 import { Handler } from '@netlify/functions';
-import { neon } from '@netlify/neon';
+import { neon } from '@neondatabase/serverless';
 
 /**
  * Función Netlify para obtener inventario
@@ -17,7 +17,7 @@ export const handler: Handler = async (event, context) => {
   }
 
   try {
-    const sql = neon();
+    const sql = neon(process.env.NETLIFY_DATABASE_URL!);
     const search = event.queryStringParameters?.search || '';
 
     // Query con vehículos asociados

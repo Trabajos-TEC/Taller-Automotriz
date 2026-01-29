@@ -1,4 +1,4 @@
-import { neon } from '@netlify/neon';
+import { neon } from '@neondatabase/serverless';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -24,7 +24,7 @@ async function initDatabase() {
     console.log(`${GREEN}✓ Variable de entorno encontrada${RESET}\n`);
 
     // Inicializar conexión
-    const sql = neon(); // Automáticamente usa NETLIFY_DATABASE_URL
+    const sql = neon(process.env.NETLIFY_DATABASE_URL!);
 
     // Leer archivos SQL
     const schemaPath = path.join(__dirname, 'schema.sql');

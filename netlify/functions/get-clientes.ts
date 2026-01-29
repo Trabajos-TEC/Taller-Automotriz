@@ -1,5 +1,5 @@
 import { Handler } from '@netlify/functions';
-import { neon } from '@netlify/neon';
+import { neon } from '@neondatabase/serverless';
 
 /**
  * Función Netlify de ejemplo para obtener clientes
@@ -24,7 +24,7 @@ export const handler: Handler = async (event, context) => {
 
   try {
     // Inicializar conexión con Neon
-    const sql = neon(); // Usa automáticamente NETLIFY_DATABASE_URL
+    const sql = neon(process.env.NETLIFY_DATABASE_URL!);
 
     // Obtener parámetros de búsqueda
     const search = event.queryStringParameters?.search || '';

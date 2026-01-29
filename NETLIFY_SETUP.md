@@ -98,15 +98,15 @@ npm run init-db
 netlify dev
 ```
 
-## 📝 Uso de @netlify/neon
+## 📝 Uso de @neondatabase/serverless
 
 Ejemplo de uso en tus funciones:
 
 ```typescript
-import { neon } from '@netlify/neon';
+import { neon } from '@neondatabase/serverless';
 
 export const handler = async (req: Request) => {
-  const sql = neon(); // Usa automáticamente NETLIFY_DATABASE_URL
+  const sql = neon(process.env.NETLIFY_DATABASE_URL!);
   
   const [post] = await sql`SELECT * FROM posts WHERE id = ${postId}`;
   
@@ -126,7 +126,7 @@ export const handler = async (req: Request) => {
 - [Netlify Docs](https://docs.netlify.com)
 - [Neon Docs](https://neon.tech/docs)
 - [Netlify Functions](https://docs.netlify.com/functions/overview/)
-- [@netlify/neon Package](https://www.npmjs.com/package/@netlify/neon)
+- [@neondatabase/serverless Package](https://www.npmjs.com/package/@neondatabase/serverless)
 
 ## 🐛 Troubleshooting
 
