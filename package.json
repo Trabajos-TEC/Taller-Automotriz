@@ -1,7 +1,8 @@
 {
-  "name": "mi-proyecto",
+  "name": "taller-automotriz",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Sistema de gestión para taller automotriz",
   "type": "module",
   "scripts": {
     "dev": "vite",

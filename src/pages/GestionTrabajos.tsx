@@ -449,14 +449,6 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
     alert('Estado actualizado correctamente');
   };
 
-  /* === ABRIR MODAL DE NOTA === */
-  // Función actualmente no usada, se mantiene por si se necesita
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const abrirModalNota = (nota: any) => {
-    setNotaSeleccionada(nota);
-    setShowModalNota(true);
-  };
-
   /* === CERRAR MODALES === */
   const cerrarModales = () => {
     if (showModalDetalle) setShowModalDetalle(false);

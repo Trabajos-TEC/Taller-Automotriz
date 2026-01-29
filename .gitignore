@@ -16,6 +16,11 @@ dist-ssr
 .env
 .env.local
 .env.production
+.env.development
+
+# Database
+*.db
+*.sqlite
 
 # Netlify
 .netlify

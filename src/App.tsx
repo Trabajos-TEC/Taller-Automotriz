@@ -26,29 +26,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
 
-// Componentes placeholder para las otras páginas (actualmente no se usa, se mantiene por si se necesita)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div style={{ padding: '40px', textAlign: 'center' }}>
-    <h2>{title}</h2>
-    <p>Esta sección está en desarrollo</p>
-    <button 
-      onClick={() => window.history.back()}
-      style={{
-        background: '#1f4f70',
-        color: 'white',
-        border: 'none',
-        padding: '12px 24px',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        marginTop: '20px'
-      }}
-    >
-      ← Volver a Clientes
-    </button>
-  </div>
-);
-
 // Layout principal con menú
 const MainLayout = ({ onLogout, session }: { onLogout: () => void, session: SessionData }) => {
   const location = useLocation();

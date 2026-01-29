@@ -25,7 +25,7 @@ interface SessionData {
 }
 
 const ReportesAdministrador: React.FC = () => {
-  const [session] = useState<SessionData | null>(null);
+  const [savedSession, setSavedSession] = useState<SessionData | null>(null);
   const [reportes, setReportes] = useState<Reporte[]>([]);
   const [filtroUsuario, setFiltroUsuario] = useState("");
   const [orden, setOrden] = useState<"nuevo" | "antiguo">("nuevo");
@@ -42,10 +42,10 @@ const ReportesAdministrador: React.FC = () => {
 
   // Cargar sesión del localStorage
   useEffect(() => {
-    const savedSession = localStorage.getItem('taller-session');
-    if (savedSession) {
+    const sessionData = localStorage.getItem('taller-session');
+    if (sessionData) {
       try {
-        setSession(JSON.parse(savedSession));
+        setSavedSession(JSON.parse(sessionData));
       } catch (e) {
         console.error('Error al cargar sesión:', e);
       }
