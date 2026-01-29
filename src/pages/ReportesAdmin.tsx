@@ -42,7 +42,7 @@ const ReportesAdministrador: React.FC = () => {
         usuario: filtroUsuario || "",
       }).toString();
 
-      const res = await fetch(`/api/reportes?${query}`);
+      const res = await fetch(`/.netlify/functions/reportes?${query}`);
       if (!res.ok) throw new Error("Error al obtener reportes");
       const data: ApiResponse<Reporte[]> = await res.json();
       
@@ -71,7 +71,7 @@ const ReportesAdministrador: React.FC = () => {
   // 🔽 ACTUALIZAR ESTADO DEL REPORTE
   const actualizarEstadoReporte = async (id: number, nuevoEstado: Reporte["estado"]) => {
     try {
-      const res = await fetch(`/api/reportes/${id}`, {
+      const res = await fetch(`/.netlify/functions/reportes/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estado: nuevoEstado }),
