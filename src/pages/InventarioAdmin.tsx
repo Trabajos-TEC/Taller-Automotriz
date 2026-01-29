@@ -1,8 +1,9 @@
-// src/pages/InventarioAdmin.tsx - VERSIÓN CON MANEJO DE ERRORES
+// src/pages/InventarioAdmin.tsx - VERSIÓN CORREGIDA CON ESTADOS SEPARADOS
 import React, { useState, useEffect, useCallback } from 'react';
 import { vehiculoBaseService } from '../services/vehiculo_base.service';
 import { inventarioService } from '../services/inventario.service';
 import type { VehiculoBase as VehiculoBaseServicio } from '../services/vehiculo_base.service';
+import type { Producto } from '../services/inventario.service';
 import '../styles/pages/Inventario.css';
 import '../styles/Botones.css';
 
@@ -25,6 +26,13 @@ interface Repuesto {
   vehiculoId: number | null;
 }
 
+interface RepuestoForm extends Omit<Repuesto, 'id'> {
+  proveedor: string;
+  cantidad_minima: number;
+  precio_compra: number;
+  categoria: string;
+}
+
 const InventarioAdmin: React.FC = () => {
   // Estados para vehículos base
   const [vehiculos, setVehiculos] = useState<VehiculoBase[]>([]);
@@ -44,70 +52,81 @@ const InventarioAdmin: React.FC = () => {
   const [loadingVehiculos, setLoadingVehiculos] = useState(false);
 
   // Estado para nuevo repuesto
-  const [newRepuesto, setNewRepuesto] = useState<Omit<Repuesto, 'id'>>({ 
+  const [newRepuesto, setNewRepuesto] = useState<RepuestoForm>({ 
     codigo: '', 
     nombre: '', 
     descripcion: '', 
     cantidad: 0,
     precio: 0,
-    vehiculoId: null
+    vehiculoId: null,
+    proveedor: 'N/A',
+    cantidad_minima: 5,
+    precio_compra: 0,
+    categoria: 'Repuesto'
+  });
+
+  // Estado para editar repuesto (SEPARADO)
+  const [editRepuesto, setEditRepuesto] = useState<RepuestoForm>({ 
+    codigo: '', 
+    nombre: '', 
+    descripcion: '', 
+    cantidad: 0,
+    precio: 0,
+    vehiculoId: null,
+    proveedor: 'N/A',
+    cantidad_minima: 5,
+    precio_compra: 0,
+    categoria: 'Repuesto'
   });
 
   // Estado para nuevo vehículo
   const [newVehiculo, setNewVehiculo] = useState<Omit<VehiculoBase, 'id'>>({
     marca: '',
     modelo: '',
-    tipo: 'Sedán',
+    tipo: '',
     anio: new Date().getFullYear()
   });
 
   // Estados para mensajes de error
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
-  // Estados para marcas y tipos disponibles desde API
-  const [marcasDisponibles, setMarcasDisponibles] = useState<string[]>([]);
-  const [tiposDisponibles, setTiposDisponibles] = useState<string[]>([]);
+  // Estados para manejar inputs con datalist (AGREGAR)
+  const [vehiculoInputValue, setVehiculoInputValue] = useState('');
+  const [categoriaInputValue, setCategoriaInputValue] = useState('Repuesto');
+  const [tipoInputValue, setTipoInputValue] = useState('');
+
+  // Estados para manejar inputs con datalist (EDITAR) - SEPARADOS
+  const [editVehiculoInputValue, setEditVehiculoInputValue] = useState('');
+  const [editCategoriaInputValue, setEditCategoriaInputValue] = useState('Repuesto');
+
+  // Función para obtener el texto del vehículo seleccionado
+  const getVehiculoTexto = useCallback((vehiculoId: number | null) => {
+    if (!vehiculoId) return '';
+    const vehiculo = vehiculos.find(v => v.id === vehiculoId);
+    return vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.tipo})` : '';
+  }, [vehiculos]);
 
   // Función para transformar vehículo del servicio a local
   const transformarVehiculo = (vehiculo: VehiculoBaseServicio): VehiculoBase => ({
     id: vehiculo.id || 0,
     marca: vehiculo.marca || '',
     modelo: vehiculo.modelo || '',
-    tipo: vehiculo.tipo || 'Sedán',
+    tipo: vehiculo.tipo || '',
     anio: vehiculo.anio || new Date().getFullYear()
   });
 
-  // Función para transformar producto del servicio a repuesto local - MEJORADA
-  const transformarProducto = (producto: any): Repuesto => {
+  // Función para transformar producto del servicio a repuesto local
+  const transformarProducto = (producto: Producto): Repuesto => {
     try {
-      // Asegurar que tenemos un objeto válido
-      if (!producto || typeof producto !== 'object') {
-        console.error('❌ Producto no es un objeto válido:', producto);
-        return {
-          id: 0,
-          codigo: 'ERROR',
-          nombre: 'Error en datos',
-          descripcion: '',
-          cantidad: 0,
-          precio: 0,
-          vehiculoId: null
-        };
-      }
-
       let vehiculoId: number | null = null;
       
-      // Manejar vehiculos_asociados de forma segura
-      if (producto.vehiculos_asociados !== undefined && producto.vehiculos_asociados !== null) {
-        if (Array.isArray(producto.vehiculos_asociados) && producto.vehiculos_asociados.length > 0) {
-          const primerVehiculo = producto.vehiculos_asociados[0];
-          if (primerVehiculo && primerVehiculo.id !== undefined && primerVehiculo.id !== null) {
-            // Convertir a número si es necesario
-            vehiculoId = Number(primerVehiculo.id);
-          }
+      if (producto.vehiculos_asociados && producto.vehiculos_asociados.length > 0) {
+        const primerVehiculo = producto.vehiculos_asociados[0];
+        if (primerVehiculo && primerVehiculo.id !== undefined) {
+          vehiculoId = Number(primerVehiculo.id);
         }
       }
       
-      // Asegurar tipos correctos
       return {
         id: Number(producto.id) || 0,
         codigo: String(producto.codigo || ''),
@@ -118,7 +137,7 @@ const InventarioAdmin: React.FC = () => {
         vehiculoId: vehiculoId
       };
     } catch (error) {
-      console.error('❌ Error en transformarProducto:', error, 'Producto:', producto);
+      console.error('Error en transformarProducto:', error, 'Producto:', producto);
       return {
         id: 0,
         codigo: 'ERROR',
@@ -139,7 +158,6 @@ const InventarioAdmin: React.FC = () => {
       
       const response = await vehiculoBaseService.getVehiculosBase(searchTerm);
       
-      // MANEJO FLEXIBLE
       let vehiculosData: any[] = [];
       
       if (response && Array.isArray(response)) {
@@ -156,13 +174,6 @@ const InventarioAdmin: React.FC = () => {
       const vehiculosTransformados = vehiculosData.map(transformarVehiculo);
       setVehiculos(vehiculosTransformados);
       
-      // Extraer marcas y tipos únicos
-      const marcasUnicas = [...new Set(vehiculosTransformados.map(v => v.marca))].filter(Boolean);
-      setMarcasDisponibles(marcasUnicas);
-      
-      const tiposUnicos = [...new Set(vehiculosTransformados.map(v => v.tipo))].filter(Boolean);
-      setTiposDisponibles(tiposUnicos);
-      
     } catch (error: any) {
       console.error('Error cargando vehículos base:', error);
       setError('Error al cargar vehículos base: ' + (error.message || 'Error desconocido'));
@@ -172,52 +183,67 @@ const InventarioAdmin: React.FC = () => {
     }
   }, []);
 
-  // Cargar productos del inventario desde API - CON CAPTURA DE ERRORES
+  // Cargar datos completos para edición
+  const cargarDatosCompletosParaEdicion = useCallback(async (repuesto: Repuesto) => {
+    try {
+      const response = await inventarioService.getProductoByCodigo(repuesto.codigo);
+      
+      if (response && response.data) {
+        const productoCompleto = response.data;
+        
+        // Actualizar editRepuesto con los datos completos
+        setEditRepuesto({
+          codigo: productoCompleto.codigo,
+          nombre: productoCompleto.nombre,
+          descripcion: productoCompleto.descripcion || '',
+          cantidad: productoCompleto.cantidad,
+          precio: productoCompleto.precio_venta,
+          vehiculoId: repuesto.vehiculoId,
+          proveedor: productoCompleto.proveedor || 'N/A',
+          cantidad_minima: productoCompleto.cantidad_minima || 5,
+          precio_compra: productoCompleto.precio_compra || 0,
+          categoria: productoCompleto.categoria || 'Repuesto'
+        });
+
+        // Actualizar los inputs de edición
+        setEditCategoriaInputValue(productoCompleto.categoria || 'Repuesto');
+        setEditVehiculoInputValue(repuesto.vehiculoId ? getVehiculoTexto(repuesto.vehiculoId) : '');
+      }
+    } catch (error) {
+      console.error('Error cargando datos completos del producto:', error);
+    }
+  }, [getVehiculoTexto]);
+
+  // Cargar productos del inventario desde API
   const cargarProductos = useCallback(async (searchTerm?: string) => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('🔍 Cargando productos...');
       const response = await inventarioService.getProductos(searchTerm);
-      console.log('📦 Respuesta recibida:', response);
       
       let productosData: any[] = [];
       
       if (response && Array.isArray(response)) {
-        console.log('✅ Respuesta es array directo');
         productosData = response;
       } else if (response && (response as any).data && Array.isArray((response as any).data)) {
-        console.log('✅ Respuesta tiene .data que es array');
         productosData = (response as any).data;
       } else if (response && (response as any).success && Array.isArray((response as any).data)) {
-        console.log('✅ Respuesta tiene .success y .data que es array');
         productosData = (response as any).data;
       } else if (response && typeof response === 'object') {
-        // Intentar cualquier propiedad que pueda contener datos
-        console.log('⚠️ Respuesta inesperada, buscando datos...');
         const keys = Object.keys(response);
-        console.log('🔑 Claves disponibles:', keys);
-        
         for (const key of keys) {
           if (Array.isArray((response as any)[key])) {
-            console.log(`✅ Encontrado array en propiedad: ${key}`);
             productosData = (response as any)[key];
             break;
           }
         }
       } else {
-        console.error('❌ Formato de respuesta completamente inesperado:', response);
+        console.error('Formato de respuesta inesperado:', response);
         productosData = [];
       }
       
-      console.log(`📊 Productos a transformar: ${productosData.length}`);
-      
-      if (productosData.length > 0) {
-        console.log('🔍 Ejemplo de producto sin transformar:', productosData[0]);
-      }
-      
-      // Transformar con manejo de errores individuales
+      // Transformar productos
       const repuestosTransformados: Repuesto[] = [];
       
       for (let i = 0; i < productosData.length; i++) {
@@ -225,16 +251,14 @@ const InventarioAdmin: React.FC = () => {
           const repuesto = transformarProducto(productosData[i]);
           repuestosTransformados.push(repuesto);
         } catch (error) {
-          console.error(`❌ Error transformando producto ${i}:`, error, 'Datos:', productosData[i]);
-          // Continuar con el siguiente producto
+          console.error(`Error transformando producto ${i}:`, error, 'Datos:', productosData[i]);
         }
       }
       
-      console.log(`✅ Productos transformados exitosamente: ${repuestosTransformados.length}`);
       setRepuestos(repuestosTransformados);
       
     } catch (error: any) {
-      console.error('❌ Error en cargarProductos:', error);
+      console.error('Error en cargarProductos:', error);
       setError('Error al cargar productos del inventario: ' + (error.message || 'Error desconocido'));
       setRepuestos([]);
     } finally {
@@ -263,6 +287,38 @@ const InventarioAdmin: React.FC = () => {
     return () => clearTimeout(timer);
   }, [search, cargarVehiculosBase, cargarProductos]);
 
+  // Efectos para inputs de AGREGAR
+  useEffect(() => {
+    if (newRepuesto.vehiculoId) {
+      const texto = getVehiculoTexto(newRepuesto.vehiculoId);
+      setVehiculoInputValue(texto);
+    } else {
+      setVehiculoInputValue('');
+    }
+  }, [newRepuesto.vehiculoId, getVehiculoTexto]);
+
+  useEffect(() => {
+    setCategoriaInputValue(newRepuesto.categoria);
+  }, [newRepuesto.categoria]);
+
+  useEffect(() => {
+    setTipoInputValue(newVehiculo.tipo);
+  }, [newVehiculo.tipo]);
+
+  // Efectos para inputs de EDITAR
+  useEffect(() => {
+    if (editRepuesto.vehiculoId) {
+      const texto = getVehiculoTexto(editRepuesto.vehiculoId);
+      setEditVehiculoInputValue(texto);
+    } else {
+      setEditVehiculoInputValue('');
+    }
+  }, [editRepuesto.vehiculoId, getVehiculoTexto]);
+
+  useEffect(() => {
+    setEditCategoriaInputValue(editRepuesto.categoria);
+  }, [editRepuesto.categoria]);
+
   // Función para agregar nuevo vehículo base
   const agregarVehiculo = async () => {
     try {
@@ -289,31 +345,26 @@ const InventarioAdmin: React.FC = () => {
       setLoadingVehiculos(true);
       setErrors({});
       
-      // Datos para enviar
       const vehiculoData = {
-        marca: newVehiculo.marca,
-        modelo: newVehiculo.modelo,
-        tipo: newVehiculo.tipo,
+        marca: newVehiculo.marca.trim(),
+        modelo: newVehiculo.modelo.trim(),
+        tipo: newVehiculo.tipo.trim(),
         anio: newVehiculo.anio
       };
-      
-      console.log('🚗 Enviando vehículo:', vehiculoData);
       
       const response = await vehiculoBaseService.createVehiculoBase(vehiculoData);
       
       if (response) {
-        // Resetear formulario
         setNewVehiculo({
           marca: '',
           modelo: '',
-          tipo: 'Sedán',
+          tipo: '',
           anio: new Date().getFullYear()
         });
         
         setShowModalAgregarVehiculo(false);
         alert('Vehículo creado exitosamente');
         
-        // Recargar lista de vehículos
         await cargarVehiculosBase();
       }
     } catch (error: any) {
@@ -343,7 +394,15 @@ const InventarioAdmin: React.FC = () => {
       }
       
       if (newRepuesto.precio <= 0) {
-        validationErrors.precio = 'El precio debe ser mayor a 0';
+        validationErrors.precio = 'El precio de venta debe ser mayor a 0';
+      }
+      
+      if (newRepuesto.precio_compra <= 0) {
+        validationErrors.precio_compra = 'El precio de compra debe ser mayor a 0';
+      }
+      
+      if (newRepuesto.cantidad_minima < 0) {
+        validationErrors.cantidad_minima = 'La cantidad mínima no puede ser negativa';
       }
       
       if (Object.keys(validationErrors).length > 0) {
@@ -354,24 +413,20 @@ const InventarioAdmin: React.FC = () => {
       setLoading(true);
       setErrors({});
       
-      // Preparar datos para enviar según tu modelo
-      const productoData = {
+      // Preparar datos según la interfaz Producto
+      const productoData: Omit<Producto, 'id'> = {
         codigo: newRepuesto.codigo.toUpperCase(),
-        nombre: newRepuesto.nombre,
-        descripcion: newRepuesto.descripcion,
-        categoria: 'Repuesto', // Por defecto
+        nombre: newRepuesto.nombre.trim(),
+        descripcion: newRepuesto.descripcion.trim() || '',
+        categoria: newRepuesto.categoria,
         cantidad: newRepuesto.cantidad,
-        cantidad_minima: 5, // Valor por defecto
-        precio_compra: newRepuesto.precio, // Usamos el mismo precio para compra
+        cantidad_minima: newRepuesto.cantidad_minima,
+        precio_compra: newRepuesto.precio_compra,
         precio_venta: newRepuesto.precio,
-        proveedor: 'N/A', // Por defecto
+        proveedor: newRepuesto.proveedor.trim() || 'N/A',
       };
       
-      // Array de IDs de vehículos a asociar (si hay)
       const vehiculosIds = newRepuesto.vehiculoId ? [newRepuesto.vehiculoId] : [];
-      
-      console.log('📦 Enviando producto:', productoData);
-      console.log('🚗 IDs de vehículos a asociar:', vehiculosIds);
       
       const response = await inventarioService.createProducto(productoData, vehiculosIds);
       
@@ -383,19 +438,24 @@ const InventarioAdmin: React.FC = () => {
           descripcion: '',
           cantidad: 0,
           precio: 0,
-          vehiculoId: null
+          vehiculoId: null,
+          proveedor: 'N/A',
+          cantidad_minima: 5,
+          precio_compra: 0,
+          categoria: 'Repuesto'
         });
+        
+        setVehiculoInputValue('');
+        setCategoriaInputValue('Repuesto');
         
         setShowModalAgregar(false);
         alert('Repuesto agregado exitosamente');
         
-        // Recargar lista de productos
         await cargarProductos();
       }
     } catch (error: any) {
       console.error('Error agregando repuesto:', error);
       
-      // Manejar error de código duplicado
       if (error.message?.includes('código ya está registrado') || error.message?.includes('409')) {
         setErrors({ codigo: 'El código ya existe' });
       } else {
@@ -406,7 +466,7 @@ const InventarioAdmin: React.FC = () => {
     }
   };
 
-  // Función para guardar edición de repuesto
+  // Función para guardar edición de repuesto - ACTUALIZADA
   const guardarEdicion = async () => {
     if (!selected) return;
     
@@ -414,16 +474,24 @@ const InventarioAdmin: React.FC = () => {
       // Validaciones
       const validationErrors: { [key: string]: string } = {};
       
-      if (!selected.nombre.trim()) {
+      if (!editRepuesto.nombre.trim()) {
         validationErrors.nombre = 'El nombre es requerido';
       }
       
-      if (selected.cantidad < 0) {
+      if (editRepuesto.cantidad < 0) {
         validationErrors.cantidad = 'La cantidad no puede ser negativa';
       }
       
-      if (selected.precio <= 0) {
-        validationErrors.precio = 'El precio debe ser mayor a 0';
+      if (editRepuesto.precio <= 0) {
+        validationErrors.precio = 'El precio de venta debe ser mayor a 0';
+      }
+      
+      if (editRepuesto.precio_compra <= 0) {
+        validationErrors.precio_compra = 'El precio de compra debe ser mayor a 0';
+      }
+      
+      if (editRepuesto.cantidad_minima < 0) {
+        validationErrors.cantidad_minima = 'La cantidad mínima no puede ser negativa';
       }
       
       if (Object.keys(validationErrors).length > 0) {
@@ -435,19 +503,18 @@ const InventarioAdmin: React.FC = () => {
       setErrors({});
       
       // Preparar datos para actualizar
-      const updateData = {
-        nombre: selected.nombre,
-        descripcion: selected.descripcion,
-        cantidad: selected.cantidad,
-        precio_venta: selected.precio,
-        precio_compra: selected.precio,
+      const updateData: Partial<Producto> = {
+        nombre: editRepuesto.nombre.trim(),
+        descripcion: editRepuesto.descripcion.trim() || '',
+        cantidad: editRepuesto.cantidad,
+        precio_venta: editRepuesto.precio,
+        precio_compra: editRepuesto.precio_compra,
+        cantidad_minima: editRepuesto.cantidad_minima,
+        proveedor: editRepuesto.proveedor.trim() || 'N/A',
+        categoria: editRepuesto.categoria
       };
       
-      // Array de IDs de vehículos a asociar (si hay)
-      const vehiculosIds = selected.vehiculoId ? [selected.vehiculoId] : [];
-      
-      console.log('✏️ Actualizando producto:', updateData);
-      console.log('🚗 IDs de vehículos a asociar:', vehiculosIds);
+      const vehiculosIds = editRepuesto.vehiculoId ? [editRepuesto.vehiculoId] : [];
       
       const response = await inventarioService.updateProducto(
         selected.codigo, 
@@ -459,18 +526,27 @@ const InventarioAdmin: React.FC = () => {
         setShowModalEditar(false);
         alert('Repuesto actualizado exitosamente');
         
-        // Recargar datos
         await cargarProductos();
         await cargarVehiculosBase();
         
-        // Actualizar el selected con los nuevos datos
-        const productos = await inventarioService.getProductos();
-        if (productos && Array.isArray(productos.data)) {
-          const productoActualizado = productos.data.find((p: any) => p.codigo === selected.codigo);
-          if (productoActualizado) {
-            setSelected(transformarProducto(productoActualizado));
-          }
-        }
+        // Resetear estados de edición
+        setEditRepuesto({
+          codigo: '',
+          nombre: '',
+          descripcion: '',
+          cantidad: 0,
+          precio: 0,
+          vehiculoId: null,
+          proveedor: 'N/A',
+          cantidad_minima: 5,
+          precio_compra: 0,
+          categoria: 'Repuesto'
+        });
+        setEditVehiculoInputValue('');
+        setEditCategoriaInputValue('Repuesto');
+        
+        // Deseleccionar
+        setSelected(null);
       }
     } catch (error: any) {
       console.error('Error actualizando repuesto:', error);
@@ -480,7 +556,7 @@ const InventarioAdmin: React.FC = () => {
     }
   };
 
-  // FUNCIONES DE RENDERIZADO CON MANEJO DE ERRORES
+  // FUNCIONES DE RENDERIZADO
   const renderRepuestos = () => {
     try {
       if (repuestos.length === 0) {
@@ -491,10 +567,8 @@ const InventarioAdmin: React.FC = () => {
         );
       }
 
-      // Texto de búsqueda en minúsculas
       const textoBusqueda = search.toLowerCase();
 
-      /* === FUNCIONES DE FILTRADO JERÁRQUICO === */
       const repuestosUniversales = repuestos.filter(
         (r) => !r.vehiculoId && (
           r.codigo.toLowerCase().includes(textoBusqueda) ||
@@ -563,7 +637,7 @@ const InventarioAdmin: React.FC = () => {
                       <span className={`cantidad ${repuesto.cantidad < 10 ? 'baja' : ''}`}>
                         {repuesto.cantidad} uni
                       </span>
-                      <span className="precio">${repuesto.precio.toFixed(2)}</span>
+                      <span className="precio">₡{repuesto.precio.toFixed(2)}</span>
                     </div>
                   </div>
                 ))}
@@ -627,7 +701,7 @@ const InventarioAdmin: React.FC = () => {
                                 <span className={`cantidad ${repuesto.cantidad < 10 ? 'baja' : ''}`}>
                                   {repuesto.cantidad} uni
                                 </span>
-                                <span className="precio">${repuesto.precio.toFixed(2)}</span>
+                                <span className="precio">₡{repuesto.precio.toFixed(2)}</span>
                               </div>
                             </div>
                           ))
@@ -749,11 +823,11 @@ const InventarioAdmin: React.FC = () => {
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Precio Unitario:</span>
-                  <span className="detail-value">${selected.precio.toFixed(2)}</span>
+                  <span className="detail-value">₡{selected.precio.toFixed(2)}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Valor Total:</span>
-                  <span className="detail-value">${(selected.cantidad * selected.precio).toFixed(2)}</span>
+                  <span className="detail-value">₡{(selected.cantidad * selected.precio).toFixed(2)}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Vehículo:</span>
@@ -764,7 +838,10 @@ const InventarioAdmin: React.FC = () => {
               <div className="sidebar-footer">
                 <button 
                   className="boton boton-editar"
-                  onClick={() => {
+                  onClick={async () => {
+                    if (!selected) return;
+                    
+                    await cargarDatosCompletosParaEdicion(selected);
                     setShowModalEditar(true);
                     setErrors({});
                   }}
@@ -821,26 +898,13 @@ const InventarioAdmin: React.FC = () => {
             <div className="modal-body">
               <div className="form-group">
                 <label>Marca *</label>
-                <select
+                <input
+                  placeholder="Ej: Toyota, Honda, Ford"
                   value={newVehiculo.marca}
                   onChange={e => setNewVehiculo({ ...newVehiculo, marca: e.target.value })}
                   className={errors.marca ? 'input-error' : ''}
                   disabled={loadingVehiculos}
-                >
-                  <option value="">Seleccione una marca</option>
-                  {marcasDisponibles.length > 0 ? (
-                    marcasDisponibles.map(marca => (
-                      <option key={marca} value={marca}>{marca}</option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="Toyota">Toyota</option>
-                      <option value="Honda">Honda</option>
-                      <option value="Ford">Ford</option>
-                      <option value="Chevrolet">Chevrolet</option>
-                    </>
-                  )}
-                </select>
+                />
                 {errors.marca && <span className="error-message">{errors.marca}</span>}
               </div>
               
@@ -857,26 +921,32 @@ const InventarioAdmin: React.FC = () => {
               </div>
               
               <div className="form-group">
-                <label>Tipo</label>
-                <select
-                  value={newVehiculo.tipo}
-                  onChange={e => setNewVehiculo({ ...newVehiculo, tipo: e.target.value })}
+                <label>Tipo *</label>
+                <input
+                  list="tipos-vehiculo-list"
+                  placeholder="Escriba o seleccione tipo..."
+                  value={tipoInputValue}
+                  onChange={e => {
+                    setTipoInputValue(e.target.value);
+                    setNewVehiculo({ ...newVehiculo, tipo: e.target.value });
+                  }}
+                  className={errors.tipo ? 'input-error' : ''}
                   disabled={loadingVehiculos}
-                >
-                  <option value="">Seleccione tipo</option>
-                  {tiposDisponibles.length > 0 ? (
-                    tiposDisponibles.map(tipo => (
-                      <option key={tipo} value={tipo}>{tipo}</option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="Sedán">Sedán</option>
-                      <option value="SUV">SUV</option>
-                      <option value="Pickup">Pickup</option>
-                      <option value="Hatchback">Hatchback</option>
-                    </>
-                  )}
-                </select>
+                />
+                <datalist id="tipos-vehiculo-list">
+                  <option value="Sedán">Sedán</option>
+                  <option value="SUV">SUV</option>
+                  <option value="Pickup">Pickup</option>
+                  <option value="Hatchback">Hatchback</option>
+                  <option value="Coupé">Coupé</option>
+                  <option value="Convertible">Convertible</option>
+                  <option value="Minivan">Minivan</option>
+                  <option value="Camioneta">Camioneta</option>
+                  <option value="Deportivo">Deportivo</option>
+                  <option value="Furgoneta">Furgoneta</option>
+                  <option value="Motocicleta">Motocicleta</option>
+                </datalist>
+                {errors.tipo && <span className="error-message">El tipo es requerido</span>}
               </div>
               
               <div className="form-group">
@@ -980,11 +1050,40 @@ const InventarioAdmin: React.FC = () => {
                 </div>
                 
                 <div className="form-group half-width">
-                  <label>Precio Unitario *</label>
+                  <label>Cantidad Mínima *</label>
+                  <input
+                    type="number"
+                    placeholder="Ej: 5"
+                    value={newRepuesto.cantidad_minima || ''}
+                    onChange={e => setNewRepuesto({ ...newRepuesto, cantidad_minima: parseInt(e.target.value) || 5 })}
+                    className={errors.cantidad_minima ? 'input-error' : ''}
+                    disabled={loading}
+                  />
+                  {errors.cantidad_minima && <span className="error-message">{errors.cantidad_minima}</span>}
+                </div>
+              </div>
+              
+              <div className="form-row">
+                <div className="form-group half-width">
+                  <label>Precio de Compra *</label>
                   <input
                     type="number"
                     step="0.01"
-                    placeholder="Ej: 15.99"
+                    placeholder="Ej: 10000.00"
+                    value={newRepuesto.precio_compra || ''}
+                    onChange={e => setNewRepuesto({ ...newRepuesto, precio_compra: parseFloat(e.target.value) || 0 })}
+                    className={errors.precio_compra ? 'input-error' : ''}
+                    disabled={loading}
+                  />
+                  {errors.precio_compra && <span className="error-message">{errors.precio_compra}</span>}
+                </div>
+                
+                <div className="form-group half-width">
+                  <label>Precio de Venta *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Ej: 15000.00"
                     value={newRepuesto.precio || ''}
                     onChange={e => setNewRepuesto({ ...newRepuesto, precio: parseFloat(e.target.value) || 0 })}
                     className={errors.precio ? 'input-error' : ''}
@@ -995,19 +1094,77 @@ const InventarioAdmin: React.FC = () => {
               </div>
               
               <div className="form-group">
-                <label>Asignar a Vehículo (opcional)</label>
-                <select
-                  value={newRepuesto.vehiculoId || ''}
-                  onChange={e => setNewRepuesto({ ...newRepuesto, vehiculoId: e.target.value ? parseInt(e.target.value) : null })}
+                <label>Categoría</label>
+                <input
+                  list="categorias-list"
+                  placeholder="Escriba o seleccione categoría..."
+                  value={categoriaInputValue}
+                  onChange={e => {
+                    setCategoriaInputValue(e.target.value);
+                    setNewRepuesto({ ...newRepuesto, categoria: e.target.value });
+                  }}
+                  className="select-con-busqueda-input"
                   disabled={loading}
-                >
+                />
+                <datalist id="categorias-list">
+                  <option value="Repuesto">Repuesto</option>
+                  <option value="Accesorio">Accesorio</option>
+                  <option value="Herramienta">Herramienta</option>
+                  <option value="Lubricante">Lubricante</option>
+                  <option value="Consumible">Consumible</option>
+                  <option value="Electrónico">Electrónico</option>
+                  <option value="Iluminación">Iluminación</option>
+                  <option value="Carrocería">Carrocería</option>
+                  <option value="Motor">Motor</option>
+                  <option value="Transmisión">Transmisión</option>
+                </datalist>
+              </div>
+              
+              <div className="form-group">
+                <label>Proveedor</label>
+                <input
+                  placeholder="Ej: Distribuidora XYZ, Proveedor ABC"
+                  value={newRepuesto.proveedor}
+                  onChange={e => setNewRepuesto({ ...newRepuesto, proveedor: e.target.value })}
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Asignar a Vehículo (opcional)</label>
+                <input
+                  list="vehiculos-list"
+                  placeholder="Escriba o seleccione vehículo..."
+                  value={vehiculoInputValue}
+                  onChange={e => {
+                    const value = e.target.value;
+                    setVehiculoInputValue(value);
+                    
+                    // Buscar si el texto coincide con algún vehículo
+                    const vehiculoSeleccionado = vehiculos.find(v => 
+                      `${v.marca} ${v.modelo} (${v.tipo})` === value
+                    );
+                    
+                    if (vehiculoSeleccionado) {
+                      setNewRepuesto({ ...newRepuesto, vehiculoId: vehiculoSeleccionado.id });
+                    } else {
+                      // Si el input está vacío, establecer como null
+                      if (value.trim() === '') {
+                        setNewRepuesto({ ...newRepuesto, vehiculoId: null });
+                      }
+                    }
+                  }}
+                  className="select-con-busqueda-input"
+                  disabled={loading}
+                />
+                <datalist id="vehiculos-list">
                   <option value="">Repuesto Universal</option>
                   {vehiculos.map(vehiculo => (
-                    <option key={vehiculo.id} value={vehiculo.id}>
+                    <option key={vehiculo.id} value={`${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.tipo})`}>
                       {vehiculo.marca} {vehiculo.modelo} ({vehiculo.tipo})
                     </option>
                   ))}
-                </select>
+                </datalist>
                 <small className="field-info">Dejar vacío para repuesto universal</small>
               </div>
             </div>
@@ -1032,7 +1189,7 @@ const InventarioAdmin: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL EDITAR REPUESTO */}
+      {/* MODAL EDITAR REPUESTO - CON ESTADOS SEPARADOS */}
       {showModalEditar && selected && (
         <div className="modal-overlay" onClick={() => !loading && setShowModalEditar(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -1061,9 +1218,9 @@ const InventarioAdmin: React.FC = () => {
               <div className="form-group">
                 <label>Nombre *</label>
                 <input
-                  placeholder="Ej: Filtro de Aceite"
-                  value={selected.nombre}
-                  onChange={e => setSelected({ ...selected, nombre: e.target.value })}
+                  placeholder="Ej: Filtro de Aceite, Pastillas de Freno"
+                  value={editRepuesto.nombre}
+                  onChange={e => setEditRepuesto({ ...editRepuesto, nombre: e.target.value })}
                   className={errors.nombre ? 'input-error' : ''}
                   disabled={loading}
                 />
@@ -1074,8 +1231,8 @@ const InventarioAdmin: React.FC = () => {
                 <label>Descripción</label>
                 <textarea
                   placeholder="Descripción detallada del repuesto..."
-                  value={selected.descripcion}
-                  onChange={e => setSelected({ ...selected, descripcion: e.target.value })}
+                  value={editRepuesto.descripcion}
+                  onChange={e => setEditRepuesto({ ...editRepuesto, descripcion: e.target.value })}
                   rows={3}
                   className="form-control"
                   disabled={loading}
@@ -1088,8 +1245,8 @@ const InventarioAdmin: React.FC = () => {
                   <input
                     type="number"
                     placeholder="Ej: 25"
-                    value={selected.cantidad || ''}
-                    onChange={e => setSelected({ ...selected, cantidad: parseInt(e.target.value) || 0 })}
+                    value={editRepuesto.cantidad || ''}
+                    onChange={e => setEditRepuesto({ ...editRepuesto, cantidad: parseInt(e.target.value) || 0 })}
                     className={errors.cantidad ? 'input-error' : ''}
                     disabled={loading}
                   />
@@ -1097,13 +1254,42 @@ const InventarioAdmin: React.FC = () => {
                 </div>
                 
                 <div className="form-group half-width">
-                  <label>Precio Unitario *</label>
+                  <label>Cantidad Mínima *</label>
+                  <input
+                    type="number"
+                    placeholder="Ej: 5"
+                    value={editRepuesto.cantidad_minima || ''}
+                    onChange={e => setEditRepuesto({ ...editRepuesto, cantidad_minima: parseInt(e.target.value) || 5 })}
+                    className={errors.cantidad_minima ? 'input-error' : ''}
+                    disabled={loading}
+                  />
+                  {errors.cantidad_minima && <span className="error-message">{errors.cantidad_minima}</span>}
+                </div>
+              </div>
+              
+              <div className="form-row">
+                <div className="form-group half-width">
+                  <label>Precio de Compra *</label>
                   <input
                     type="number"
                     step="0.01"
-                    placeholder="Ej: 15.99"
-                    value={selected.precio || ''}
-                    onChange={e => setSelected({ ...selected, precio: parseFloat(e.target.value) || 0 })}
+                    placeholder="Ej: 10000.00"
+                    value={editRepuesto.precio_compra || ''}
+                    onChange={e => setEditRepuesto({ ...editRepuesto, precio_compra: parseFloat(e.target.value) || 0 })}
+                    className={errors.precio_compra ? 'input-error' : ''}
+                    disabled={loading}
+                  />
+                  {errors.precio_compra && <span className="error-message">{errors.precio_compra}</span>}
+                </div>
+                
+                <div className="form-group half-width">
+                  <label>Precio de Venta *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Ej: 15000.00"
+                    value={editRepuesto.precio || ''}
+                    onChange={e => setEditRepuesto({ ...editRepuesto, precio: parseFloat(e.target.value) || 0 })}
                     className={errors.precio ? 'input-error' : ''}
                     disabled={loading}
                   />
@@ -1112,19 +1298,78 @@ const InventarioAdmin: React.FC = () => {
               </div>
               
               <div className="form-group">
-                <label>Asignar a Vehículo</label>
-                <select
-                  value={selected.vehiculoId || ''}
-                  onChange={e => setSelected({ ...selected, vehiculoId: e.target.value ? parseInt(e.target.value) : null })}
+                <label>Categoría</label>
+                <input
+                  list="categorias-list-edit"
+                  placeholder="Escriba o seleccione categoría..."
+                  value={editCategoriaInputValue}
+                  onChange={e => {
+                    setEditCategoriaInputValue(e.target.value);
+                    setEditRepuesto({ ...editRepuesto, categoria: e.target.value });
+                  }}
+                  className="select-con-busqueda-input"
                   disabled={loading}
-                >
+                />
+                <datalist id="categorias-list-edit">
+                  <option value="Repuesto">Repuesto</option>
+                  <option value="Accesorio">Accesorio</option>
+                  <option value="Herramienta">Herramienta</option>
+                  <option value="Lubricante">Lubricante</option>
+                  <option value="Consumible">Consumible</option>
+                  <option value="Electrónico">Electrónico</option>
+                  <option value="Iluminación">Iluminación</option>
+                  <option value="Carrocería">Carrocería</option>
+                  <option value="Motor">Motor</option>
+                  <option value="Transmisión">Transmisión</option>
+                </datalist>
+              </div>
+              
+              <div className="form-group">
+                <label>Proveedor</label>
+                <input
+                  placeholder="Ej: Distribuidora XYZ, Proveedor ABC"
+                  value={editRepuesto.proveedor}
+                  onChange={e => setEditRepuesto({ ...editRepuesto, proveedor: e.target.value })}
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Asignar a Vehículo (opcional)</label>
+                <input
+                  list="vehiculos-list-edit"
+                  placeholder="Escriba o seleccione vehículo..."
+                  value={editVehiculoInputValue}
+                  onChange={e => {
+                    const value = e.target.value;
+                    setEditVehiculoInputValue(value);
+                    
+                    // Buscar si el texto coincide con algún vehículo
+                    const vehiculoSeleccionado = vehiculos.find(v => 
+                      `${v.marca} ${v.modelo} (${v.tipo})` === value
+                    );
+                    
+                    if (vehiculoSeleccionado) {
+                      setEditRepuesto({ ...editRepuesto, vehiculoId: vehiculoSeleccionado.id });
+                    } else {
+                      // Si el input está vacío, establecer como null
+                      if (value.trim() === '') {
+                        setEditRepuesto({ ...editRepuesto, vehiculoId: null });
+                      }
+                    }
+                  }}
+                  className="select-con-busqueda-input"
+                  disabled={loading}
+                />
+                <datalist id="vehiculos-list-edit">
                   <option value="">Repuesto Universal</option>
                   {vehiculos.map(vehiculo => (
-                    <option key={vehiculo.id} value={vehiculo.id}>
+                    <option key={vehiculo.id} value={`${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.tipo})`}>
                       {vehiculo.marca} {vehiculo.modelo} ({vehiculo.tipo})
                     </option>
                   ))}
-                </select>
+                </datalist>
+                <small className="field-info">Dejar vacío para repuesto universal</small>
               </div>
             </div>
             
