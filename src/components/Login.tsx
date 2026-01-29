@@ -41,38 +41,39 @@ const Login: React.FC<LoginProps> = () => {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
-  try {
-    const res = await fetch("http://localhost:3001/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        correo: formData.email,
-        password: formData.password
-      })
-      
-
-    });
-    
-    if (!res.ok) {
-      alert("Credenciales incorrectas");
-      return;
-    }
-
-    const user = await res.json();
-
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("taller-auth", "true"); // <-- esto es lo que faltaba
-
-
-    // Redirección según rol
-    if (user.role === "admin") window.location.href = "/clientes"; // solo para prueba va a dirigir a clientes
-    else if (user.role === "mecanico") window.location.href = "/clientes";
-    else window.location.href = "/clientes";
-
-  } catch (err) {
-    console.error(err);
-    alert("Error de conexión");
+  // Validación simple
+  if (!formData.email || !formData.password) {
+    alert("Por favor complete todos los campos");
+    return;
   }
+
+  // Usuarios de prueba (temporal - reemplazar con autenticación real)
+  const testUsers = [
+    { email: 'admin@taller.com', password: 'admin123', nombre: 'Administrador', rol: 'admin' as const },
+    { email: 'mecanico@taller.com', password: 'mecanico123', nombre: 'Juan Pérez', rol: 'mecanico' as const },
+    { email: 'juan.perez@email.com', password: '1234567890', nombre: 'Juan Pérez', rol: 'admin' as const }
+  ];
+
+  // Buscar usuario
+  const user = testUsers.find(u => u.email === formData.email && u.password === formData.password);
+
+  if (!user) {
+    alert("Credenciales incorrectas");
+    return;
+  }
+
+  // Guardar sesión
+  const sessionData = {
+    nombre: user.nombre,
+    rol: user.rol,
+    email: user.email
+  };
+
+  localStorage.setItem("taller-session", JSON.stringify(sessionData));
+  localStorage.setItem("taller-auth", "true");
+
+  // Redirigir
+  window.location.href = "/clientes";
 };
 
   return (
