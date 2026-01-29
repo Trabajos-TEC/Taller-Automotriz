@@ -18,12 +18,6 @@ interface ApiResponse<T> {
   message?: string;
 }
 
-interface SessionData {
-  nombre: string;
-  rol: 'admin' | 'mecanico' | 'recepcionista';
-  email?: string;
-}
-
 const ReportesAdministrador: React.FC = () => {
   const [reportes, setReportes] = useState<Reporte[]>([]);
   const [filtroUsuario, setFiltroUsuario] = useState("");
