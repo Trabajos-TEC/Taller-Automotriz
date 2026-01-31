@@ -1,11 +1,12 @@
 import { Handler } from '@netlify/functions';
-import { neon } from '@neondatabase/serverless';
+import { getConnection, corsHeaders, errorResponse } from './utils/db';
 
 export const handler: Handler = async (event) => {
   // Solo permitir POST
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers: corsHeaders,
       body: JSON.stringify({ error: 'Method not allowed' })
     };
   }
@@ -16,16 +17,13 @@ export const handler: Handler = async (event) => {
     if (!correo || !password) {
       return {
         statusCode: 400,
+        headers: corsHeaders,
         body: JSON.stringify({ error: 'Correo y contraseña son requeridos' })
       };
     }
 
     // Conectar a Neon
-    const sql = neon(process.env.NETLIFY_DATABASE_URL!, {
-      fetchOptions: {
-        cache: 'no-store'
-      }
-    });
+    const sql = getConnection();
 
     // Buscar usuario por correo o cédula
     const usuarios = await sql`
@@ -39,6 +37,7 @@ export const handler: Handler = async (event) => {
     if (usuarios.length === 0) {
       return {
         statusCode: 401,
+        headers: corsHeaders,
         body: JSON.stringify({ error: 'Credenciales incorrectas' })
       };
     }
@@ -54,6 +53,7 @@ export const handler: Handler = async (event) => {
     if (!passwordValid) {
       return {
         statusCode: 401,
+        headers: corsHeaders,
         body: JSON.stringify({ error: 'Credenciales incorrectas' })
       };
     }
@@ -61,10 +61,7 @@ export const handler: Handler = async (event) => {
     // Retornar datos del usuario (sin el hash)
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
+      headers: corsHeaders,
       body: JSON.stringify({
         nombre: usuario.nombre,
         email: usuario.correo,
@@ -75,9 +72,6 @@ export const handler: Handler = async (event) => {
 
   } catch (error) {
     console.error('Error en login:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Error interno del servidor' })
-    };
+    return errorResponse(error instanceof Error ? error : 'Error interno del servidor');
   }
 };

@@ -1,30 +1,23 @@
 import { Handler } from '@netlify/functions';
-import { neon } from '@neondatabase/serverless';
+import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
 
 /**
  * Función Netlify de ejemplo para obtener clientes
- * Endpoint: /.netlify/functions/get-clientes
+ * Endpoint: /.netlify/functions/clientes
  */
 export const handler: Handler = async (event, context) => {
-  // Headers CORS
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json',
-  };
-
   // Manejar OPTIONS para CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
-      headers,
+      headers: corsHeaders,
       body: '',
     };
   }
 
   try {
     // Inicializar conexión con Neon
-    const sql = neon(process.env.NETLIFY_DATABASE_URL!);
+    const sql = getConnection();
 
     // Obtener parámetros de búsqueda
     const search = event.queryStringParameters?.search || '';
@@ -46,27 +39,10 @@ export const handler: Handler = async (event, context) => {
       `;
     }
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        success: true,
-        data: clientes,
-        count: clientes.length,
-      }),
-    };
+    return successResponse(clientes);
 
   } catch (error) {
     console.error('Error al obtener clientes:', error);
-    
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Error al obtener clientes',
-        message: error instanceof Error ? error.message : 'Error desconocido',
-      }),
-    };
+    return errorResponse(error instanceof Error ? error : 'Error al obtener clientes');
   }
 };

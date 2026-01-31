@@ -1,26 +1,17 @@
 import { Handler } from '@netlify/functions';
-import { neon } from '@neondatabase/serverless';
+import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
 
 /**
  * Función Netlify para gestionar vehículos base (catálogo)
  * Endpoint: /.netlify/functions/vehiculos-base
  */
 export const handler: Handler = async (event) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Content-Type': 'application/json',
-  };
-
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return { statusCode: 200, headers: corsHeaders, body: '' };
   }
 
   try {
-    const sql = neon(process.env.NETLIFY_DATABASE_URL!, {
-      fetchOptions: { cache: 'no-store' }
-    });
+    const sql = getConnection();
 
     // GET - Obtener vehículos base
     if (event.httpMethod === 'GET') {
@@ -42,15 +33,7 @@ export const handler: Handler = async (event) => {
         `;
       }
 
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          data: vehiculos,
-          count: vehiculos.length,
-        }),
-      };
+      return successResponse(vehiculos);
     }
 
     // POST - Crear vehículo base
@@ -59,14 +42,7 @@ export const handler: Handler = async (event) => {
       const { marca, modelo, anio, tipo } = body;
 
       if (!marca || !modelo || !anio || !tipo) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({
-            success: false,
-            error: 'Marca, modelo, año y tipo son requeridos'
-          }),
-        };
+        return errorResponse('Marca, modelo, año y tipo son requeridos', 400);
       }
 
       const result = await sql`
@@ -75,32 +51,17 @@ export const handler: Handler = async (event) => {
         RETURNING *
       `;
 
-      return {
-        statusCode: 201,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          data: result[0],
-        }),
-      };
+      return successResponse(result[0], 201);
     }
 
     return {
       statusCode: 405,
-      headers,
+      headers: corsHeaders,
       body: JSON.stringify({ error: 'Method not allowed' }),
     };
 
   } catch (error) {
     console.error('Error en vehiculos-base:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Error interno del servidor',
-        message: error instanceof Error ? error.message : 'Error desconocido',
-      }),
-    };
+    return errorResponse(error instanceof Error ? error : 'Error interno del servidor');
   }
 };

@@ -1,26 +1,17 @@
 import { Handler } from '@netlify/functions';
-import { neon } from '@neondatabase/serverless';
+import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
 
 /**
  * Función Netlify para gestionar vehículos de clientes
  * Endpoint: /.netlify/functions/vehiculos-clientes
  */
 export const handler: Handler = async (event) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Content-Type': 'application/json',
-  };
-
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return { statusCode: 200, headers: corsHeaders, body: '' };
   }
 
   try {
-    const sql = neon(process.env.NETLIFY_DATABASE_URL!, {
-      fetchOptions: { cache: 'no-store' }
-    });
+    const sql = getConnection();
 
     // GET - Obtener vehículos de clientes
     if (event.httpMethod === 'GET') {
@@ -81,15 +72,7 @@ export const handler: Handler = async (event) => {
         `;
       }
 
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          data: vehiculos,
-          count: vehiculos.length,
-        }),
-      };
+      return successResponse(vehiculos);
     }
 
     // POST - Crear vehículo de cliente
@@ -98,14 +81,7 @@ export const handler: Handler = async (event) => {
       const { placa, cliente_id, vehiculo_base_id, color, kilometraje, vin, notas } = body;
 
       if (!placa || !cliente_id || !vehiculo_base_id) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({
-            success: false,
-            error: 'Placa, cliente_id y vehiculo_base_id son requeridos'
-          }),
-        };
+        return errorResponse('Placa, cliente_id y vehiculo_base_id son requeridos', 400);
       }
 
       const result = await sql`
@@ -116,32 +92,17 @@ export const handler: Handler = async (event) => {
         RETURNING *
       `;
 
-      return {
-        statusCode: 201,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          data: result[0],
-        }),
-      };
+      return successResponse(result[0], 201);
     }
 
     return {
       statusCode: 405,
-      headers,
+      headers: corsHeaders,
       body: JSON.stringify({ error: 'Method not allowed' }),
     };
 
   } catch (error) {
     console.error('Error en vehiculos-clientes:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Error interno del servidor',
-        message: error instanceof Error ? error.message : 'Error desconocido',
-      }),
-    };
+    return errorResponse(error instanceof Error ? error : 'Error interno del servidor');
   }
 };
