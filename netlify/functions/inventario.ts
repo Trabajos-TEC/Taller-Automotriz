@@ -212,21 +212,3 @@ export const handler: Handler = async (event) => {
     return errorResponse(error instanceof Error ? error : 'Error interno del servidor');
   }
 };
-        count: inventario.length,
-      }),
-    };
-
-  } catch (error) {
-    console.error('Error al obtener inventario:', error);
-    
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Error al obtener inventario',
-        message: error instanceof Error ? error.message : 'Error desconocido',
-      }),
-    };
-  }
-};
