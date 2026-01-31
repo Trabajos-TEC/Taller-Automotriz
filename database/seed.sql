@@ -135,3 +135,17 @@ UNION ALL
 SELECT 'Usuarios:', COUNT(*) FROM usuarios
 UNION ALL
 SELECT 'Compatibilidad productos-vehículos:', COUNT(*) FROM inventario_vehiculos;
+
+-- Insertar servicios de mano de obra
+INSERT INTO servicios (codigo, nombre, descripcion, precio, duracion_estimada, activo) VALUES
+    ('MO-001', 'Cambio de Aceite', 'Servicio completo de cambio de aceite y filtro', 15000, 30, true),
+    ('MO-002', 'Alineación', 'Alineación de las 4 ruedas', 12000, 45, true),
+    ('MO-003', 'Balanceo', 'Balanceo de ruedas', 10000, 30, true),
+    ('MO-004', 'Revisión de Frenos', 'Inspección completa del sistema de frenos', 20000, 60, true),
+    ('MO-005', 'Cambio de Pastillas', 'Cambio de pastillas de freno delanteras o traseras', 15000, 45, true),
+    ('MO-006', 'Cambio de Batería', 'Reemplazo e instalación de batería', 10000, 20, true),
+    ('MO-007', 'Revisión General', 'Inspección de 21 puntos del vehículo', 25000, 90, true),
+    ('MO-008', 'Cambio de Correa de Distribución', 'Reemplazo de kit completo de distribución', 80000, 180, true),
+    ('MO-009', 'Reparación de Suspensión', 'Reparación de sistema de suspensión', 50000, 120, true),
+    ('MO-010', 'Diagnóstico Electrónico', 'Escaneo y diagnóstico con equipo especializado', 18000, 30, true)
+ON CONFLICT (codigo) DO NOTHING;

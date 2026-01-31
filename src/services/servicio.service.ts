@@ -16,17 +16,17 @@ export interface Servicio {
 export const servicioService = {
   // Obtener todos los servicios
   async getServicios(): Promise<ApiResponse<Servicio[]>> {
-    return fetchApi<Servicio[]>('/servicios');
+    return fetchApi<Servicio[]>('/ordenes-trabajo');
   },
 
   // Obtener servicios por vehículo
   async getServiciosByVehiculo(vehiculoId: number): Promise<ApiResponse<Servicio[]>> {
-    return fetchApi<Servicio[]>(`/vehiculos/${vehiculoId}/servicios`);
+    return fetchApi<Servicio[]>(`/ordenes-trabajo?vehiculo_id=${vehiculoId}`);
   },
 
   // Crear un nuevo servicio
   async createServicio(servicio: Omit<Servicio, 'id'>): Promise<ApiResponse<Servicio>> {
-    return fetchApi<Servicio>('/servicios', {
+    return fetchApi<Servicio>('/ordenes-trabajo', {
       method: 'POST',
       body: JSON.stringify(servicio),
     });
@@ -34,7 +34,7 @@ export const servicioService = {
 
   // Actualizar un servicio
   async updateServicio(id: number, servicio: Partial<Servicio>): Promise<ApiResponse<Servicio>> {
-    return fetchApi<Servicio>(`/servicios/${id}`, {
+    return fetchApi<Servicio>(`/ordenes-trabajo/${id}`, {
       method: 'PUT',
       body: JSON.stringify(servicio),
     });
@@ -42,7 +42,7 @@ export const servicioService = {
 
   // Eliminar un servicio
   async deleteServicio(id: number): Promise<ApiResponse<{ message: string }>> {
-    return fetchApi<{ message: string }>(`/servicios/${id}`, {
+    return fetchApi<{ message: string }>(`/ordenes-trabajo/${id}`, {
       method: 'DELETE',
     });
   },

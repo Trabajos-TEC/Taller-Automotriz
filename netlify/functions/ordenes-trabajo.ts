@@ -1,0 +1,219 @@
+import { Handler } from '@netlify/functions';
+import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
+
+/**
+ * Función Netlify para gestionar órdenes de trabajo
+ * Endpoint: /.netlify/functions/ordenes-trabajo
+ * Métodos: GET, POST, PUT, DELETE
+ */
+export const handler: Handler = async (event) => {
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers: corsHeaders, body: '' };
+  }
+
+  try {
+    const sql = getConnection();
+    const path = event.path.replace('/.netlify/functions/ordenes-trabajo', '');
+    const segments = path.split('/').filter(Boolean);
+    const id = segments[0] ? parseInt(segments[0], 10) : null;
+    const vehiculoId = event.queryStringParameters?.vehiculo_id 
+      ? parseInt(event.queryStringParameters.vehiculo_id, 10) 
+      : null;
+
+    switch (event.httpMethod) {
+      case 'GET':
+        if (id) {
+          // Obtener una orden específica con detalles
+          const orden = await sql`
+            SELECT 
+              ot.*,
+              vc.placa as vehiculo_placa,
+              vb.marca as vehiculo_marca,
+              vb.modelo as vehiculo_modelo,
+              c.nombre as cliente_nombre,
+              c.cedula as cliente_cedula,
+              u.nombre as mecanico_nombre,
+              s.nombre as servicio_nombre
+            FROM ordenes_trabajo ot
+            INNER JOIN vehiculos_clientes vc ON ot.vehiculo_cliente_id = vc.id
+            INNER JOIN vehiculos_base vb ON vc.vehiculo_base_id = vb.id
+            INNER JOIN clientes c ON vc.cliente_id = c.id
+            LEFT JOIN usuarios u ON ot.mecanico_id = u.id
+            LEFT JOIN servicios s ON ot.servicio_id = s.id
+            WHERE ot.id = ${id}
+          `;
+          
+          if (orden.length === 0) {
+            return errorResponse('Orden de trabajo no encontrada', 404);
+          }
+          
+          return successResponse(orden[0]);
+        } else if (vehiculoId) {
+          // Obtener órdenes por vehículo
+          const ordenes = await sql`
+            SELECT 
+              ot.*,
+              vc.placa as vehiculo_placa,
+              u.nombre as mecanico_nombre,
+              s.nombre as servicio_nombre
+            FROM ordenes_trabajo ot
+            INNER JOIN vehiculos_clientes vc ON ot.vehiculo_cliente_id = vc.id
+            LEFT JOIN usuarios u ON ot.mecanico_id = u.id
+            LEFT JOIN servicios s ON ot.servicio_id = s.id
+            WHERE ot.vehiculo_cliente_id = ${vehiculoId}
+            ORDER BY ot.fecha_entrada DESC
+          `;
+          return successResponse(ordenes);
+        } else {
+          // Obtener todas las órdenes
+          const ordenes = await sql`
+            SELECT 
+              ot.*,
+              vc.placa as vehiculo_placa,
+              vb.marca as vehiculo_marca,
+              vb.modelo as vehiculo_modelo,
+              c.nombre as cliente_nombre,
+              u.nombre as mecanico_nombre,
+              s.nombre as servicio_nombre
+            FROM ordenes_trabajo ot
+            INNER JOIN vehiculos_clientes vc ON ot.vehiculo_cliente_id = vc.id
+            INNER JOIN vehiculos_base vb ON vc.vehiculo_base_id = vb.id
+            INNER JOIN clientes c ON vc.cliente_id = c.id
+            LEFT JOIN usuarios u ON ot.mecanico_id = u.id
+            LEFT JOIN servicios s ON ot.servicio_id = s.id
+            ORDER BY ot.fecha_entrada DESC
+          `;
+          return successResponse(ordenes);
+        }
+
+      case 'POST': {
+        // Crear nueva orden de trabajo
+        const { 
+          vehiculo_cliente_id, 
+          servicio_id, 
+          tipo_servicio, 
+          descripcion, 
+          fecha_entrada,
+          costo, 
+          estado,
+          mecanico_id,
+          notas
+        } = JSON.parse(event.body || '{}');
+
+        if (!vehiculo_cliente_id || !tipo_servicio || !descripcion) {
+          return errorResponse('Vehículo, tipo de servicio y descripción son requeridos', 400);
+        }
+
+        // Verificar que el vehículo existe
+        const vehiculoExists = await sql`
+          SELECT id FROM vehiculos_clientes WHERE id = ${vehiculo_cliente_id}
+        `;
+
+        if (vehiculoExists.length === 0) {
+          return errorResponse('Vehículo no encontrado', 404);
+        }
+
+        const nuevaOrden = await sql`
+          INSERT INTO ordenes_trabajo (
+            vehiculo_cliente_id, 
+            servicio_id, 
+            tipo_servicio, 
+            descripcion, 
+            fecha_entrada,
+            costo, 
+            estado,
+            mecanico_id,
+            notas
+          )
+          VALUES (
+            ${vehiculo_cliente_id}, 
+            ${servicio_id || null}, 
+            ${tipo_servicio}, 
+            ${descripcion}, 
+            ${fecha_entrada || new Date().toISOString()},
+            ${costo || 0}, 
+            ${estado || 'pendiente'},
+            ${mecanico_id || null},
+            ${notas || null}
+          )
+          RETURNING *
+        `;
+
+        return successResponse(nuevaOrden[0], 201);
+      }
+
+      case 'PUT': {
+        // Actualizar orden de trabajo
+        if (!id) {
+          return errorResponse('ID de la orden requerido', 400);
+        }
+
+        const { 
+          tipo_servicio, 
+          descripcion, 
+          fecha_entrada,
+          fecha_salida,
+          costo, 
+          estado,
+          mecanico_id,
+          servicio_id,
+          notas
+        } = JSON.parse(event.body || '{}');
+
+        // Verificar que la orden existe
+        const ordenExists = await sql`
+          SELECT * FROM ordenes_trabajo WHERE id = ${id}
+        `;
+
+        if (ordenExists.length === 0) {
+          return errorResponse('Orden de trabajo no encontrada', 404);
+        }
+
+        const ordenActualizada = await sql`
+          UPDATE ordenes_trabajo
+          SET 
+            tipo_servicio = COALESCE(${tipo_servicio}, tipo_servicio),
+            descripcion = COALESCE(${descripcion}, descripcion),
+            fecha_entrada = COALESCE(${fecha_entrada}, fecha_entrada),
+            fecha_salida = COALESCE(${fecha_salida}, fecha_salida),
+            costo = COALESCE(${costo}, costo),
+            estado = COALESCE(${estado}, estado),
+            mecanico_id = COALESCE(${mecanico_id}, mecanico_id),
+            servicio_id = COALESCE(${servicio_id}, servicio_id),
+            notas = COALESCE(${notas}, notas)
+          WHERE id = ${id}
+          RETURNING *
+        `;
+
+        return successResponse(ordenActualizada[0]);
+      }
+
+      case 'DELETE': {
+        // Eliminar orden de trabajo
+        if (!id) {
+          return errorResponse('ID de la orden requerido', 400);
+        }
+
+        const ordenEliminada = await sql`
+          DELETE FROM ordenes_trabajo WHERE id = ${id}
+          RETURNING *
+        `;
+
+        if (ordenEliminada.length === 0) {
+          return errorResponse('Orden de trabajo no encontrada', 404);
+        }
+
+        return successResponse({ 
+          message: 'Orden de trabajo eliminada exitosamente',
+          orden: ordenEliminada[0]
+        });
+      }
+
+      default:
+        return errorResponse('Método no permitido', 405);
+    }
+  } catch (error) {
+    console.error('Error en órdenes de trabajo:', error);
+    return errorResponse(error instanceof Error ? error : 'Error en el servidor');
+  }
+};

@@ -1,23 +1,17 @@
 import { Handler } from '@netlify/functions';
-import { neon } from '@neondatabase/serverless';
+import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
 
 /**
- * Función Netlify para obtener vehículos de clientes
- * Endpoint: /.netlify/functions/get-vehiculos
+ * Función Netlify para obtener vehículos (alias de vehiculos-clientes para compatibilidad)
+ * Endpoint: /.netlify/functions/vehiculos
  */
-export const handler: Handler = async (event, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json',
-  };
-
+export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return { statusCode: 200, headers: corsHeaders, body: '' };
   }
 
   try {
-    const sql = neon(process.env.NETLIFY_DATABASE_URL!);
+    const sql = getConnection();
     const search = event.queryStringParameters?.search || '';
 
     let vehiculos;
@@ -64,27 +58,10 @@ export const handler: Handler = async (event, context) => {
       `;
     }
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        success: true,
-        data: vehiculos,
-        count: vehiculos.length,
-      }),
-    };
+    return successResponse(vehiculos);
 
   } catch (error) {
     console.error('Error al obtener vehículos:', error);
-    
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Error al obtener vehículos',
-        message: error instanceof Error ? error.message : 'Error desconocido',
-      }),
-    };
+    return errorResponse(error instanceof Error ? error : 'Error al obtener vehículos');
   }
 };
