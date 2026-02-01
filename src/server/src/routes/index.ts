@@ -5,6 +5,9 @@ import inventarioRoutes from './inventario.routes';
 import vehiculosClientesRoutes from './vehiculos_clientes.routes';
 import authRoutes from './auth.routes'
 import usuariosRoutes from './usuario.routes';
+import ordenesTrabajoRoutes from './ordenes_trabajo.routes';
+import citasRoutes from './citas.routes';
+
 const router = Router();
 
 // Rutas de clientes
