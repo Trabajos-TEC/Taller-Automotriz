@@ -19,9 +19,13 @@ export async function fetchApi<T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   const url = `${API_BASE_URL}${endpoint}`;
-  
-  const defaultHeaders = {
+
+  // 👉 obtener token del login
+  const token = localStorage.getItem('token');
+
+  const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
   try {
@@ -36,7 +40,7 @@ export async function fetchApi<T>(
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || 'Error en la solicitud');
+      throw new Error(data.message || data.error || 'Error en la solicitud');
     }
 
     return data;
@@ -45,3 +49,4 @@ export async function fetchApi<T>(
     throw error;
   }
 }
+
