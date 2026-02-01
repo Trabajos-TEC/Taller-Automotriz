@@ -1,0 +1,30 @@
+/* En src/styles/App.css */
+body {
+  display: block; /* ← Esto sobrescribe el flex del index.css */
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.home {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 24px 20px; /* ← Agrega padding para separar de bordes */
+  box-sizing: border-box;
+}
+
+.center-panel {
+  background: rgba(43, 60, 59, 0.9);
+  padding: 40px 30px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: none;
+  margin: 0 auto 40px auto;
+  min-height: 600px;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.6);
+  color: #fff;
+  transition: all 0.4s ease-in-out;
+  box-sizing: border-box;
+}

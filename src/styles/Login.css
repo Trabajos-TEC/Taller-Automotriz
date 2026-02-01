@@ -1,0 +1,831 @@
+/* src/styles/Login.css - VERSIÓN CON RESPONSIVE CORREGIDO */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ================== CONTENEDOR PRINCIPAL ================== */
+.login-taller-container {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, 
+    rgba(40, 44, 52, 0.95) 0%, 
+    rgba(60, 64, 72, 0.85) 50%, 
+    rgba(40, 44, 52, 0.95) 100%);
+  display: flex;
+  overflow: hidden;
+}
+
+/* ================== LAYOUT DE DOS COLUMNAS SEPARADAS ================== */
+.login-two-columns {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+}
+
+/* ================== COLUMNA IZQUIERDA - FORMULARIO ================== */
+.login-left-column {
+  flex: 0 0 45%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.login-content {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* ================== LOGO TALLER ================== */
+.taller-logo-header {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #ffffff;
+}
+
+.logo-symbol {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 20px;
+}
+
+.gear-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 65px;
+  height: 65px;
+  background: 
+    radial-gradient(circle at center, #4b5563 0%, transparent 70%),
+    repeating-conic-gradient(
+      from 0deg,
+      #6b7280 0deg 30deg,
+      transparent 30deg 60deg
+    );
+  border-radius: 50%;
+  animation: rotate 20s linear infinite;
+}
+
+.wheel-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 35px;
+  height: 35px;
+  background: #374151;
+  border: 4px solid #6b7280;
+  border-radius: 50%;
+}
+
+@keyframes rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.taller-title h1 {
+  font-size: 26px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: #9aa4b2;
+  letter-spacing: 2px;
+}
+
+/* ================== FORMULARIO ================== */
+.login-form-taller {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(107, 114, 128, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+/* ================== INPUT GROUPS ================== */
+.input-group-taller {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: 16px;
+  z-index: 1;
+  opacity: 0.9;
+}
+
+.input-group-taller input {
+  width: 100%;
+  padding: 13px 16px 13px 45px;
+  border-radius: 8px;
+  border: 1px solid #4b5563;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.input-group-taller input:focus {
+  outline: none;
+  border-color: #6b7280;
+  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.input-group-taller input::placeholder {
+  color: #9aa4b2;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* ================== ERRORES ================== */
+.input-error-taller {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.error-taller {
+  color: #ef4444;
+  font-size: 12px;
+  margin: -15px 0 15px 5px;
+  display: block;
+}
+
+/* ================== OPCIONES ================== */
+.options-taller {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 18px 0;
+  padding: 0 5px;
+}
+
+.checkbox-taller {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c1c5cc;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.checkbox-taller input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #6b7280;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.link-taller {
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.link-taller:hover {
+  color: #9ca3af;
+}
+
+/* ================== BOTÓN PRINCIPAL ================== */
+.btn-taller-login {
+  background: #4b5563;
+  color: white;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+  font-size: 15px;
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 0.5px;
+}
+
+.btn-taller-login:hover {
+  background: #6b7280;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-taller-login:active {
+  transform: translateY(0);
+}
+
+/* ================== BOTÓN SECUNDARIO ================== */
+.btn-switch-user {
+  background: #374151;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.btn-switch-user:hover {
+  background: #4b5563;
+}
+
+/* ================== VERSIÓN DEL SISTEMA ================== */
+.system-version {
+  color: #9aa4b2;
+  font-size: 11px;
+  text-align: center;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* ================== COLUMNA DERECHA - ROMBOIDE (COLOR CLARO QUE TE GUSTA) ================== */
+.login-right-column {
+  flex: 0 0 50%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+  height: 100vh;
+  padding: 0;
+  margin-left: auto;
+  position: relative;
+  left: 3px;
+}
+
+.romboid-info-container {
+  width: 95%;
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  margin-right: 0;
+}
+
+.romboid-content {
+  background: 
+    url('/1969-ford-mustang-mach-1-428-cobra-jet-r-code-fastback.png') center/cover no-repeat;
+  padding: 50px 40px;
+  border-radius: 0;
+  transform: skewX(-8deg) translateX(-40px);
+  box-shadow: 
+    -10px 0 30px rgba(0, 0, 0, 0.5),
+    0 20px 50px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  width: calc(100% + 60px);
+  display: flex;
+  flex-direction: column;
+  margin-left: 30px;
+}
+
+/* Capa oscura semi-transparente - COLOR CLARO DEL ROMBOIDE (0.25) */
+.romboid-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.25); /* COLOR CLARO DEL ROMBOIDE */
+  pointer-events: none;
+  z-index: 1;
+}
+
+.romboid-content::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.4), 
+    transparent);
+  z-index: 1;
+}
+
+.romboid-header {
+  margin-bottom: 40px;
+  text-align: center;
+  color: white;
+  transform: skewX(8deg);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.romboid-icon {
+  font-size: 45px;
+  margin-bottom: 20px;
+  display: block;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 2;
+}
+
+.romboid-header h2 {
+  font-size: 26px;
+  font-weight: bold;
+  margin: 0;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+  position: relative;
+  z-index: 2;
+}
+
+/* ================== GRID DE INFORMACIÓN ================== */
+.romboid-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 2;
+}
+
+.info-item {
+  background: rgba(20, 20, 20, 0.3);
+  border-radius: 12px;
+  padding: 22px;
+  backdrop-filter: blur(3px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.info-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.3), 
+    transparent);
+}
+
+.info-item:hover {
+  background: rgba(30, 30, 30, 0.45);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.info-icon {
+  font-size: 32px;
+  margin-bottom: 15px;
+  opacity: 0.95;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+  position: relative;
+  z-index: 2;
+}
+
+.info-content h3 {
+  color: white;
+  font-size: 15px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.info-content p {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 3px 0;
+  font-weight: 500;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* ================== ANIMACIONES ================== */
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px) skewX(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) skewX(-8deg);
+  }
+}
+
+/* Aplicar animaciones en desktop */
+.login-left-column {
+  animation: slideInFromLeft 0.6s ease-out;
+}
+
+.login-right-column {
+  animation: slideInFromRight 0.6s ease-out 0.2s both;
+}
+
+.info-item {
+  animation: fadeIn 0.5s ease-out both;
+}
+
+.info-item:nth-child(1) { animation-delay: 0.1s; }
+.info-item:nth-child(2) { animation-delay: 0.2s; }
+.info-item:nth-child(3) { animation-delay: 0.3s; }
+.info-item:nth-child(4) { animation-delay: 0.4s; }
+.info-item:nth-child(5) { animation-delay: 0.5s; }
+.info-item:nth-child(6) { animation-delay: 0.6s; }
+
+/* ================== ESTILOS PARA ÍCONOS SVG ================== */
+.input-icon svg {
+  filter: brightness(0) invert(0.8);
+  transition: all 0.3s ease;
+}
+
+.input-group-taller:focus-within .input-icon svg {
+  filter: brightness(0) invert(1);
+}
+
+.btn-taller-login svg,
+.btn-switch-user svg {
+  transition: transform 0.3s ease;
+}
+
+.btn-taller-login:hover svg {
+  transform: translateX(3px);
+}
+
+.btn-switch-user:hover svg {
+  transform: rotate(90deg);
+}
+
+.romboid-icon svg {
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.info-icon svg {
+  filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.2));
+  transition: transform 0.3s ease;
+}
+
+.info-item:hover .info-icon svg {
+  transform: scale(1.1);
+}
+
+.link-taller svg {
+  transition: transform 0.3s ease;
+}
+
+.link-taller:hover svg {
+  transform: rotate(-10deg);
+}
+
+.system-version svg {
+  opacity: 0.7;
+}
+
+/* ================== RESPONSIVE PRINCIPAL (1170px) ================== */
+@media (max-width: 1170px) {
+  .login-taller-container {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .login-two-columns {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .login-left-column {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    padding: 50px 20px;
+    min-height: auto;
+    order: 1;
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  .login-right-column {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin-left: 0;
+    left: 0;
+    order: 2;
+    background: transparent !important; /* Transparente, no oscuro */
+  }
+  
+  /* TRANSFORMAR ROMBOIDE EN SECCIÓN RECTANGULAR NORMAL */
+  .romboid-info-container {
+    width: 100%;
+    height: auto;
+    justify-content: center;
+    margin-right: 0;
+    perspective: none;
+    transform-style: flat;
+  }
+  
+  .romboid-content {
+    /* ELIMINAR EFECTO ROMBOIDE */
+    transform: none !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto;
+    padding: 60px 40px !important;
+    margin-left: 0 !important;
+    border-radius: 0 !important;
+    
+    /* ¡IMAGEN CLARA! SIN GRADIENTE OSCURO - IGUAL QUE ROMBOIDE */
+    background: 
+      url('/1969-ford-mustang-mach-1-428-cobra-jet-r-code-fastback.png') center/cover no-repeat !important;
+    
+    /* SOMBRA SIMPLE */
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.4) !important;
+    
+    /* ANIMACIÓN PARA MÓVIL */
+    animation: fadeIn 0.8s ease-out 0.3s both;
+  }
+  
+  /* ¡IMPORTANTE! QUITAR EL OVERLAY OSCURO, DEJAR SOLO 0.25 COMO EL ROMBOIDE */
+  .romboid-content::before {
+    background: rgba(0, 0, 0, 0.25) !important; /* ¡IGUAL QUE EL ROMBOIDE! */
+  }
+  
+  /* ELIMINAR SKEW DE TODOS LOS ELEMENTOS INTERNOS */
+  .romboid-header,
+  .romboid-info-grid,
+  .info-item {
+    transform: none !important;
+  }
+  
+  .romboid-header {
+    margin-bottom: 50px;
+  }
+  
+  .romboid-header h2 {
+    font-size: 28px;
+    /* Mantener blanco como el romboide */
+    color: white !important;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7) !important;
+  }
+  
+  .romboid-icon {
+    /* Mantener blanco como el romboide */
+    color: white !important;
+  }
+  
+  .romboid-icon svg {
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3)) !important;
+  }
+  
+  /* ¡INFO-ITEMS IGUALES A LOS DEL ROMBOIDE! */
+  .info-item {
+    background: rgba(20, 20, 20, 0.3) !important; /* Igual que romboide */
+    border: 1px solid rgba(255, 255, 255, 0.15) !important; /* Igual que romboide */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  .info-item::before {
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(255, 255, 255, 0.3), 
+      transparent) !important;
+  }
+  
+  .info-item:hover {
+    background: rgba(30, 30, 30, 0.45) !important; /* Igual que romboide */
+    border-color: rgba(255, 255, 255, 0.25) !important;
+  }
+  
+  .info-content h3 {
+    color: white !important; /* Igual que romboide */
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7) !important;
+  }
+  
+  .info-content p {
+    color: rgba(255, 255, 255, 0.95) !important; /* Igual que romboide */
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6) !important;
+  }
+  
+  .info-icon svg {
+    filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.2)) !important;
+  }
+  
+  /* GRID RESPONSIVE */
+  .romboid-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    max-width: 1000px;
+    margin: 0 auto 50px;
+  }
+  
+  .login-content {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  /* ELIMINAR ANIMACIÓN DE DESKTOP PARA LA COLUMNA DERECHA */
+  .login-right-column {
+    animation: fadeIn 0.8s ease-out 0.2s both;
+  }
+}
+
+/* ================== RESPONSIVE PARA TABLETS (900px) ================== */
+@media (max-width: 900px) {
+  .romboid-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+  
+  .romboid-content {
+    padding: 50px 30px !important;
+  }
+  
+  .info-item {
+    padding: 25px 20px;
+  }
+}
+
+/* ================== RESPONSIVE PARA TABLETS PEQUEÑAS (768px) ================== */
+@media (max-width: 768px) {
+  .login-left-column {
+    padding: 40px 20px;
+  }
+  
+  .romboid-content {
+    padding: 45px 25px !important;
+  }
+  
+  .romboid-info-grid {
+    grid-template-columns: 1fr; /* UNA COLUMNA EN TABLETS */
+    gap: 25px;
+    max-width: 600px;
+  }
+  
+  .romboid-header h2 {
+    font-size: 26px;
+  }
+  
+  .login-form-taller {
+    padding: 30px 25px;
+  }
+  
+  .taller-title h1 {
+    font-size: 24px;
+  }
+  
+  .options-taller {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+}
+
+/* ================== RESPONSIVE PARA MÓVILES (600px) ================== */
+@media (max-width: 600px) {
+  .login-left-column {
+    padding: 35px 15px;
+  }
+  
+  .romboid-content {
+    padding: 40px 20px !important;
+  }
+  
+  .romboid-info-grid {
+    gap: 20px;
+  }
+  
+  .info-item {
+    padding: 22px 18px;
+  }
+  
+  .info-icon {
+    font-size: 28px;
+  }
+  
+  .info-content h3 {
+    font-size: 14px;
+  }
+  
+  .info-content p {
+    font-size: 13px;
+  }
+}
+
+/* ================== RESPONSIVE PARA MÓVILES PEQUEÑOS (480px) ================== */
+@media (max-width: 480px) {
+  .login-left-column {
+    padding: 30px 12px;
+  }
+  
+  .romboid-content {
+    padding: 35px 15px !important;
+  }
+  
+  .romboid-header h2 {
+    font-size: 24px;
+  }
+  
+  .romboid-info-grid {
+    gap: 18px;
+  }
+  
+  .info-item {
+    padding: 20px 15px;
+  }
+  
+  .login-form-taller {
+    padding: 25px 20px;
+  }
+  
+  .input-group-taller input {
+    padding: 12px 14px 12px 42px;
+    font-size: 13px;
+  }
+  
+  .btn-taller-login,
+  .btn-switch-user {
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+}

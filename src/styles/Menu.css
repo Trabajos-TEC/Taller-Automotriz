@@ -1,0 +1,323 @@
+
+.menu-container {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+/* ===== BOTÓN TOGGLE (HAMBURGUESA) ===== */
+.btn-menu-toggle {
+  background: #222;
+  color: white;
+  border: none;
+  padding: 14px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  min-height: 50px;
+}
+
+.btn-menu-toggle:hover {
+  background: #333;
+  transform: scale(1.05);
+}
+
+/* ===== MENÚ DESPLEGABLE ===== */
+.dropdown-menu {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+  background: rgba(51, 51, 51, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  height: calc(96vh - 100px);
+  justify-content: space-between;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+  pointer-events: none;
+  min-width: 220px;
+  max-width: 280px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.dropdown-menu .menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* ===== BOTONES DEL MENÚ ===== */
+.btn-menu {
+  background: #444;
+  color: white;
+  border: none;
+  padding: 15px 16px;
+  font-size: 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: left;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  font-weight: 500;
+}
+
+.btn-menu:hover {
+  transform: translateX(5px);
+  color: white;
+  opacity: 1;
+}
+
+/* ===== BOTONES DE ACCIÓN (Agregar Usuario y Cerrar Sesión) ===== */
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-menu-action {
+  background: #2c3e50 !important;
+  margin-top: 10px !important;
+  padding-top: 12px !important;
+  width: 100%;
+  transition: all 0.3s;
+}
+
+.btn-menu-agregar-usuario {
+  background: #324f30 !important;
+}
+
+.btn-menu-agregar-usuario:hover {
+  background: #4e9842 !important;
+  transform: translateX(5px);
+}
+
+.btn-menu-danger {
+  background: #6d0202 !important;
+}
+
+.btn-menu-danger:hover {
+  background: #ac3636 !important;
+  transform: translateX(5px);
+}
+
+/* ===== COLORES DE LAS SECCIONES ===== */
+/* Colores al hover */
+.btn-menu-clientes:hover { background: #1f4f70 !important; }
+.btn-menu-vehiculos:hover { background: #7b2c25 !important; }
+.btn-menu-inventario:hover { background: #1e6b3a !important; }
+.btn-menu-citas:hover { background: #7a560c !important; }
+.btn-menu-trabajos:hover { background: #5e3a6b !important; }
+.btn-menu-cotizacion:hover { background: #11695c !important; }
+.btn-menu-reportes:hover { background: #34495e !important; }
+
+/* Estados activos para los botones del menú */
+.btn-menu-clientes.active {
+  background: #1f4f70 !important;
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(31, 79, 112, 0.4);
+}
+
+.btn-menu-vehiculos.active {
+  background: #7b2c25 !important;
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(123, 44, 37, 0.4);
+}
+
+.btn-menu-inventario.active {
+  background: #1e6b3a !important;
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(30, 107, 58, 0.4);
+}
+
+.btn-menu-citas.active {
+  background: #7a560c !important;
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(122, 86, 12, 0.4);
+}
+
+.btn-menu-trabajos.active {
+  background: #5e3a6b !important;
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(94, 58, 107, 0.4);
+}
+
+.btn-menu-cotizacion.active {
+  background: #11695c !important;
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(17, 105, 92, 0.4);
+}
+
+.btn-menu-reportes.active {
+  background: #34495e !important;
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(52, 73, 94, 0.4);
+}
+
+/* ===== COLORES DINÁMICOS DEL PANEL ===== */
+.center-panel.clientes {
+  background: rgba(30, 51, 76, 0.9);
+  box-shadow: 0 6px 25px rgba(31, 79, 112, 0.4);
+}
+
+.center-panel.vehiculos {
+  background: rgba(59, 40, 36, 0.9);
+  box-shadow: 0 6px 25px rgba(123, 44, 37, 0.4);
+}
+
+.center-panel.inventario {
+  background: rgba(27, 51, 29, 0.9);
+  box-shadow: 0 6px 25px rgba(30, 107, 58, 0.4);
+}
+
+.center-panel.citas {
+  background: rgba(51, 50, 27, 0.9);
+  box-shadow: 0 6px 25px rgba(122, 86, 12, 0.4);
+}
+
+.center-panel.trabajos {
+  background: rgba(52, 39, 58, 0.9);
+  box-shadow: 0 6px 25px rgba(94, 58, 107, 0.4);
+}
+
+.center-panel.cotizacion {
+  background: rgba(51, 69, 66, 0.9);
+  box-shadow: 0 6px 25px rgba(17, 105, 92, 0.4);
+}
+
+.center-panel.reportes {
+  background: rgba(31, 45, 56, 0.9);
+  box-shadow: 0 6px 25px rgba(52, 73, 94, 0.4);
+}
+
+/* ===== TRANSICIONES DEL PANEL ===== */
+.panel-content {
+  width: 100%;
+  margin: 16px auto;
+  position: relative;
+  min-height: 500px;
+}
+
+.panel-content > * {
+  transition: opacity 0.17s ease-in-out;
+}
+
+.panel-content.changing > * {
+  opacity: 0;
+}
+
+.panel-content > * {
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===== SCROLLBAR PARA EL MENÚ ===== */
+.dropdown-menu .menu-items::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-menu .menu-items::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.dropdown-menu .menu-items::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.dropdown-menu .menu-items::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* ===== RESPONSIVE MENÚ ===== */
+@media (max-width: 768px) {
+  .menu-container {
+    top: 15px;
+    left: 15px;
+  }
+  
+  .btn-menu-toggle {
+    padding: 12px 16px;
+    min-width: 45px;
+    min-height: 45px;
+  }
+  
+  .dropdown-menu {
+    min-width: 200px;
+    height: calc(96vh - 80px);
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-menu {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+  
+  .dropdown-menu {
+    min-width: 180px;
+  }
+}
+
+/* ===== SEPARADORES DEL MENÚ ===== */
+
+/* ===== INFORMACIÓN DEL USUARIO EN EL MENÚ ===== */
+.user-info-header {
+  padding: 15px;
+  text-align: center;
+  color: rgb(209, 199, 199);
+  background: rgba(79, 87, 92, 0.3);
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+.user-role {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== SEPARADOR ===== */
+.separator {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 15px 0;
+  width: 100%;
+}
