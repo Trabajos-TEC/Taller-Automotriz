@@ -6,6 +6,8 @@ import { getConnection, corsHeaders, successResponse, errorResponse } from './ut
  * Endpoint: /.netlify/functions/vehiculos
  */
 export const handler: Handler = async (event) => {
+  const TALLER_ID = 1; // 🔴 SOLO PARA PRUEBA
+
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
@@ -31,14 +33,17 @@ export const handler: Handler = async (event) => {
         INNER JOIN clientes c ON vc.cliente_id = c.id
         INNER JOIN vehiculos_base vb ON vc.vehiculo_base_id = vb.id
         WHERE 
-          vc.placa ILIKE ${'%' + search + '%'} OR 
-          c.cedula ILIKE ${'%' + search + '%'} OR 
-          c.nombre ILIKE ${'%' + search + '%'} OR 
-          vb.marca ILIKE ${'%' + search + '%'} OR 
-          vb.modelo ILIKE ${'%' + search + '%'} OR
-          vc.vin ILIKE ${'%' + search + '%'}
+          c.taller_id = ${TALLER_ID}
+          AND (
+            vc.placa ILIKE ${'%' + search + '%'} OR 
+            c.cedula ILIKE ${'%' + search + '%'} OR 
+            c.nombre ILIKE ${'%' + search + '%'} OR 
+            vb.marca ILIKE ${'%' + search + '%'} OR 
+            vb.modelo ILIKE ${'%' + search + '%'} OR
+            vc.vin ILIKE ${'%' + search + '%'}
+          )
         ORDER BY vc.placa
-      `;
+      `;  
     } else {
       vehiculos = await sql`
         SELECT 
@@ -54,8 +59,10 @@ export const handler: Handler = async (event) => {
         FROM vehiculos_clientes vc
         INNER JOIN clientes c ON vc.cliente_id = c.id
         INNER JOIN vehiculos_base vb ON vc.vehiculo_base_id = vb.id
+        WHERE c.taller_id = ${TALLER_ID}
         ORDER BY vc.placa
       `;
+
     }
 
     return successResponse(vehiculos);
