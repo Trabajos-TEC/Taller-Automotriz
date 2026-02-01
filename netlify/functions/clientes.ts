@@ -7,6 +7,8 @@ import { getConnection, corsHeaders, successResponse, errorResponse } from './ut
  * Soporta: GET (todos/búsqueda), POST, PUT, DELETE
  */
 export const handler: Handler = async (event) => {
+  const TALLER_ID = 1; 
+
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
@@ -23,8 +25,12 @@ export const handler: Handler = async (event) => {
       // GET /clientes/:cedula - Cliente específico
       if (cedula && cedula !== 'clientes' && !cedula.includes('check')) {
         const cliente = await sql`
-          SELECT * FROM clientes WHERE cedula = ${cedula} LIMIT 1
+          SELECT * FROM clientes 
+          WHERE cedula = ${cedula}
+            AND taller_id = ${TALLER_ID}
+          LIMIT 1
         `;
+
         
         if (cliente.length === 0) {
           return errorResponse('Cliente no encontrado', 404);
@@ -36,9 +42,13 @@ export const handler: Handler = async (event) => {
       // GET /clientes/check/:cedula - Verificar existencia
       if (event.path.includes('/check/')) {
         const cedulaCheck = pathParts[pathParts.length - 1];
-        const exists = await sql`
-          SELECT * FROM clientes WHERE cedula = ${cedulaCheck} LIMIT 1
-        `;
+          const exists = await sql`
+            SELECT * FROM clientes 
+            WHERE cedula = ${cedulaCheck}
+              AND taller_id = ${TALLER_ID}
+            LIMIT 1
+          `;
+
         
         return successResponse({
           exists: exists.length > 0,
@@ -50,17 +60,23 @@ export const handler: Handler = async (event) => {
       let clientes;
       if (search) {
         clientes = await sql`
-          SELECT * FROM clientes 
-          WHERE nombre ILIKE ${'%' + search + '%'} 
-             OR cedula ILIKE ${'%' + search + '%'}
-             OR correo ILIKE ${'%' + search + '%'}
+          SELECT * FROM clientes
+          WHERE taller_id = ${TALLER_ID}
+            AND (
+              nombre ILIKE ${'%' + search + '%'}
+              OR cedula ILIKE ${'%' + search + '%'}
+              OR correo ILIKE ${'%' + search + '%'}
+            )
           ORDER BY nombre
         `;
+
       } else {
         clientes = await sql`
           SELECT * FROM clientes 
+          WHERE taller_id = ${TALLER_ID}
           ORDER BY nombre
         `;
+
       }
 
       return successResponse(clientes);
@@ -85,10 +101,17 @@ export const handler: Handler = async (event) => {
       }
 
       const result = await sql`
-        INSERT INTO clientes (nombre, cedula, correo, numero)
-        VALUES (${nombre}, ${cedula}, ${correo || null}, ${numero || null})
+        INSERT INTO clientes (nombre, cedula, correo, numero, taller_id)
+        VALUES (
+          ${nombre},
+          ${cedula},
+          ${correo || null},
+          ${numero || null},
+          ${TALLER_ID}
+        )
         RETURNING *
       `;
+
 
       return successResponse(result[0], 201);
     }
@@ -98,13 +121,16 @@ export const handler: Handler = async (event) => {
       const body = JSON.parse(event.body || '{}');
       const { nombre, correo, numero } = body;
 
-      const result = await sql`
-        UPDATE clientes
-        SET nombre = COALESCE(${nombre}, nombre),
-            correo = COALESCE(${correo}, correo),
-            numero = COALESCE(${numero}, numero)
-        WHERE cedula = ${cedula}
-        RETURNING *
+      const result = await sql
+      `
+      UPDATE clientes
+      SET nombre = COALESCE(${nombre}, nombre),
+          correo = COALESCE(${correo}, correo),
+          numero = COALESCE(${numero}, numero)
+      WHERE cedula = ${cedula}
+        AND taller_id = ${TALLER_ID}
+      RETURNING *
+
       `;
 
       if (result.length === 0) {
@@ -117,7 +143,9 @@ export const handler: Handler = async (event) => {
     // DELETE - Eliminar cliente
     if (event.httpMethod === 'DELETE' && cedula) {
       const result = await sql`
-        DELETE FROM clientes WHERE cedula = ${cedula} RETURNING id
+      DELETE FROM clientes
+      WHERE cedula = ${cedula} AND taller_id = ${TALLER_ID}
+      RETURNING id
       `;
 
       if (result.length === 0) {
