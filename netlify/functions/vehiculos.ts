@@ -1,12 +1,13 @@
 import { Handler } from '@netlify/functions';
 import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
-
+import { requireAuth } from './utils/requireAuth';
 /**
  * Función Netlify para obtener vehículos (alias de vehiculos-clientes para compatibilidad)
  * Endpoint: /.netlify/functions/vehiculos
  */
 export const handler: Handler = async (event) => {
-  const TALLER_ID = 1; // 🔴 SOLO PARA PRUEBA
+  const user = requireAuth(event);
+  const TALLER_ID = user.taller_id;
 
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };

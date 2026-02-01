@@ -1,13 +1,14 @@
 import { Handler } from '@netlify/functions';
 import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
-
+import { requireAuth } from './utils/requireAuth';
 /**
  * Función Netlify para gestionar clientes
  * Endpoint: /.netlify/functions/clientes
  * Soporta: GET (todos/búsqueda), POST, PUT, DELETE
  */
 export const handler: Handler = async (event) => {
-  const TALLER_ID = 1; 
+  const user = requireAuth(event);
+  const TALLER_ID = user.taller_id;
 
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
