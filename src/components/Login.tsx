@@ -64,18 +64,24 @@ const handleSubmit = async (e: React.FormEvent) => {
       return;
     }
 
-    const userData = await res.json();
+      const data = await res.json();
 
-    // Guardar sesión
-    const sessionData = {
-      nombre: userData.nombre,
-      rol: userData.rol,
-      email: userData.email
-    };
+      // 👉 GUARDAR TOKEN (CLAVE)
+      localStorage.setItem('token', data.token);
 
-    localStorage.setItem("taller-session", JSON.stringify(sessionData));
+      // 👉 Guardar info del usuario (opcional)
+      localStorage.setItem(
+        'taller-session',
+        JSON.stringify({
+          nombre: data.usuario.nombre,
+          rol: data.usuario.rol,
+          correo: data.usuario.correo
+        })
+      );
+
+    localStorage.setItem('taller-auth', 'true');  
     localStorage.setItem("taller-auth", "true");
-
+  
     // Redirigir
     window.location.href = "/clientes";
 
