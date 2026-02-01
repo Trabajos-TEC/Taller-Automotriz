@@ -1,122 +1,157 @@
-// src/pages/Citas.tsx
-import React, { useState, useEffect } from 'react';
+// src/pages/Citas.tsx - VERSIÓN SIMPLIFICADA
+import React, { useState, useEffect, useCallback } from 'react';
+import { citasService, type Cita as CitaServicio } from '../services/citas.service';
 import '../styles/pages/Citas.css';
 
-interface Cita {
-  id: string;
-  clienteCedula: string;
-  clienteNombre: string;
-  vehiculoPlaca: string;
+// Interfaces adaptadas a lo que REALMENTE devuelve el backend
+interface CitaBackend {
+  id: number;
+  vehiculo_cliente_id: number;  // Solo ID
   fecha: string;
   hora: string;
   descripcion: string;
-  mecanico: string;
-  estado: 'En Espera' | 'Aceptada' | 'Cancelada' | 'Completada';
-  createdAt?: string;
+  usuario_id: number | null;    // Solo ID
+  estado: string;               // String simple
+  created_at: string;
+  updated_at: string;
 }
 
-interface Vehiculo {
-  placa: string;
-  marca: string;
-  modelo: string;
-  clienteCedula: string;
-  clienteNombre: string;
+interface Estadisticas {
+  total: number;
+  en_espera: number;
+  aceptadas: number;
+  completadas: number;
+  canceladas: number;
+  hoy: number;
 }
 
-interface Usuario {
-  id: string;
-  nombre: string;
-  rol: string;
-  email: string;
+// Datos mapeados para mostrar en frontend
+interface CitaDisplay {
+  id: number;
+  vehiculo_cliente_id: number;
+  fecha: string;
+  hora: string;
+  descripcion: string;
+  usuario_id: number | null;
+  estado: string;
+  created_at: string;
+  // Datos generados para display
+  display_cliente: string;
+  display_vehiculo: string;
+  display_mecanico: string;
 }
 
 const Citas: React.FC = () => {
-  // Estado para la lista de citas
-  const [citas, setCitas] = useState<Cita[]>([
-    { id: '1', clienteCedula: '123456789', clienteNombre: 'Juan Pérez', vehiculoPlaca: 'ABC123', fecha: '2024-01-15', hora: '09:00', descripcion: 'Cambio de aceite y filtro', mecanico: 'Carlos López', estado: 'Aceptada' },
-    { id: '2', clienteCedula: '987654321', clienteNombre: 'María García', vehiculoPlaca: 'XYZ789', fecha: '2024-01-16', hora: '10:30', descripcion: 'Revisión general', mecanico: 'Sin Asignar', estado: 'En Espera' },
-    { id: '3', clienteCedula: '456789123', clienteNombre: 'Pedro Martínez', vehiculoPlaca: 'DEF456', fecha: '2024-01-17', hora: '14:00', descripcion: 'Reparación de frenos', mecanico: 'Ana Rodríguez', estado: 'Completada' },
-    { id: '4', clienteCedula: '321654987', clienteNombre: 'Laura Fernández', vehiculoPlaca: 'GHI789', fecha: '2024-01-18', hora: '11:00', descripcion: 'Alineación y balanceo', mecanico: 'Sin Asignar', estado: 'En Espera' },
-    { id: '5', clienteCedula: '789123456', clienteNombre: 'Carlos Ruiz', vehiculoPlaca: 'JKL012', fecha: '2024-01-19', hora: '15:30', descripcion: 'Cambio de batería', mecanico: 'Miguel Sánchez', estado: 'Cancelada' },
-  ]);
-
-  // Estados para datos adicionales
-  const [vehiculos] = useState<Vehiculo[]>([
-    { placa: 'ABC123', marca: 'Toyota', modelo: 'Corolla', clienteCedula: '123456789', clienteNombre: 'Juan Pérez' },
-    { placa: 'XYZ789', marca: 'Honda', modelo: 'Civic', clienteCedula: '987654321', clienteNombre: 'María García' },
-    { placa: 'DEF456', marca: 'Ford', modelo: 'Ranger', clienteCedula: '456789123', clienteNombre: 'Pedro Martínez' },
-  ]);
-
-  const [mecanicos] = useState<Usuario[]>([
-    { id: '1', nombre: 'Carlos López', rol: 'mecanico', email: 'carlos@taller.com' },
-    { id: '2', nombre: 'Ana Rodríguez', rol: 'mecanico', email: 'ana@taller.com' },
-    { id: '3', nombre: 'Miguel Sánchez', rol: 'mecanico', email: 'miguel@taller.com' },
-  ]);
-
-  // Estados para búsqueda y selección
+  const [citas, setCitas] = useState<CitaDisplay[]>([]);
   const [search, setSearch] = useState('');
-  const [searchVehiculo, setSearchVehiculo] = useState('');
-  const [selected, setSelected] = useState<Cita | null>(null);
+  const [selected, setSelected] = useState<CitaDisplay | null>(null);
   const [showModalAgregar, setShowModalAgregar] = useState(false);
   const [showModalEditar, setShowModalEditar] = useState(false);
-  const [showModalAsignar, setShowModalAsignar] = useState(false);
-  const [showModalConfirmacion, setShowModalConfirmacion] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [estadisticas, setEstadisticas] = useState<Estadisticas>({
+    total: 0,
+    en_espera: 0,
+    aceptadas: 0,
+    completadas: 0,
+    canceladas: 0,
+    hoy: 0
+  });
 
-  // Estados para formularios
-  const [nuevaCita, setNuevaCita] = useState<Omit<Cita, 'id'>>({
-    clienteCedula: '',
-    clienteNombre: '',
-    vehiculoPlaca: '',
+  // Nueva cita (solo campos básicos)
+  const [nuevaCita, setNuevaCita] = useState({
+    vehiculo_cliente_id: '',
     fecha: '',
     hora: '',
     descripcion: '',
-    mecanico: 'Sin Asignar',
     estado: 'En Espera'
   });
 
-  const [citaEditada, setCitaEditada] = useState<Cita | null>(null);
-  const [mecanicoSeleccionado, setMecanicoSeleccionado] = useState('');
-  
-  // Estados para validación
+  const [citaEditada, setCitaEditada] = useState<CitaDisplay | null>(null);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
-  const [vehiculoConCita, setVehiculoConCita] = useState<{vehiculo: Vehiculo, cita: Cita} | null>(null);
 
-  // Cargar datos (simulando API)
-  useEffect(() => {
-    // En una implementación real, aquí harías fetch a tus APIs
-    console.log('Datos cargados');
+  // Transformar datos del backend para display
+  const transformarCita = (cita: CitaServicio): CitaDisplay => ({
+    id: cita.id || 0,
+    vehiculo_cliente_id: cita.vehiculo_cliente_id || 0,
+    fecha: cita.fecha || '',
+    hora: cita.hora || '',
+    descripcion: cita.descripcion || '',
+    usuario_id: cita.usuario_id || null,
+    estado: cita.estado || 'En Espera',
+    created_at: cita.created_at || '',
+    // Datos generados para mostrar (simulados)
+    display_cliente: `Cliente ${cita.vehiculo_cliente_id}`,
+    display_vehiculo: `Vehículo ${cita.vehiculo_cliente_id}`,
+    display_mecanico: cita.usuario_id ? `Mecánico ${cita.usuario_id}` : 'Sin Asignar'
+  });
+
+  // Cargar citas
+  const cargarCitas = useCallback(async (searchTerm?: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await citasService.getCitas(searchTerm);
+      
+      if (response?.success && response.data) {
+        const citasTransformadas = Array.isArray(response.data) 
+          ? response.data.map(transformarCita)
+          : [];
+        setCitas(citasTransformadas);
+      } else {
+        setCitas([]);
+      }
+    } catch (error: any) {
+      console.error('Error cargando citas:', error);
+      setError('Error al cargar citas: ' + (error.message || 'Error desconocido'));
+      setCitas([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Filtrar citas
-  const citasFiltradas = citas.filter(c =>
-    c.clienteNombre.toLowerCase().includes(search.toLowerCase()) ||
-    c.vehiculoPlaca.toLowerCase().includes(search.toLowerCase()) ||
-    c.mecanico.toLowerCase().includes(search.toLowerCase()) ||
-    c.estado.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // Filtrar vehículos para búsqueda
-  const vehiculosFiltrados = vehiculos.filter(v =>
-    v.placa.toLowerCase().includes(searchVehiculo.toLowerCase()) ||
-    v.marca.toLowerCase().includes(searchVehiculo.toLowerCase()) ||
-    v.clienteNombre.toLowerCase().includes(searchVehiculo.toLowerCase())
-  );
-
-  // Verificar si un vehículo ya tiene cita
-  const verificarCitaExistente = (placa: string): Cita | null => {
-    return citas.find(c => 
-      c.vehiculoPlaca === placa && 
-      c.estado !== 'Cancelada' && 
-      c.estado !== 'Completada'
-    ) || null;
+  // Cargar estadísticas
+  const cargarEstadisticas = async () => {
+    try {
+      const response = await citasService.getEstadisticas();
+      if (response?.success && response.data) {
+        setEstadisticas(response.data);
+      }
+    } catch (error) {
+      console.error('Error cargando estadísticas:', error);
+    }
   };
 
-  /* === VALIDAR FORMULARIO === */
-  const validarCita = (cita: Omit<Cita, 'id'> | Cita): {[key: string]: string} => {
+  // Cargar datos iniciales
+  useEffect(() => {
+    cargarCitas();
+    cargarEstadisticas();
+  }, []);
+
+  // Búsqueda con debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      cargarCitas(search || undefined);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search, cargarCitas]);
+
+  // Filtrar citas localmente
+  const citasFiltradas = citas.filter(c =>
+    c.display_cliente.toLowerCase().includes(search.toLowerCase()) ||
+    c.display_vehiculo.toLowerCase().includes(search.toLowerCase()) ||
+    c.display_mecanico.toLowerCase().includes(search.toLowerCase()) ||
+    c.estado.toLowerCase().includes(search.toLowerCase()) ||
+    c.descripcion.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Validar formulario
+  const validarCita = (cita: typeof nuevaCita): {[key: string]: string} => {
     const newErrors: {[key: string]: string} = {};
 
-    if (!cita.vehiculoPlaca.trim()) {
-      newErrors.vehiculoPlaca = 'El vehículo es obligatorio';
+    if (!cita.vehiculo_cliente_id.trim()) {
+      newErrors.vehiculo_cliente_id = 'ID de vehículo-cliente es obligatorio';
     }
 
     if (!cita.fecha.trim()) {
@@ -125,7 +160,6 @@ const Citas: React.FC = () => {
       const fechaCita = new Date(cita.fecha);
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
-      
       if (fechaCita < hoy) {
         newErrors.fecha = 'No se pueden agendar citas en fechas pasadas';
       }
@@ -133,287 +167,285 @@ const Citas: React.FC = () => {
 
     if (!cita.hora.trim()) {
       newErrors.hora = 'La hora es obligatoria';
-    } else {
-      const horaRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-      if (!horaRegex.test(cita.hora)) {
-        newErrors.hora = 'Formato de hora inválido (HH:MM)';
-      }
     }
 
     if (!cita.descripcion.trim()) {
       newErrors.descripcion = 'La descripción es obligatoria';
-    } else if (cita.descripcion.trim().length < 5) {
-      newErrors.descripcion = 'La descripción debe tener al menos 5 caracteres';
     }
 
     return newErrors;
   };
 
-  /* === MANEJAR SELECCIÓN DE VEHÍCULO === */
-  const manejarSeleccionVehiculo = (placa: string) => {
-    const vehiculo = vehiculos.find(v => v.placa === placa);
-    if (!vehiculo) return;
-
-    // Verificar si ya tiene cita activa
-    const citaExistente = verificarCitaExistente(placa);
-    
-    if (citaExistente) {
-      setVehiculoConCita({ vehiculo, cita: citaExistente });
-      setShowModalConfirmacion(true);
-    } else {
-      // Actualizar datos del cliente en el formulario
-      setNuevaCita({
-        ...nuevaCita,
-        vehiculoPlaca: vehiculo.placa,
-        clienteCedula: vehiculo.clienteCedula,
-        clienteNombre: vehiculo.clienteNombre
-      });
-    }
-  };
-
-  /* === CONFIRMAR REEMPLAZO DE CITA === */
-  const confirmarReemplazo = () => {
-    if (!vehiculoConCita) return;
-
-    // Cancelar cita existente
-    setCitas(citas.map(c => 
-      c.id === vehiculoConCita.cita.id 
-        ? { ...c, estado: 'Cancelada' }
-        : c
-    ));
-
-    // Proceder con la nueva cita
-    setNuevaCita({
-      ...nuevaCita,
-      vehiculoPlaca: vehiculoConCita.vehiculo.placa,
-      clienteCedula: vehiculoConCita.vehiculo.clienteCedula,
-      clienteNombre: vehiculoConCita.vehiculo.clienteNombre
-    });
-
-    setShowModalConfirmacion(false);
-    setVehiculoConCita(null);
-  };
-
-  /* === AGREGAR CITA === */
-  const agregarCita = () => {
+  // Agregar cita
+  const agregarCita = async () => {
     const validationErrors = validarCita(nuevaCita);
-    
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    // Crear nueva cita con ID único
-    const nuevaCitaConId: Cita = {
-      ...nuevaCita,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
-    };
+    try {
+      setLoading(true);
+      
+      // Verificar disponibilidad
+      const disponibilidadResponse = await citasService.checkDisponibilidad({
+        vehiculoClienteId: parseInt(nuevaCita.vehiculo_cliente_id),
+        fecha: nuevaCita.fecha,
+        hora: nuevaCita.hora
+      });
 
-    setCitas([...citas, nuevaCitaConId]);
-    
-    // Limpiar formulario
-    setNuevaCita({
-      clienteCedula: '',
-      clienteNombre: '',
-      vehiculoPlaca: '',
-      fecha: '',
-      hora: '',
-      descripcion: '',
-      mecanico: 'Sin Asignar',
-      estado: 'En Espera'
+      if (!disponibilidadResponse.data?.vehiculoClienteDisponible) {
+        alert('El vehículo-cliente ya tiene una cita programada en esa fecha y hora');
+        return;
+      }
+
+      // Crear la cita
+      const response = await citasService.createCita({
+      vehiculo_cliente_id: parseInt(nuevaCita.vehiculo_cliente_id),
+      fecha: nuevaCita.fecha,
+      hora: nuevaCita.hora,
+      descripcion: nuevaCita.descripcion,
+      estado: nuevaCita.estado,
+      usuario_id: null // O un valor por defecto si es requerido
     });
-    
-    setErrors({});
-    setShowModalAgregar(false);
-    
-    alert('Cita agendada exitosamente');
+      
+      if (response?.success) {
+        await cargarCitas();
+        await cargarEstadisticas();
+        
+        setNuevaCita({
+          vehiculo_cliente_id: '',
+          fecha: '',
+          hora: '',
+          descripcion: '',
+          estado: 'En Espera'
+        });
+        
+        setErrors({});
+        setShowModalAgregar(false);
+        alert('Cita agendada exitosamente');
+      }
+    } catch (error: any) {
+      console.error('Error creando cita:', error);
+      alert('Error: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setLoading(false);
+    }
   };
 
-  /* === EDITAR CITA === */
-  const guardarEdicion = () => {
+  // Editar cita
+  const guardarEdicion = async () => {
     if (!citaEditada) return;
 
-    const validationErrors = validarCita(citaEditada);
+    const validationErrors = validarCita({
+      vehiculo_cliente_id: citaEditada.vehiculo_cliente_id.toString(),
+      fecha: citaEditada.fecha,
+      hora: citaEditada.hora,
+      descripcion: citaEditada.descripcion,
+      estado: citaEditada.estado
+    });
     
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    setCitas(citas.map(c => 
-      c.id === citaEditada.id ? citaEditada : c
-    ));
-    
-    setErrors({});
-    setShowModalEditar(false);
-    setCitaEditada(null);
-    
-    alert('Cita actualizada exitosamente');
-  };
+    try {
+      setLoading(true);
+      
+      // Verificar disponibilidad si se cambian datos críticos
+      if ((citaEditada.fecha !== selected?.fecha || 
+           citaEditada.hora !== selected?.hora || 
+           citaEditada.vehiculo_cliente_id !== selected?.vehiculo_cliente_id)) {
+        
+        const disponibilidadResponse = await citasService.checkDisponibilidad({
+          vehiculoClienteId: citaEditada.vehiculo_cliente_id,
+          fecha: citaEditada.fecha,
+          hora: citaEditada.hora,
+          excludeId: citaEditada.id
+        });
 
-  /* === ASIGNAR MECÁNICO === */
-  const asignarMecanico = () => {
-    if (!selected || !mecanicoSeleccionado) {
-      alert('Seleccione un mecánico');
-      return;
+        if (!disponibilidadResponse.data?.vehiculoClienteDisponible) {
+          alert('Ya existe otra cita en esa fecha y hora');
+          return;
+        }
+      }
+
+      // Actualizar la cita
+      const response = await citasService.updateCita(citaEditada.id, {
+        fecha: citaEditada.fecha,
+        hora: citaEditada.hora,
+        descripcion: citaEditada.descripcion,
+        estado: citaEditada.estado
+      });
+      
+      if (response?.success) {
+        await cargarCitas();
+        await cargarEstadisticas();
+        
+        setErrors({});
+        setShowModalEditar(false);
+        setCitaEditada(null);
+        alert('Cita actualizada exitosamente');
+      }
+    } catch (error: any) {
+      console.error('Error actualizando cita:', error);
+      alert('Error: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Verificar disponibilidad del mecánico
-    const mecanicoOcupado = citas.some(c => 
-      c.id !== selected.id &&
-      c.mecanico === mecanicoSeleccionado &&
-      c.fecha === selected.fecha &&
-      c.hora === selected.hora &&
-      c.estado !== 'Cancelada'
-    );
+  // Cambiar estado
+  const cambiarEstado = async (id: number, nuevoEstado: string) => {
+    if (nuevoEstado === 'Cancelada' && !confirm('¿Cancelar esta cita?')) return;
 
-    if (mecanicoOcupado) {
-      alert('El mecánico ya tiene una cita asignada en ese horario');
-      return;
+    try {
+      setLoading(true);
+      const response = await citasService.updateEstadoCita(id, nuevoEstado);
+      
+      if (response?.success) {
+        await cargarCitas();
+        await cargarEstadisticas();
+        
+        if (selected && selected.id === id) {
+          setSelected(transformarCita(response.data!));
+        }
+        
+        alert(`Cita ${nuevoEstado.toLowerCase()} exitosamente`);
+      }
+    } catch (error: any) {
+      console.error('Error cambiando estado:', error);
+      alert('Error: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setLoading(false);
     }
-
-    const citaActualizada: Cita = {
-      ...selected,
-      mecanico: mecanicoSeleccionado,
-      estado: 'Aceptada'
-    };
-
-    setCitas(citas.map(c => 
-      c.id === selected.id ? citaActualizada : c
-    ));
-    
-    setSelected(citaActualizada);
-    setShowModalAsignar(false);
-    setMecanicoSeleccionado('');
-    
-    alert('Mecánico asignado exitosamente');
   };
 
-  /* === CAMBIAR ESTADO === */
-  const cambiarEstado = (id: string, nuevoEstado: Cita['estado']) => {
-    if (nuevoEstado === 'Cancelada') {
-      if (!confirm('¿Está seguro de cancelar esta cita?')) return;
+  // Eliminar cita
+  const eliminarCita = async (id: number) => {
+    if (!confirm('¿Eliminar esta cita permanentemente?')) return;
+
+    try {
+      setLoading(true);
+      const response = await citasService.deleteCita(id);
+      
+      if (response?.success) {
+        await cargarCitas();
+        await cargarEstadisticas();
+        setSelected(null);
+        alert('Cita eliminada exitosamente');
+      }
+    } catch (error: any) {
+      console.error('Error eliminando cita:', error);
+      alert('Error: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setLoading(false);
     }
-
-    setCitas(citas.map(c => 
-      c.id === id ? { ...c, estado: nuevoEstado } : c
-    ));
   };
 
-  /* === ELIMINAR CITA === */
-  const eliminarCita = (id: string) => {
-    if (!confirm('¿Está seguro de eliminar esta cita permanentemente?')) return;
-
-    setCitas(citas.filter(c => c.id !== id));
-    setSelected(null);
-    alert('Cita eliminada');
+  // Colores para estados
+  const estadoColors: {[key: string]: string} = {
+    'En Espera': '#ffd700',
+    'Aceptada': '#4caf50',
+    'Completada': '#2196f3',
+    'Cancelada': '#f44336'
   };
-
-  /* === LIMPIAR ERRORES === */
-  const limpiarErrores = () => {
-    setErrors({});
-  };
-
-  /* === OPCIONES DE ESTADO === */
-  const opcionesEstado = [
-    { value: 'En Espera', label: 'En Espera', color: '#ffd700' },
-    { value: 'Aceptada', label: 'Aceptada', color: '#4caf50' },
-    { value: 'Completada', label: 'Completada', color: '#2196f3' },
-    { value: 'Cancelada', label: 'Cancelada', color: '#f44336' }
-  ];
 
   return (
     <div className="gestion-citas">
       <div className="header-section">
         <div className="stats">
-          <span className="stat-item">Total: {citas.length} citas</span>
+          <span className="stat-item">Total: {estadisticas.total} citas</span>
           <span className="stat-item">Mostrando: {citasFiltradas.length}</span>
-          <span className="stat-item">En Espera: {citas.filter(c => c.estado === 'En Espera').length}</span>
+          <span className="stat-item">En Espera: {estadisticas.en_espera}</span>
+          {loading && <span className="stat-item loading">Cargando...</span>}
+          {error && <span className="stat-item error">{error}</span>}
         </div>
       </div>
 
-      {/* CONTENEDOR PRINCIPAL CON LISTA Y DETALLES */}
       <div className="contenedor-principal">
-        {/* CONTENEDOR IZQUIERDO - LISTA DE CITAS */}
         <div className="contenedor-lista">
-          {/* BARRA DE BÚSQUEDA Y BOTÓN */}
           <div className="busqueda-agregar">
             <input
               className="search-bar"
               placeholder="Buscar por cliente, vehículo, mecánico o estado..."
               value={search}
               onChange={e => setSearch(e.target.value)}
+              disabled={loading}
             />
             <button
               className="boton boton-agregar boton-grande"
-              onClick={() => {
-                setShowModalAgregar(true);
-                limpiarErrores();
-              }}
+              onClick={() => setShowModalAgregar(true)}
+              disabled={loading}
             >
               <span className="icono">+</span>
               Nueva Cita
             </button>
           </div>
 
-          {/* TABLA DE CITAS CON SCROLL */}
           <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Vehículo</th>
-                  <th>Fecha</th>
-                  <th>Hora</th>
-                  <th>Mecánico</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {citasFiltradas.map((cita) => (
-                  <tr 
-                    key={cita.id}
-                    className={selected?.id === cita.id ? 'selected-row' : ''}
-                    onClick={() => setSelected(cita)}
-                  >
-                    <td>{cita.clienteNombre}</td>
-                    <td className="placa-column">{cita.vehiculoPlaca}</td>
-                    <td>{new Date(cita.fecha).toLocaleDateString('es-ES')}</td>
-                    <td>{cita.hora}</td>
-                    <td>{cita.mecanico}</td>
-                    <td>
-                      <span 
-                        className="estado-badge"
-                        style={{
-                          backgroundColor: opcionesEstado.find(o => o.value === cita.estado)?.color || '#ccc'
-                        }}
+            {loading && citas.length === 0 ? (
+              <div className="loading">Cargando citas...</div>
+            ) : error ? (
+              <div className="error-message">Error: {error}</div>
+            ) : (
+              <>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Cliente</th>
+                      <th>Vehículo</th>
+                      <th>Fecha</th>
+                      <th>Hora</th>
+                      <th>Mecánico</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {citasFiltradas.map((cita) => (
+                      <tr 
+                        key={cita.id}
+                        className={selected?.id === cita.id ? 'selected-row' : ''}
+                        onClick={() => setSelected(cita)}
                       >
-                        {cita.estado}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            
-            {citasFiltradas.length === 0 && (
-              <div className="no-results">
-                {search ? 'No se encontraron citas' : 'No hay citas registradas'}
-              </div>
+                        <td>{cita.display_cliente}</td>
+                        <td className="placa-column">{cita.display_vehiculo}</td>
+                        <td>{new Date(cita.fecha).toLocaleDateString('es-ES')}</td>
+                        <td>{cita.hora}</td>
+                        <td>{cita.display_mecanico}</td>
+                        <td>
+                          <span 
+                            className="estado-badge"
+                            style={{ backgroundColor: estadoColors[cita.estado] || '#ccc' }}
+                          >
+                            {cita.estado}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                {citasFiltradas.length === 0 && !loading && (
+                  <div className="no-results">
+                    {search ? 'No se encontraron citas' : 'No hay citas registradas'}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
 
-        {/* CONTENEDOR DERECHO - DETALLES DE LA CITA SELECCIONADA */}
-        {selected && !showModalEditar && !showModalAsignar && (
+        {selected && !showModalEditar && (
           <div className="contenedor-detalles">
             <div className="sidebar-details">
               <div className="sidebar-header">
-                <h4>Detalles de la Cita</h4>
+                <h4>Detalles de la Cita #{selected.id}</h4>
                 <button 
                   className="btn-close" 
                   onClick={() => setSelected(null)}
+                  disabled={loading}
                 >
                   ×
                 </button>
@@ -425,36 +457,26 @@ const Citas: React.FC = () => {
                   <span className="detail-value">{selected.id}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="detail-label">Cliente:</span>
-                  <span className="detail-value">{selected.clienteNombre}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Cédula:</span>
-                  <span className="detail-value">{selected.clienteCedula}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Vehículo:</span>
-                  <span className="detail-value placa-value">{selected.vehiculoPlaca}</span>
+                  <span className="detail-label">Vehículo-Cliente ID:</span>
+                  <span className="detail-value">{selected.vehiculo_cliente_id}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Fecha:</span>
-                  <span className="detail-value">{new Date(selected.fecha).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  <span className="detail-value">{new Date(selected.fecha).toLocaleDateString('es-ES')}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Hora:</span>
                   <span className="detail-value">{selected.hora}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="detail-label">Mecánico:</span>
-                  <span className="detail-value">{selected.mecanico}</span>
+                  <span className="detail-label">Usuario ID:</span>
+                  <span className="detail-value">{selected.usuario_id || 'Sin asignar'}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Estado:</span>
                   <span 
                     className="detail-value estado-badge"
-                    style={{
-                      backgroundColor: opcionesEstado.find(o => o.value === selected.estado)?.color || '#ccc'
-                    }}
+                    style={{ backgroundColor: estadoColors[selected.estado] || '#ccc' }}
                   >
                     {selected.estado}
                   </span>
@@ -463,42 +485,32 @@ const Citas: React.FC = () => {
                   <span className="detail-label">Descripción:</span>
                   <div className="detail-value descripcion-text">{selected.descripcion}</div>
                 </div>
+                <div className="detail-item">
+                  <span className="detail-label">Creada:</span>
+                  <span className="detail-value">{new Date(selected.created_at).toLocaleString('es-ES')}</span>
+                </div>
               </div>
               
               <div className="sidebar-footer">
                 <div className="estado-actions">
                   {selected.estado === 'En Espera' && (
-                    <>
-                      <button 
-                        className="boton boton-aceptar"
-                        onClick={() => setShowModalAsignar(true)}
-                      >
-                        Asignar Mecánico
-                      </button>
-                      <button 
-                        className="boton boton-cancelar"
-                        onClick={() => cambiarEstado(selected.id, 'Cancelada')}
-                      >
-                        Cancelar Cita
-                      </button>
-                    </>
+                    <button 
+                      className="boton boton-cancelar"
+                      onClick={() => cambiarEstado(selected.id, 'Cancelada')}
+                      disabled={loading}
+                    >
+                      Cancelar Cita
+                    </button>
                   )}
                   
                   {selected.estado === 'Aceptada' && (
-                    <>
-                      <button 
-                        className="boton boton-completar"
-                        onClick={() => cambiarEstado(selected.id, 'Completada')}
-                      >
-                        Marcar como Completada
-                      </button>
-                      <button 
-                        className="boton boton-cancelar"
-                        onClick={() => cambiarEstado(selected.id, 'Cancelada')}
-                      >
-                        Cancelar Cita
-                      </button>
-                    </>
+                    <button 
+                      className="boton boton-completar"
+                      onClick={() => cambiarEstado(selected.id, 'Completada')}
+                      disabled={loading}
+                    >
+                      Marcar como Completada
+                    </button>
                   )}
                   
                   <button 
@@ -506,8 +518,9 @@ const Citas: React.FC = () => {
                     onClick={() => {
                       setCitaEditada(selected);
                       setShowModalEditar(true);
-                      limpiarErrores();
+                      setErrors({});
                     }}
+                    disabled={loading}
                   >
                     Editar Cita
                   </button>
@@ -515,7 +528,7 @@ const Citas: React.FC = () => {
                   <button 
                     className="boton boton-eliminar"
                     onClick={() => eliminarCita(selected.id)}
-                    disabled={selected.estado !== 'Cancelada'}
+                    disabled={selected.estado !== 'Cancelada' || loading}
                     title={selected.estado !== 'Cancelada' ? 'Solo se pueden eliminar citas canceladas' : ''}
                   >
                     Eliminar
@@ -529,16 +542,14 @@ const Citas: React.FC = () => {
 
       {/* MODAL AGREGAR CITA */}
       {showModalAgregar && (
-        <div className="modal-overlay" onClick={() => {
-          setShowModalAgregar(false);
-          limpiarErrores();
-        }}>
+        <div className="modal-overlay" onClick={() => !loading && setShowModalAgregar(false)}>
           <div className="modal modal-wide" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Agendar Nueva Cita</h3>
               <button 
                 className="btn-close" 
-                onClick={() => setShowModalAgregar(false)}
+                onClick={() => !loading && setShowModalAgregar(false)}
+                disabled={loading}
               >
                 ×
               </button>
@@ -546,37 +557,17 @@ const Citas: React.FC = () => {
             
             <div className="modal-body">
               <div className="form-group">
-                <label>Buscar Vehículo *</label>
+                <label>Vehículo-Cliente ID *</label>
                 <input
-                  placeholder="Buscar por placa, marca o cliente..."
-                  value={searchVehiculo}
-                  onChange={e => setSearchVehiculo(e.target.value)}
-                  className="search-bar"
+                  type="number"
+                  placeholder="Ej: 101, 102, 103..."
+                  value={nuevaCita.vehiculo_cliente_id}
+                  onChange={e => setNuevaCita({ ...nuevaCita, vehiculo_cliente_id: e.target.value })}
+                  className={errors.vehiculo_cliente_id ? 'input-error' : ''}
+                  disabled={loading}
                 />
+                {errors.vehiculo_cliente_id && <span className="error-message">{errors.vehiculo_cliente_id}</span>}
               </div>
-              
-              <div className="form-group">
-                <label>Seleccionar Vehículo *</label>
-                <select
-                  value={nuevaCita.vehiculoPlaca}
-                  onChange={e => manejarSeleccionVehiculo(e.target.value)}
-                  className={errors.vehiculoPlaca ? 'input-error' : ''}
-                >
-                  <option value="">Seleccione un vehículo</option>
-                  {vehiculosFiltrados.map(vehiculo => (
-                    <option key={vehiculo.placa} value={vehiculo.placa}>
-                      {vehiculo.placa} - {vehiculo.marca} {vehiculo.modelo} ({vehiculo.clienteNombre})
-                    </option>
-                  ))}
-                </select>
-                {errors.vehiculoPlaca && <span className="error-message">{errors.vehiculoPlaca}</span>}
-              </div>
-              
-              {nuevaCita.clienteNombre && (
-                <div className="info-cliente">
-                  <p><strong>Cliente seleccionado:</strong> {nuevaCita.clienteNombre} ({nuevaCita.clienteCedula})</p>
-                </div>
-              )}
               
               <div className="form-group">
                 <label>Fecha *</label>
@@ -586,6 +577,7 @@ const Citas: React.FC = () => {
                   onChange={e => setNuevaCita({ ...nuevaCita, fecha: e.target.value })}
                   className={errors.fecha ? 'input-error' : ''}
                   min={new Date().toISOString().split('T')[0]}
+                  disabled={loading}
                 />
                 {errors.fecha && <span className="error-message">{errors.fecha}</span>}
               </div>
@@ -597,8 +589,7 @@ const Citas: React.FC = () => {
                   value={nuevaCita.hora}
                   onChange={e => setNuevaCita({ ...nuevaCita, hora: e.target.value })}
                   className={errors.hora ? 'input-error' : ''}
-                  min="08:00"
-                  max="18:00"
+                  disabled={loading}
                 />
                 {errors.hora && <span className="error-message">{errors.hora}</span>}
               </div>
@@ -611,16 +602,17 @@ const Citas: React.FC = () => {
                   onChange={e => setNuevaCita({ ...nuevaCita, descripcion: e.target.value })}
                   className={errors.descripcion ? 'input-error' : ''}
                   rows={4}
+                  disabled={loading}
                 />
                 {errors.descripcion && <span className="error-message">{errors.descripcion}</span>}
               </div>
             </div>
             
             <div className="modal-footer">
-              <button className="boton boton-guardar" onClick={agregarCita}>
-                Agendar Cita
+              <button className="boton boton-guardar" onClick={agregarCita} disabled={loading}>
+                {loading ? 'Agendando...' : 'Agendar Cita'}
               </button>
-              <button className="boton boton-cancelar" onClick={() => setShowModalAgregar(false)}>
+              <button className="boton boton-cancelar" onClick={() => setShowModalAgregar(false)} disabled={loading}>
                 Cancelar
               </button>
             </div>
@@ -630,16 +622,14 @@ const Citas: React.FC = () => {
 
       {/* MODAL EDITAR CITA */}
       {showModalEditar && citaEditada && (
-        <div className="modal-overlay" onClick={() => {
-          setShowModalEditar(false);
-          limpiarErrores();
-        }}>
+        <div className="modal-overlay" onClick={() => !loading && setShowModalEditar(false)}>
           <div className="modal modal-wide" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Editar Cita #{citaEditada.id}</h3>
               <button 
                 className="btn-close" 
-                onClick={() => setShowModalEditar(false)}
+                onClick={() => !loading && setShowModalEditar(false)}
+                disabled={loading}
               >
                 ×
               </button>
@@ -647,18 +637,9 @@ const Citas: React.FC = () => {
             
             <div className="modal-body">
               <div className="form-group">
-                <label>Cliente</label>
+                <label>Vehículo-Cliente ID</label>
                 <input
-                  value={citaEditada.clienteNombre}
-                  disabled
-                  className="input-disabled"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Vehículo</label>
-                <input
-                  value={citaEditada.vehiculoPlaca}
+                  value={citaEditada.vehiculo_cliente_id}
                   disabled
                   className="input-disabled"
                 />
@@ -672,7 +653,7 @@ const Citas: React.FC = () => {
                   onChange={e => setCitaEditada({ ...citaEditada, fecha: e.target.value })}
                   className={errors.fecha ? 'input-error' : ''}
                   min={new Date().toISOString().split('T')[0]}
-                  disabled={citaEditada.estado === 'Aceptada'}
+                  disabled={loading}
                 />
                 {errors.fecha && <span className="error-message">{errors.fecha}</span>}
               </div>
@@ -684,9 +665,7 @@ const Citas: React.FC = () => {
                   value={citaEditada.hora}
                   onChange={e => setCitaEditada({ ...citaEditada, hora: e.target.value })}
                   className={errors.hora ? 'input-error' : ''}
-                  min="08:00"
-                  max="18:00"
-                  disabled={citaEditada.estado === 'Aceptada'}
+                  disabled={loading}
                 />
                 {errors.hora && <span className="error-message">{errors.hora}</span>}
               </div>
@@ -695,18 +674,14 @@ const Citas: React.FC = () => {
                 <label>Estado</label>
                 <select
                   value={citaEditada.estado}
-                  onChange={e => setCitaEditada({ ...citaEditada, estado: e.target.value as Cita['estado'] })}
-                  disabled={citaEditada.estado === 'Aceptada'}
+                  onChange={e => setCitaEditada({ ...citaEditada, estado: e.target.value })}
+                  disabled={loading}
                 >
-                  {opcionesEstado.map(opcion => (
-                    <option key={opcion.value} value={opcion.value}>
-                      {opcion.label}
-                    </option>
-                  ))}
+                  <option value="En Espera">En Espera</option>
+                  <option value="Aceptada">Aceptada</option>
+                  <option value="Completada">Completada</option>
+                  <option value="Cancelada">Cancelada</option>
                 </select>
-                {citaEditada.estado === 'Aceptada' && (
-                  <small className="field-info">No se puede cambiar el estado de una cita aceptada</small>
-                )}
               </div>
               
               <div className="form-group">
@@ -716,126 +691,18 @@ const Citas: React.FC = () => {
                   onChange={e => setCitaEditada({ ...citaEditada, descripcion: e.target.value })}
                   className={errors.descripcion ? 'input-error' : ''}
                   rows={4}
+                  disabled={loading}
                 />
                 {errors.descripcion && <span className="error-message">{errors.descripcion}</span>}
               </div>
             </div>
             
             <div className="modal-footer">
-              <button className="boton boton-guardar" onClick={guardarEdicion}>
-                Guardar Cambios
+              <button className="boton boton-guardar" onClick={guardarEdicion} disabled={loading}>
+                {loading ? 'Guardando...' : 'Guardar Cambios'}
               </button>
-              <button className="boton boton-cancelar" onClick={() => setShowModalEditar(false)}>
+              <button className="boton boton-cancelar" onClick={() => setShowModalEditar(false)} disabled={loading}>
                 Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL ASIGNAR MECÁNICO */}
-      {showModalAsignar && selected && (
-        <div className="modal-overlay" onClick={() => {
-          setShowModalAsignar(false);
-          setMecanicoSeleccionado('');
-        }}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Asignar Mecánico - Cita #{selected.id}</h3>
-              <button 
-                className="btn-close" 
-                onClick={() => setShowModalAsignar(false)}
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="modal-body">
-              <div className="form-group">
-                <label>Seleccionar Mecánico *</label>
-                <select
-                  value={mecanicoSeleccionado}
-                  onChange={e => setMecanicoSeleccionado(e.target.value)}
-                >
-                  <option value="">Seleccione un mecánico</option>
-                  {mecanicos.map(mecanico => (
-                    <option key={mecanico.id} value={mecanico.nombre}>
-                      {mecanico.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="info-cita">
-                <p><strong>Detalles de la cita:</strong></p>
-                <p>Cliente: {selected.clienteNombre}</p>
-                <p>Vehículo: {selected.vehiculoPlaca}</p>
-                <p>Fecha: {new Date(selected.fecha).toLocaleDateString('es-ES')}</p>
-                <p>Hora: {selected.hora}</p>
-              </div>
-            </div>
-            
-            <div className="modal-footer">
-              <button className="boton boton-guardar" onClick={asignarMecanico}>
-                Asignar Mecánico
-              </button>
-              <button className="boton boton-cancelar" onClick={() => setShowModalAsignar(false)}>
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL CONFIRMACIÓN REEMPLAZO DE CITA */}
-      {showModalConfirmacion && vehiculoConCita && (
-        <div className="modal-overlay" onClick={() => {
-          setShowModalConfirmacion(false);
-          setVehiculoConCita(null);
-        }}>
-          <div className="modal modal-alerta" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>⚠️ Vehículo con Cita Programada</h3>
-              <button 
-                className="btn-close" 
-                onClick={() => {
-                  setShowModalConfirmacion(false);
-                  setVehiculoConCita(null);
-                }}
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="modal-body">
-              <div className="warning-message">
-                <p><strong>El vehículo seleccionado ya tiene una cita activa:</strong></p>
-                <div className="cita-existente">
-                  <p><b>Vehículo:</b> {vehiculoConCita.vehiculo.placa} - {vehiculoConCita.vehiculo.marca} {vehiculoConCita.vehiculo.modelo}</p>
-                  <p><b>Cliente:</b> {vehiculoConCita.cita.clienteNombre}</p>
-                  <p><b>Cita existente:</b> {new Date(vehiculoConCita.cita.fecha).toLocaleDateString('es-ES')} {vehiculoConCita.cita.hora}</p>
-                  <p><b>Estado:</b> {vehiculoConCita.cita.estado}</p>
-                  <p><b>Mecánico:</b> {vehiculoConCita.cita.mecanico}</p>
-                </div>
-                
-                <p className="warning-text">
-                  ¿Desea cancelar la cita existente y crear una nueva?
-                </p>
-              </div>
-            </div>
-            
-            <div className="modal-footer">
-              <button className="boton boton-eliminar" onClick={confirmarReemplazo}>
-                Sí, cancelar cita existente
-              </button>
-              <button 
-                className="boton boton-cancelar" 
-                onClick={() => {
-                  setShowModalConfirmacion(false);
-                  setVehiculoConCita(null);
-                }}
-              >
-                No, mantener cita existente
               </button>
             </div>
           </div>
