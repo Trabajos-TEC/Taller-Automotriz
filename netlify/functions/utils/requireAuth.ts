@@ -1,13 +1,19 @@
 import { verifyToken } from './auth';
-import { errorResponse } from './db';
 
 export function requireAuth(event: any) {
-  const authHeader = event.headers.authorization;
+  const authHeader =
+    event.headers.authorization ||
+    event.headers.Authorization;
 
   if (!authHeader) {
-    throw errorResponse('Token requerido', 401);
+    throw new Error('NO_TOKEN');
   }
 
   const token = authHeader.replace('Bearer ', '');
-  return verifyToken(token);
+
+  try {
+    return verifyToken(token);
+  } catch {
+    throw new Error('INVALID_TOKEN');
+  }
 }
