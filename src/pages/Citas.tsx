@@ -1,7 +1,7 @@
 // src/pages/Citas.tsx
 import React, { useState, useEffect } from 'react';
 import '../styles/pages/Citas.css';
-import { citaService, type Cita as CitaAPI } from '../services/cita.service';
+import { citaService } from '../services/cita.service';
 
 interface Cita {
   id: number;
@@ -681,7 +681,7 @@ const Citas: React.FC = () => {
               <div className="form-group">
                 <label>Cliente</label>
                 <input
-                  value={citaEditada.clienteNombre}
+                  value={citaEditada.cliente_nombre || ''}
                   disabled
                   className="input-disabled"
                 />
