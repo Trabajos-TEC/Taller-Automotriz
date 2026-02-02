@@ -1,12 +1,15 @@
 // test-citas-api.ts
 import dotenv from 'dotenv';
 import path from 'path';
+
 // Cargar variables de entorno
 dotenv.config({ 
   path: path.resolve(__dirname, '../.env')
 });
+
 // Importar después de cargar .env
 import { CitasModel } from './models/citas.model';
+
 async function testModeloCitas() {
   console.log('=== TEST MODELO CITAS ===\n');
   
@@ -18,7 +21,7 @@ async function testModeloCitas() {
     
     if (todasCitas.length > 0) {
       console.log('Primera cita:', {
-        id: todasCitas[1].id,
+        id: todasCitas[0].id,
         vehiculo_cliente_id: todasCitas[0].vehiculo_cliente_id,
         fecha: todasCitas[0].fecha,
         estado: todasCitas[0].estado

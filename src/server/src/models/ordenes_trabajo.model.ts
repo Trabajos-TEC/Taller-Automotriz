@@ -36,7 +36,7 @@ export const OrdenesTrabajoModel = {
         s.nombre as servicio_nombre
       FROM ordenes_trabajo ot
       JOIN vehiculos_clientes vc ON ot.vehiculo_cliente_id = vc.id
-      JOIN vehiculos_base v ON vc.vehiculo_base_id = v.id
+      JOIN vehiculos v ON vc.vehiculo_id = v.id
       JOIN clientes c ON vc.cliente_id = c.id
       LEFT JOIN usuarios u ON ot.mecanico_id = u.id
       LEFT JOIN servicios s ON ot.servicio_id = s.id
