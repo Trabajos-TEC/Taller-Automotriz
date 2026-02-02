@@ -1,11 +1,14 @@
 import { Handler } from '@netlify/functions';
 import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
+import { requireAuth } from './utils/requireAuth';
 
 /**
  * Función Netlify para gestionar vehículos de clientes
  * Endpoint: /.netlify/functions/vehiculos-clientes
  */
 export const handler: Handler = async (event) => {
+  const user = requireAuth(event);
+  const TALLER_ID = user.taller_id;
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
@@ -40,12 +43,17 @@ export const handler: Handler = async (event) => {
           FROM vehiculos_clientes vc
           INNER JOIN clientes c ON vc.cliente_id = c.id
           INNER JOIN vehiculos_base vb ON vc.vehiculo_base_id = vb.id
-          WHERE vc.placa ILIKE ${'%' + search + '%'}
-             OR c.nombre ILIKE ${'%' + search + '%'}
-             OR vb.marca ILIKE ${'%' + search + '%'}
-             OR vb.modelo ILIKE ${'%' + search + '%'}
+          WHERE 
+            c.taller_id = ${TALLER_ID}
+            AND (
+              vc.placa ILIKE ${'%' + search + '%'}
+              OR c.nombre ILIKE ${'%' + search + '%'}
+              OR vb.marca ILIKE ${'%' + search + '%'}
+              OR vb.modelo ILIKE ${'%' + search + '%'}
+            )
           ORDER BY vc.placa
         `;
+
       } else {
         vehiculos = await sql`
           SELECT 
@@ -68,8 +76,10 @@ export const handler: Handler = async (event) => {
           FROM vehiculos_clientes vc
           INNER JOIN clientes c ON vc.cliente_id = c.id
           INNER JOIN vehiculos_base vb ON vc.vehiculo_base_id = vb.id
+          WHERE c.taller_id = ${TALLER_ID}
           ORDER BY vc.placa
         `;
+
       }
 
       return successResponse(vehiculos);
@@ -83,7 +93,15 @@ export const handler: Handler = async (event) => {
       if (!placa || !cliente_id || !vehiculo_base_id) {
         return errorResponse('Placa, cliente_id y vehiculo_base_id son requeridos', 400);
       }
-
+      const clienteValido = await sql`
+        SELECT id FROM clientes
+        WHERE id = ${cliente_id}
+          AND taller_id = ${TALLER_ID}
+        LIMIT 1
+      `;
+      if (clienteValido.length === 0) {
+        return errorResponse('Cliente no pertenece a este taller', 403);
+      }
       const result = await sql`
         INSERT INTO vehiculos_clientes 
           (placa, cliente_id, vehiculo_base_id, color, kilometraje, vin, notas)

@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Configuración del pool de conexiones
+// Configuraciï¿½n del pool de conexiones
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -11,13 +11,13 @@ const pool = new Pool({
   }
 });
 
-// Función para probar la conexión
+// Funciï¿½n para probar la conexiï¿½n
 export const testConnection = async (): Promise<void> => {
   try {
     const client = await pool.connect();
-    console.log('? Conexión a PostgreSQL (Neon) establecida correctamente');
+    console.log('? Conexiï¿½n a PostgreSQL (Neon) establecida correctamente');
     
-    // Probar consulta básica
+    // Probar consulta bï¿½sica
     const result = await client.query('SELECT NOW()');
     console.log('? Hora actual de la base de datos:', result.rows[0].now);
     

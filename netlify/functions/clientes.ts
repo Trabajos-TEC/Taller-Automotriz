@@ -1,72 +1,103 @@
 import { Handler } from '@netlify/functions';
-import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
+import {
+  getConnection,
+  corsHeaders,
+  successResponse,
+  errorResponse
+} from './utils/db';
+import { requireAuth } from './utils/requireAuth';
 
 /**
  * Función Netlify para gestionar clientes
  * Endpoint: /.netlify/functions/clientes
- * Soporta: GET (todos/búsqueda), POST, PUT, DELETE
+ * Soporta: GET, POST, PUT, DELETE
  */
 export const handler: Handler = async (event) => {
+
+  // ✅ CORS primero (antes de auth)
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
 
   try {
+    // 🔐 AUTH DENTRO DEL TRY (CLAVE)
+    const user = requireAuth(event);
+    const TALLER_ID = user.taller_id;
+
     const sql = getConnection();
     const pathParts = event.path.split('/').filter(Boolean);
-    const cedula = pathParts[pathParts.length - 1] !== 'clientes' ? pathParts[pathParts.length - 1] : null;
+    const cedula =
+      pathParts[pathParts.length - 1] !== 'clientes'
+        ? pathParts[pathParts.length - 1]
+        : null;
 
-    // GET - Obtener clientes
+    /* =======================
+       GET
+    ======================= */
     if (event.httpMethod === 'GET') {
       const search = event.queryStringParameters?.search || '';
 
-      // GET /clientes/:cedula - Cliente específico
-      if (cedula && cedula !== 'clientes' && !cedula.includes('check')) {
+      // GET /clientes/:cedula
+      if (cedula && !cedula.includes('check')) {
         const cliente = await sql`
-          SELECT * FROM clientes WHERE cedula = ${cedula} LIMIT 1
+          SELECT *
+          FROM clientes
+          WHERE cedula = ${cedula}
+            AND taller_id = ${TALLER_ID}
+          LIMIT 1
         `;
-        
+
         if (cliente.length === 0) {
           return errorResponse('Cliente no encontrado', 404);
         }
-        
+
         return successResponse(cliente[0]);
       }
 
-      // GET /clientes/check/:cedula - Verificar existencia
+      // GET /clientes/check/:cedula
       if (event.path.includes('/check/')) {
         const cedulaCheck = pathParts[pathParts.length - 1];
+
         const exists = await sql`
-          SELECT * FROM clientes WHERE cedula = ${cedulaCheck} LIMIT 1
+          SELECT *
+          FROM clientes
+          WHERE cedula = ${cedulaCheck}
+            AND taller_id = ${TALLER_ID}
+          LIMIT 1
         `;
-        
+
         return successResponse({
           exists: exists.length > 0,
           data: exists.length > 0 ? exists[0] : null
         });
       }
 
-      // GET /clientes - Todos los clientes con búsqueda opcional
-      let clientes;
-      if (search) {
-        clientes = await sql`
-          SELECT * FROM clientes 
-          WHERE nombre ILIKE ${'%' + search + '%'} 
-             OR cedula ILIKE ${'%' + search + '%'}
-             OR correo ILIKE ${'%' + search + '%'}
-          ORDER BY nombre
-        `;
-      } else {
-        clientes = await sql`
-          SELECT * FROM clientes 
-          ORDER BY nombre
-        `;
-      }
+      // GET /clientes
+      const clientes = search
+        ? await sql`
+            SELECT *
+            FROM clientes
+            WHERE taller_id = ${TALLER_ID}
+              AND (
+                nombre ILIKE ${'%' + search + '%'}
+                OR cedula ILIKE ${'%' + search + '%'}
+                OR correo ILIKE ${'%' + search + '%'}
+              )
+            ORDER BY nombre
+          `
+        : await sql`
+            SELECT *
+            FROM clientes
+            WHERE taller_id = ${TALLER_ID}
+            ORDER BY nombre
+          `;
 
       return successResponse(clientes);
     }
 
-    // POST - Crear cliente
+    /* =======================
+       POST
+    ======================= */
     if (event.httpMethod === 'POST') {
       const body = JSON.parse(event.body || '{}');
       const { nombre, cedula, correo, numero } = body;
@@ -75,25 +106,32 @@ export const handler: Handler = async (event) => {
         return errorResponse('Nombre y cédula son requeridos', 400);
       }
 
-      // Verificar si la cédula ya existe
       const existing = await sql`
-        SELECT id FROM clientes WHERE cedula = ${cedula} LIMIT 1
+        SELECT id
+        FROM clientes
+        WHERE cedula = ${cedula}
+          AND taller_id = ${TALLER_ID}
+        LIMIT 1
       `;
-      
+
       if (existing.length > 0) {
         return errorResponse('La cédula ya está registrada', 409);
       }
 
       const result = await sql`
-        INSERT INTO clientes (nombre, cedula, correo, numero)
-        VALUES (${nombre}, ${cedula}, ${correo || null}, ${numero || null})
+        INSERT INTO clientes
+          (nombre, cedula, correo, numero, taller_id)
+        VALUES
+          (${nombre}, ${cedula}, ${correo || null}, ${numero || null}, ${TALLER_ID})
         RETURNING *
       `;
 
       return successResponse(result[0], 201);
     }
 
-    // PUT - Actualizar cliente
+    /* =======================
+       PUT
+    ======================= */
     if (event.httpMethod === 'PUT' && cedula) {
       const body = JSON.parse(event.body || '{}');
       const { nombre, correo, numero } = body;
@@ -104,6 +142,7 @@ export const handler: Handler = async (event) => {
             correo = COALESCE(${correo}, correo),
             numero = COALESCE(${numero}, numero)
         WHERE cedula = ${cedula}
+          AND taller_id = ${TALLER_ID}
         RETURNING *
       `;
 
@@ -114,10 +153,15 @@ export const handler: Handler = async (event) => {
       return successResponse(result[0]);
     }
 
-    // DELETE - Eliminar cliente
+    /* =======================
+       DELETE
+    ======================= */
     if (event.httpMethod === 'DELETE' && cedula) {
       const result = await sql`
-        DELETE FROM clientes WHERE cedula = ${cedula} RETURNING id
+        DELETE FROM clientes
+        WHERE cedula = ${cedula}
+          AND taller_id = ${TALLER_ID}
+        RETURNING id
       `;
 
       if (result.length === 0) {
@@ -129,8 +173,17 @@ export const handler: Handler = async (event) => {
 
     return errorResponse('Método no permitido', 405);
 
-  } catch (error) {
-    console.error('Error en clientes:', error);
-    return errorResponse(error instanceof Error ? error : 'Error interno del servidor');
+  } catch (err: any) {
+    // 🔐 ERRORES DE AUTH (NO MÁS 502)
+    if (err.message === 'NO_TOKEN') {
+      return errorResponse('Token requerido', 401);
+    }
+
+    if (err.message === 'INVALID_TOKEN') {
+      return errorResponse('Token inválido', 401);
+    }
+
+    console.error('Error en clientes:', err);
+    return errorResponse('Error interno del servidor', 500);
   }
 };
