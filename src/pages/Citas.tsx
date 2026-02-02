@@ -1,57 +1,47 @@
 // src/pages/Citas.tsx
 import React, { useState, useEffect } from 'react';
 import '../styles/pages/Citas.css';
+import { citaService, type Cita as CitaAPI } from '../services/cita.service';
 
 interface Cita {
-  id: string;
-  clienteCedula: string;
-  clienteNombre: string;
-  vehiculoPlaca: string;
+  id: number;
+  vehiculo_cliente_id: number;
+  cliente_cedula?: string;
+  cliente_nombre?: string;
+  vehiculo_placa?: string;
   fecha: string;
   hora: string;
   descripcion: string;
-  mecanico: string;
+  usuario_id?: number | null;
+  mecanico_nombre?: string;
   estado: 'En Espera' | 'Aceptada' | 'Cancelada' | 'Completada';
-  createdAt?: string;
+  vehiculo_marca?: string;
+  vehiculo_modelo?: string;
 }
 
 interface Vehiculo {
+  id: number;
   placa: string;
-  marca: string;
-  modelo: string;
-  clienteCedula: string;
-  clienteNombre: string;
+  marca?: string;
+  modelo?: string;
+  cliente_id?: number;
+  cliente_nombre?: string;
+  cliente_cedula?: string;
 }
 
 interface Usuario {
-  id: string;
+  id: number;
   nombre: string;
-  rol: string;
-  email: string;
+  rol?: string;
+  correo?: string;
 }
 
 const Citas: React.FC = () => {
   // Estado para la lista de citas
-  const [citas, setCitas] = useState<Cita[]>([
-    { id: '1', clienteCedula: '123456789', clienteNombre: 'Juan Pérez', vehiculoPlaca: 'ABC123', fecha: '2024-01-15', hora: '09:00', descripcion: 'Cambio de aceite y filtro', mecanico: 'Carlos López', estado: 'Aceptada' },
-    { id: '2', clienteCedula: '987654321', clienteNombre: 'María García', vehiculoPlaca: 'XYZ789', fecha: '2024-01-16', hora: '10:30', descripcion: 'Revisión general', mecanico: 'Sin Asignar', estado: 'En Espera' },
-    { id: '3', clienteCedula: '456789123', clienteNombre: 'Pedro Martínez', vehiculoPlaca: 'DEF456', fecha: '2024-01-17', hora: '14:00', descripcion: 'Reparación de frenos', mecanico: 'Ana Rodríguez', estado: 'Completada' },
-    { id: '4', clienteCedula: '321654987', clienteNombre: 'Laura Fernández', vehiculoPlaca: 'GHI789', fecha: '2024-01-18', hora: '11:00', descripcion: 'Alineación y balanceo', mecanico: 'Sin Asignar', estado: 'En Espera' },
-    { id: '5', clienteCedula: '789123456', clienteNombre: 'Carlos Ruiz', vehiculoPlaca: 'JKL012', fecha: '2024-01-19', hora: '15:30', descripcion: 'Cambio de batería', mecanico: 'Miguel Sánchez', estado: 'Cancelada' },
-  ]);
-
-  // Estados para datos adicionales
-  const [vehiculos] = useState<Vehiculo[]>([
-    { placa: 'ABC123', marca: 'Toyota', modelo: 'Corolla', clienteCedula: '123456789', clienteNombre: 'Juan Pérez' },
-    { placa: 'XYZ789', marca: 'Honda', modelo: 'Civic', clienteCedula: '987654321', clienteNombre: 'María García' },
-    { placa: 'DEF456', marca: 'Ford', modelo: 'Ranger', clienteCedula: '456789123', clienteNombre: 'Pedro Martínez' },
-  ]);
-
-  const [mecanicos] = useState<Usuario[]>([
-    { id: '1', nombre: 'Carlos López', rol: 'mecanico', email: 'carlos@taller.com' },
-    { id: '2', nombre: 'Ana Rodríguez', rol: 'mecanico', email: 'ana@taller.com' },
-    { id: '3', nombre: 'Miguel Sánchez', rol: 'mecanico', email: 'miguel@taller.com' },
-  ]);
+  const [citas, setCitas] = useState<Cita[]>([]);
+  const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
+  const [mecanicos, setMecanicos] = useState<Usuario[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // Estados para búsqueda y selección
   const [search, setSearch] = useState('');
@@ -63,15 +53,13 @@ const Citas: React.FC = () => {
   const [showModalConfirmacion, setShowModalConfirmacion] = useState(false);
 
   // Estados para formularios
-  const [nuevaCita, setNuevaCita] = useState<Omit<Cita, 'id'>>({
-    clienteCedula: '',
-    clienteNombre: '',
-    vehiculoPlaca: '',
+  const [nuevaCita, setNuevaCita] = useState({
+    vehiculo_cliente_id: 0,
     fecha: '',
     hora: '',
     descripcion: '',
-    mecanico: 'Sin Asignar',
-    estado: 'En Espera'
+    usuario_id: null as number | null,
+    estado: 'En Espera' as const
   });
 
   const [citaEditada, setCitaEditada] = useState<Cita | null>(null);
@@ -81,42 +69,79 @@ const Citas: React.FC = () => {
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [vehiculoConCita, setVehiculoConCita] = useState<{vehiculo: Vehiculo, cita: Cita} | null>(null);
 
-  // Cargar datos (simulando API)
+  // Cargar datos desde la API
   useEffect(() => {
-    // En una implementación real, aquí harías fetch a tus APIs
-    console.log('Datos cargados');
+    cargarDatos();
   }, []);
+
+  const cargarDatos = async () => {
+    setLoading(true);
+    try {
+      // Cargar citas
+      const citasRes = await citaService.getCitas();
+      if (citasRes.success && citasRes.data) {
+        setCitas(citasRes.data as unknown as Cita[]);
+      }
+
+      // Cargar vehículos de clientes
+      const vehiculosRes = await fetch('/.netlify/functions/vehiculos-clientes');
+      if (vehiculosRes.ok) {
+        const vehiculosData = await vehiculosRes.json();
+        if (vehiculosData.success) {
+          setVehiculos(vehiculosData.data);
+        }
+      }
+
+      // Cargar usuarios (mecánicos)
+      const usuariosRes = await fetch('/.netlify/functions/usuarios');
+      if (usuariosRes.ok) {
+        const usuariosData = await usuariosRes.json();
+        if (usuariosData.success) {
+          const mecanicosList = usuariosData.data.filter((u: Usuario) => 
+            u.rol === 'mecanico' || u.rol === 'admin'
+          );
+          setMecanicos(mecanicosList);
+        }
+      }
+    } catch (error) {
+      console.error('Error cargando datos:', error);
+      alert('Error al cargar datos. Intenta nuevamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filtrar citas
   const citasFiltradas = citas.filter(c =>
-    c.clienteNombre.toLowerCase().includes(search.toLowerCase()) ||
-    c.vehiculoPlaca.toLowerCase().includes(search.toLowerCase()) ||
-    c.mecanico.toLowerCase().includes(search.toLowerCase()) ||
+    (c.cliente_nombre?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (c.vehiculo_placa?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (c.mecanico_nombre?.toLowerCase() || '').includes(search.toLowerCase()) ||
     c.estado.toLowerCase().includes(search.toLowerCase())
   );
 
   // Filtrar vehículos para búsqueda
   const vehiculosFiltrados = vehiculos.filter(v =>
     v.placa.toLowerCase().includes(searchVehiculo.toLowerCase()) ||
-    v.marca.toLowerCase().includes(searchVehiculo.toLowerCase()) ||
-    v.clienteNombre.toLowerCase().includes(searchVehiculo.toLowerCase())
+    (v.marca?.toLowerCase() || '').includes(searchVehiculo.toLowerCase()) ||
+    (v.cliente_nombre?.toLowerCase() || '').includes(searchVehiculo.toLowerCase())
   );
 
   // Verificar si un vehículo ya tiene cita
-  const verificarCitaExistente = (placa: string): Cita | null => {
+  const verificarCitaExistente = (vehiculo_id: number): Cita | null => {
     return citas.find(c => 
-      c.vehiculoPlaca === placa && 
+      c.vehiculo_cliente_id === vehiculo_id && 
       c.estado !== 'Cancelada' && 
       c.estado !== 'Completada'
     ) || null;
   };
 
   /* === VALIDAR FORMULARIO === */
-  const validarCita = (cita: Omit<Cita, 'id'> | Cita): {[key: string]: string} => {
+  const validarCita = (cita: typeof nuevaCita | Cita): {[key: string]: string} => {
     const newErrors: {[key: string]: string} = {};
 
-    if (!cita.vehiculoPlaca.trim()) {
-      newErrors.vehiculoPlaca = 'El vehículo es obligatorio';
+    const vehiculoId = 'vehiculo_cliente_id' in cita ? cita.vehiculo_cliente_id : 0;
+    if (!vehiculoId || vehiculoId === 0) {
+      newErrors.vehiculo_cliente_id = 'El vehículo es obligatorio';
     }
 
     if (!cita.fecha.trim()) {
@@ -150,12 +175,12 @@ const Citas: React.FC = () => {
   };
 
   /* === MANEJAR SELECCIÓN DE VEHÍCULO === */
-  const manejarSeleccionVehiculo = (placa: string) => {
-    const vehiculo = vehiculos.find(v => v.placa === placa);
+  const manejarSeleccionVehiculo = (vehiculoId: number) => {
+    const vehiculo = vehiculos.find(v => v.id === vehiculoId);
     if (!vehiculo) return;
 
     // Verificar si ya tiene cita activa
-    const citaExistente = verificarCitaExistente(placa);
+    const citaExistente = verificarCitaExistente(vehiculoId);
     
     if (citaExistente) {
       setVehiculoConCita({ vehiculo, cita: citaExistente });
@@ -164,38 +189,36 @@ const Citas: React.FC = () => {
       // Actualizar datos del cliente en el formulario
       setNuevaCita({
         ...nuevaCita,
-        vehiculoPlaca: vehiculo.placa,
-        clienteCedula: vehiculo.clienteCedula,
-        clienteNombre: vehiculo.clienteNombre
+        vehiculo_cliente_id: vehiculo.id
       });
     }
   };
 
   /* === CONFIRMAR REEMPLAZO DE CITA === */
-  const confirmarReemplazo = () => {
+  const confirmarReemplazo = async () => {
     if (!vehiculoConCita) return;
 
-    // Cancelar cita existente
-    setCitas(citas.map(c => 
-      c.id === vehiculoConCita.cita.id 
-        ? { ...c, estado: 'Cancelada' }
-        : c
-    ));
+    try {
+      // Cancelar cita existente
+      await citaService.updateEstado(vehiculoConCita.cita.id, 'Cancelada');
 
-    // Proceder con la nueva cita
-    setNuevaCita({
-      ...nuevaCita,
-      vehiculoPlaca: vehiculoConCita.vehiculo.placa,
-      clienteCedula: vehiculoConCita.vehiculo.clienteCedula,
-      clienteNombre: vehiculoConCita.vehiculo.clienteNombre
-    });
+      // Proceder con la nueva cita
+      setNuevaCita({
+        ...nuevaCita,
+        vehiculo_cliente_id: vehiculoConCita.vehiculo.id
+      });
 
-    setShowModalConfirmacion(false);
-    setVehiculoConCita(null);
+      setShowModalConfirmacion(false);
+      setVehiculoConCita(null);
+      await cargarDatos(); // Recargar datos
+    } catch (error) {
+      console.error('Error cancelando cita:', error);
+      alert('Error al cancelar cita existente');
+    }
   };
 
   /* === AGREGAR CITA === */
-  const agregarCita = () => {
+  const agregarCita = async () => {
     const validationErrors = validarCita(nuevaCita);
     
     if (Object.keys(validationErrors).length > 0) {
@@ -203,35 +226,33 @@ const Citas: React.FC = () => {
       return;
     }
 
-    // Crear nueva cita con ID único
-    const nuevaCitaConId: Cita = {
-      ...nuevaCita,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
-    };
-
-    setCitas([...citas, nuevaCitaConId]);
-    
-    // Limpiar formulario
-    setNuevaCita({
-      clienteCedula: '',
-      clienteNombre: '',
-      vehiculoPlaca: '',
-      fecha: '',
-      hora: '',
-      descripcion: '',
-      mecanico: 'Sin Asignar',
-      estado: 'En Espera'
-    });
-    
-    setErrors({});
-    setShowModalAgregar(false);
-    
-    alert('Cita agendada exitosamente');
+    try {
+      await citaService.createCita(nuevaCita);
+      
+      // Limpiar formulario
+      setNuevaCita({
+        vehiculo_cliente_id: 0,
+        fecha: '',
+        hora: '',
+        descripcion: '',
+        usuario_id: null,
+        estado: 'En Espera'
+      });
+      
+      setErrors({});
+      setShowModalAgregar(false);
+      alert('Cita agendada exitosamente');
+      
+      // Recargar datos
+      await cargarDatos();
+    } catch (error) {
+      console.error('Error creando cita:', error);
+      alert('Error al crear cita. Intenta nuevamente.');
+    }
   };
 
   /* === EDITAR CITA === */
-  const guardarEdicion = () => {
+  const guardarEdicion = async () => {
     if (!citaEditada) return;
 
     const validationErrors = validarCita(citaEditada);
@@ -241,73 +262,84 @@ const Citas: React.FC = () => {
       return;
     }
 
-    setCitas(citas.map(c => 
-      c.id === citaEditada.id ? citaEditada : c
-    ));
-    
-    setErrors({});
-    setShowModalEditar(false);
-    setCitaEditada(null);
-    
-    alert('Cita actualizada exitosamente');
+    try {
+      await citaService.updateCita(citaEditada.id, {
+        vehiculo_cliente_id: citaEditada.vehiculo_cliente_id,
+        fecha: citaEditada.fecha,
+        hora: citaEditada.hora,
+        descripcion: citaEditada.descripcion,
+        estado: citaEditada.estado
+      });
+      
+      setErrors({});
+      setShowModalEditar(false);
+      setCitaEditada(null);
+      alert('Cita actualizada exitosamente');
+      
+      // Recargar datos
+      await cargarDatos();
+    } catch (error) {
+      console.error('Error actualizando cita:', error);
+      alert('Error al actualizar cita. Intenta nuevamente.');
+    }
   };
 
   /* === ASIGNAR MECÁNICO === */
-  const asignarMecanico = () => {
+  const asignarMecanico = async () => {
     if (!selected || !mecanicoSeleccionado) {
       alert('Seleccione un mecánico');
       return;
     }
 
-    // Verificar disponibilidad del mecánico
-    const mecanicoOcupado = citas.some(c => 
-      c.id !== selected.id &&
-      c.mecanico === mecanicoSeleccionado &&
-      c.fecha === selected.fecha &&
-      c.hora === selected.hora &&
-      c.estado !== 'Cancelada'
-    );
-
-    if (mecanicoOcupado) {
-      alert('El mecánico ya tiene una cita asignada en ese horario');
-      return;
+    try {
+      await citaService.asignarMecanico(selected.id, Number(mecanicoSeleccionado));
+      
+      setShowModalAsignar(false);
+      setMecanicoSeleccionado('');
+      alert('Mecánico asignado exitosamente');
+      
+      // Recargar datos
+      await cargarDatos();
+    } catch (error) {
+      console.error('Error asignando mecánico:', error);
+      alert('Error al asignar mecánico. Intenta nuevamente.');
     }
-
-    const citaActualizada: Cita = {
-      ...selected,
-      mecanico: mecanicoSeleccionado,
-      estado: 'Aceptada'
-    };
-
-    setCitas(citas.map(c => 
-      c.id === selected.id ? citaActualizada : c
-    ));
-    
-    setSelected(citaActualizada);
-    setShowModalAsignar(false);
-    setMecanicoSeleccionado('');
-    
-    alert('Mecánico asignado exitosamente');
   };
 
   /* === CAMBIAR ESTADO === */
-  const cambiarEstado = (id: string, nuevoEstado: Cita['estado']) => {
+  const cambiarEstado = async (id: number, nuevoEstado: Cita['estado']) => {
     if (nuevoEstado === 'Cancelada') {
       if (!confirm('¿Está seguro de cancelar esta cita?')) return;
     }
 
-    setCitas(citas.map(c => 
-      c.id === id ? { ...c, estado: nuevoEstado } : c
-    ));
+    try {
+      await citaService.updateEstado(id, nuevoEstado);
+      
+      if (selected?.id === id) {
+        setSelected({ ...selected, estado: nuevoEstado });
+      }
+      
+      alert('Estado actualizado exitosamente');
+      await cargarDatos();
+    } catch (error) {
+      console.error('Error actualizando estado:', error);
+      alert('Error al actualizar estado');
+    }
   };
 
   /* === ELIMINAR CITA === */
-  const eliminarCita = (id: string) => {
+  const eliminarCita = async (id: number) => {
     if (!confirm('¿Está seguro de eliminar esta cita permanentemente?')) return;
 
-    setCitas(citas.filter(c => c.id !== id));
-    setSelected(null);
-    alert('Cita eliminada');
+    try {
+      await citaService.deleteCita(id);
+      setSelected(null);
+      alert('Cita eliminada');
+      await cargarDatos();
+    } catch (error) {
+      console.error('Error eliminando cita:', error);
+      alert('Error al eliminar cita');
+    }
   };
 
   /* === LIMPIAR ERRORES === */
@@ -371,29 +403,35 @@ const Citas: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {citasFiltradas.map((cita) => (
-                  <tr 
-                    key={cita.id}
-                    className={selected?.id === cita.id ? 'selected-row' : ''}
-                    onClick={() => setSelected(cita)}
-                  >
-                    <td>{cita.clienteNombre}</td>
-                    <td className="placa-column">{cita.vehiculoPlaca}</td>
-                    <td>{new Date(cita.fecha).toLocaleDateString('es-ES')}</td>
-                    <td>{cita.hora}</td>
-                    <td>{cita.mecanico}</td>
-                    <td>
-                      <span 
-                        className="estado-badge"
-                        style={{
-                          backgroundColor: opcionesEstado.find(o => o.value === cita.estado)?.color || '#ccc'
-                        }}
-                      >
-                        {cita.estado}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {loading ? (
+                  <tr><td colSpan={6} style={{textAlign: 'center'}}>Cargando...</td></tr>
+                ) : citasFiltradas.length === 0 ? (
+                  <tr><td colSpan={6} style={{textAlign: 'center'}}>No hay citas</td></tr>
+                ) : (
+                  citasFiltradas.map((cita) => (
+                    <tr 
+                      key={cita.id}
+                      className={selected?.id === cita.id ? 'selected-row' : ''}
+                      onClick={() => setSelected(cita)}
+                    >
+                      <td>{cita.cliente_nombre || 'N/A'}</td>
+                      <td className="placa-column">{cita.vehiculo_placa || 'N/A'}</td>
+                      <td>{new Date(cita.fecha).toLocaleDateString('es-ES')}</td>
+                      <td>{cita.hora.substring(0, 5)}</td>
+                      <td>{cita.mecanico_nombre || 'Sin Asignar'}</td>
+                      <td>
+                        <span 
+                          className="estado-badge"
+                          style={{
+                            backgroundColor: opcionesEstado.find(o => o.value === cita.estado)?.color || '#ccc'
+                          }}
+                        >
+                          {cita.estado}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
             
@@ -426,15 +464,15 @@ const Citas: React.FC = () => {
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Cliente:</span>
-                  <span className="detail-value">{selected.clienteNombre}</span>
+                  <span className="detail-value">{selected.cliente_nombre}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Cédula:</span>
-                  <span className="detail-value">{selected.clienteCedula}</span>
+                  <span className="detail-value">{selected.cliente_cedula}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Vehículo:</span>
-                  <span className="detail-value placa-value">{selected.vehiculoPlaca}</span>
+                  <span className="detail-value placa-value">{selected.vehiculo_placa} - {selected.vehiculo_marca} {selected.vehiculo_modelo}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Fecha:</span>
@@ -442,11 +480,11 @@ const Citas: React.FC = () => {
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Hora:</span>
-                  <span className="detail-value">{selected.hora}</span>
+                  <span className="detail-value">{selected.hora.substring(0, 5)}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Mecánico:</span>
-                  <span className="detail-value">{selected.mecanico}</span>
+                  <span className="detail-value">{selected.mecanico_nombre || 'Sin Asignar'}</span>
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Estado:</span>
@@ -558,25 +596,19 @@ const Citas: React.FC = () => {
               <div className="form-group">
                 <label>Seleccionar Vehículo *</label>
                 <select
-                  value={nuevaCita.vehiculoPlaca}
-                  onChange={e => manejarSeleccionVehiculo(e.target.value)}
-                  className={errors.vehiculoPlaca ? 'input-error' : ''}
+                  value={nuevaCita.vehiculo_cliente_id}
+                  onChange={e => manejarSeleccionVehiculo(Number(e.target.value))}
+                  className={errors.vehiculo_cliente_id ? 'input-error' : ''}
                 >
-                  <option value="">Seleccione un vehículo</option>
+                  <option value="0">Seleccione un vehículo</option>
                   {vehiculosFiltrados.map(vehiculo => (
-                    <option key={vehiculo.placa} value={vehiculo.placa}>
-                      {vehiculo.placa} - {vehiculo.marca} {vehiculo.modelo} ({vehiculo.clienteNombre})
+                    <option key={vehiculo.id} value={vehiculo.id}>
+                      {vehiculo.placa} - {vehiculo.marca} {vehiculo.modelo} ({vehiculo.cliente_nombre})
                     </option>
                   ))}
                 </select>
-                {errors.vehiculoPlaca && <span className="error-message">{errors.vehiculoPlaca}</span>}
+                {errors.vehiculo_cliente_id && <span className="error-message">{errors.vehiculo_cliente_id}</span>}
               </div>
-              
-              {nuevaCita.clienteNombre && (
-                <div className="info-cliente">
-                  <p><strong>Cliente seleccionado:</strong> {nuevaCita.clienteNombre} ({nuevaCita.clienteCedula})</p>
-                </div>
-              )}
               
               <div className="form-group">
                 <label>Fecha *</label>
@@ -658,7 +690,7 @@ const Citas: React.FC = () => {
               <div className="form-group">
                 <label>Vehículo</label>
                 <input
-                  value={citaEditada.vehiculoPlaca}
+                  value={`${citaEditada.vehiculo_placa} - ${citaEditada.vehiculo_marca} ${citaEditada.vehiculo_modelo}`}
                   disabled
                   className="input-disabled"
                 />
@@ -681,8 +713,8 @@ const Citas: React.FC = () => {
                 <label>Hora *</label>
                 <input
                   type="time"
-                  value={citaEditada.hora}
-                  onChange={e => setCitaEditada({ ...citaEditada, hora: e.target.value })}
+                  value={citaEditada.hora.substring(0, 5)}
+                  onChange={e => setCitaEditada({ ...citaEditada, hora: e.target.value + ':00' })}
                   className={errors.hora ? 'input-error' : ''}
                   min="08:00"
                   max="18:00"
@@ -759,7 +791,7 @@ const Citas: React.FC = () => {
                 >
                   <option value="">Seleccione un mecánico</option>
                   {mecanicos.map(mecanico => (
-                    <option key={mecanico.id} value={mecanico.nombre}>
+                    <option key={mecanico.id} value={mecanico.id}>
                       {mecanico.nombre}
                     </option>
                   ))}
@@ -768,10 +800,10 @@ const Citas: React.FC = () => {
               
               <div className="info-cita">
                 <p><strong>Detalles de la cita:</strong></p>
-                <p>Cliente: {selected.clienteNombre}</p>
-                <p>Vehículo: {selected.vehiculoPlaca}</p>
+                <p>Cliente: {selected.cliente_nombre}</p>
+                <p>Vehículo: {selected.vehiculo_placa}</p>
                 <p>Fecha: {new Date(selected.fecha).toLocaleDateString('es-ES')}</p>
-                <p>Hora: {selected.hora}</p>
+                <p>Hora: {selected.hora.substring(0, 5)}</p>
               </div>
             </div>
             
@@ -812,10 +844,10 @@ const Citas: React.FC = () => {
                 <p><strong>El vehículo seleccionado ya tiene una cita activa:</strong></p>
                 <div className="cita-existente">
                   <p><b>Vehículo:</b> {vehiculoConCita.vehiculo.placa} - {vehiculoConCita.vehiculo.marca} {vehiculoConCita.vehiculo.modelo}</p>
-                  <p><b>Cliente:</b> {vehiculoConCita.cita.clienteNombre}</p>
-                  <p><b>Cita existente:</b> {new Date(vehiculoConCita.cita.fecha).toLocaleDateString('es-ES')} {vehiculoConCita.cita.hora}</p>
+                  <p><b>Cliente:</b> {vehiculoConCita.cita.cliente_nombre}</p>
+                  <p><b>Cita existente:</b> {new Date(vehiculoConCita.cita.fecha).toLocaleDateString('es-ES')} {vehiculoConCita.cita.hora.substring(0, 5)}</p>
                   <p><b>Estado:</b> {vehiculoConCita.cita.estado}</p>
-                  <p><b>Mecánico:</b> {vehiculoConCita.cita.mecanico}</p>
+                  <p><b>Mecánico:</b> {vehiculoConCita.cita.mecanico_nombre || 'Sin Asignar'}</p>
                 </div>
                 
                 <p className="warning-text">
