@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import '../styles/pages/GestionTrabajos.css';
 import '../styles/Botones.css';
+import { ordenTrabajoService, type OrdenTrabajo } from '../services/ordenTrabajo.service';
 
 // Interfaces
 interface Trabajo {
@@ -30,6 +31,9 @@ interface Trabajo {
     fecha: string;
   }[];
   idCita?: string;
+  // Campos internos para sincronizar con la API
+  _ordenId?: number;
+  _vehiculoClienteId?: number;
 }
 
 // Interface Vehiculo definida pero no usada actualmente
@@ -51,83 +55,10 @@ interface Cita {
 }
 
 const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
-  // Datos mockeados de trabajos
-  const [trabajos, setTrabajos] = useState<Trabajo[]>([
-    {
-      codigoOrden: 'OT-001',
-      clienteNombre: 'Juan Pérez',
-      clienteCedula: '123456789',
-      placa: 'ABC-123',
-      fechaCreacion: '2024-03-15',
-      estado: 'Pendiente',
-      observacionesIniciales: 'Cambio de aceite y filtro',
-      repuestosUtilizados: [
-        { codigo: 'R001', nombre: 'Aceite Motor 5W-30', cantidad: 1, precio: 25000, subtotal: 25000 },
-        { codigo: 'R002', nombre: 'Filtro de Aceite', cantidad: 1, precio: 12000, subtotal: 12000 }
-      ],
-      serviciosRealizados: [
-        { codigo: 'S001', nombre: 'Cambio de Aceite', precio: 15000, descripcion: 'Cambio completo de aceite' }
-      ],
-      notasDiagnostico: [
-        { id: 1, texto: 'El vehículo presenta fuga mínima de aceite en el cárter', fecha: '2024-03-15 09:30' }
-      ],
-      idCita: 'CITA-001'
-    },
-    {
-      codigoOrden: 'OT-002',
-      clienteNombre: 'María García',
-      clienteCedula: '987654321',
-      placa: 'XYZ-789',
-      fechaCreacion: '2024-03-16',
-      estado: 'En proceso',
-      observacionesIniciales: 'Revisión de frenos',
-      repuestosUtilizados: [
-        { codigo: 'R003', nombre: 'Pastillas de Freno Delanteras', cantidad: 2, precio: 18000, subtotal: 36000 }
-      ],
-      serviciosRealizados: [
-        { codigo: 'S002', nombre: 'Revisión de Frenos', precio: 20000, descripcion: 'Revisión completa del sistema de frenos' },
-        { codigo: 'S003', nombre: 'Cambio de Pastillas', precio: 15000, descripcion: 'Cambio de pastillas delanteras' }
-      ],
-      idCita: 'CITA-002'
-    },
-    {
-      codigoOrden: 'OT-003',
-      clienteNombre: 'Carlos López',
-      clienteCedula: '456789123',
-      placa: 'DEF-456',
-      fechaCreacion: '2024-03-17',
-      estado: 'Finalizada',
-      observacionesIniciales: 'Alineación y balanceo',
-      serviciosRealizados: [
-        { codigo: 'S004', nombre: 'Alineación', precio: 12000, descripcion: 'Alineación de las 4 ruedas' },
-        { codigo: 'S005', nombre: 'Balanceo', precio: 10000, descripcion: 'Balanceo de ruedas' }
-      ],
-      idCita: 'CITA-003'
-    },
-    {
-      codigoOrden: 'OT-004',
-      clienteNombre: 'Ana Rodríguez',
-      clienteCedula: '321654987',
-      placa: 'GHI-789',
-      fechaCreacion: '2024-03-18',
-      estado: 'Pendiente',
-      observacionesIniciales: 'Cambio de batería',
-      repuestosUtilizados: [
-        { codigo: 'R004', nombre: 'Batería 12V 60Ah', cantidad: 1, precio: 65000, subtotal: 65000 }
-      ],
-      idCita: 'CITA-004'
-    },
-    {
-      codigoOrden: 'OT-005',
-      clienteNombre: 'Pedro Martínez',
-      clienteCedula: '789123456',
-      placa: 'JKL-012',
-      fechaCreacion: '2024-03-19',
-      estado: 'Cancelada',
-      observacionesIniciales: 'Cambio de amortiguadores',
-      idCita: 'CITA-005'
-    }
-  ]);
+  // Estados para datos del API
+  const [trabajos, setTrabajos] = useState<Trabajo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Datos mockeados de inventario
   const [inventario] = useState([
@@ -181,6 +112,75 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
   // Constantes
   const ESTADOS = ['Pendiente', 'En proceso', 'Finalizada', 'Cancelada'];
 
+  // Cargar órdenes de trabajo desde el API
+  useEffect(() => {
+    cargarOrdenes();
+  }, []);
+
+  const cargarOrdenes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await ordenTrabajoService.getOrdenes();
+      
+      if (response.success && response.data) {
+        // Convertir de OrdenTrabajo (API) a Trabajo (frontend)
+        const trabajosConvertidos: Trabajo[] = response.data.map(orden => ({
+          codigoOrden: `OT-${String(orden.id).padStart(3, '0')}`,
+          clienteNombre: orden.cliente_nombre || 'N/A',
+          clienteCedula: orden.cliente_cedula || 'N/A',
+          placa: orden.vehiculo_placa || 'N/A',
+          fechaCreacion: orden.fecha_entrada ? new Date(orden.fecha_entrada).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          estado: mapEstadoFromAPI(orden.estado),
+          observacionesIniciales: orden.descripcion || 'Sin observaciones',
+          repuestosUtilizados: [],
+          serviciosRealizados: orden.servicio_nombre ? [{
+            codigo: `S${orden.servicio_id || '000'}`,
+            nombre: orden.servicio_nombre,
+            precio: orden.costo || 0,
+            descripcion: orden.tipo_servicio || ''
+          }] : [],
+          notasDiagnostico: orden.notas ? [{
+            id: orden.id || 0,
+            texto: orden.notas,
+            fecha: orden.created_at ? new Date(orden.created_at).toLocaleString('es-ES') : ''
+          }] : [],
+          _ordenId: orden.id,
+          _vehiculoClienteId: orden.vehiculo_cliente_id
+        }));
+        
+        setTrabajos(trabajosConvertidos);
+      } else {
+        setError(response.error || 'Error al cargar órdenes de trabajo');
+      }
+    } catch (err) {
+      console.error('Error cargando órdenes:', err);
+      setError('Error de conexión al cargar órdenes de trabajo');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const mapEstadoFromAPI = (estado: string): Trabajo['estado'] => {
+    const mapaEstados: Record<string, Trabajo['estado']> = {
+      'pendiente': 'Pendiente',
+      'en_proceso': 'En proceso',
+      'completado': 'Finalizada',
+      'cancelado': 'Cancelada'
+    };
+    return mapaEstados[estado] || 'Pendiente';
+  };
+
+  const mapEstadoToAPI = (estado: Trabajo['estado']): OrdenTrabajo['estado'] => {
+    const mapaEstados: Record<Trabajo['estado'], OrdenTrabajo['estado']> = {
+      'Pendiente': 'pendiente',
+      'En proceso': 'en_proceso',
+      'Finalizada': 'completado',
+      'Cancelada': 'cancelado'
+    };
+    return mapaEstados[estado];
+  };
+
   /* === FILTRAR TRABAJOS === */
   const trabajosFiltrados = useMemo(() => {
     if (!search.trim()) return trabajos;
@@ -214,7 +214,7 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
   }, [citas, trabajos, session]);
 
   /* === CREAR ORDEN DESDE CITA === */
-  const crearOrdenDesdeCita = () => {
+  const crearOrdenDesdeCita = async () => {
     const { codigoCita, observacionesIniciales } = newOT;
     
     if (!codigoCita) {
@@ -234,30 +234,36 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
       return;
     }
 
-    // Generar nuevo código de orden
-    const nuevoCodigo = `OT-${String(trabajos.length + 1).padStart(3, '0')}`;
+    try {
+      setLoading(true);
+      
+      // Nota: Necesitaríamos el vehiculo_cliente_id real de la cita
+      // Por ahora usaremos un valor temporal que debe ser reemplazado
+      const nuevaOrden: Omit<OrdenTrabajo, 'id' | 'created_at' | 'updated_at'> = {
+        vehiculo_cliente_id: 1, // TODO: Obtener de la cita real
+        tipo_servicio: 'Servicio general',
+        descripcion: observacionesIniciales.trim() || 'Sin observaciones iniciales',
+        fecha_entrada: new Date().toISOString(),
+        costo: 0,
+        estado: 'pendiente'
+      };
 
-    // Crear nueva orden
-    const nuevaOrden: Trabajo = {
-      codigoOrden: nuevoCodigo,
-      clienteNombre: citaSeleccionada.clienteNombre,
-      clienteCedula: citaSeleccionada.clienteCedula,
-      placa: citaSeleccionada.vehiculoPlaca,
-      fechaCreacion: new Date().toISOString().split('T')[0],
-      estado: 'Pendiente',
-      observacionesIniciales: observacionesIniciales.trim() || 'Sin observaciones iniciales',
-      repuestosUtilizados: [],
-      serviciosRealizados: [],
-      notasDiagnostico: [],
-      idCita: codigoCita
-    };
-
-    // Agregar a la lista
-    setTrabajos([...trabajos, nuevaOrden]);
-    setNewOT({ codigoCita: '', observacionesIniciales: '' });
-    setShowModalNuevaOT(false);
-    
-    alert(`Orden ${nuevoCodigo} creada exitosamente`);
+      const response = await ordenTrabajoService.createOrden(nuevaOrden);
+      
+      if (response.success && response.data) {
+        await cargarOrdenes(); // Recargar la lista
+        setNewOT({ codigoCita: '', observacionesIniciales: '' });
+        setShowModalNuevaOT(false);
+        alert(`Orden creada exitosamente`);
+      } else {
+        alert(response.error || 'Error al crear la orden de trabajo');
+      }
+    } catch (err) {
+      console.error('Error creando orden:', err);
+      alert('Error de conexión al crear la orden');
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* === AGREGAR REPUESTO A ORDEN === */
@@ -423,30 +429,67 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
   };
 
   /* === GUARDAR CAMBIOS === */
-  const guardarDetalleTrabajo = () => {
-    if (!selected) return;
+  const guardarDetalleTrabajo = async () => {
+    if (!selected || !selected._ordenId) {
+      alert('No se puede actualizar: orden no identificada');
+      return;
+    }
 
-    setTrabajos(trabajos.map(t => 
-      t.codigoOrden === selected.codigoOrden ? selected : t
-    ));
-    
-    setShowModalDetalle(false);
-    alert('Orden actualizada correctamente');
+    try {
+      setLoading(true);
+      
+      // Calcular costo total
+      const costoTotal = calcularTotal(selected);
+      
+      const datosActualizados: Partial<OrdenTrabajo> = {
+        descripcion: selected.observacionesIniciales,
+        costo: costoTotal,
+        notas: selected.notasDiagnostico?.map(n => n.texto).join(' | ') || null
+      };
+
+      const response = await ordenTrabajoService.updateOrden(selected._ordenId, datosActualizados);
+      
+      if (response.success) {
+        await cargarOrdenes(); // Recargar la lista
+        setShowModalDetalle(false);
+        alert('Orden actualizada correctamente');
+      } else {
+        alert(response.error || 'Error al actualizar la orden');
+      }
+    } catch (err) {
+      console.error('Error actualizando orden:', err);
+      alert('Error de conexión al actualizar la orden');
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* === CAMBIAR ESTADO === */
-  const guardarNuevoEstado = () => {
-    if (!selected) return;
+  const guardarNuevoEstado = async () => {
+    if (!selected || !selected._ordenId) {
+      alert('No se puede actualizar: orden no identificada');
+      return;
+    }
 
-    const trabajoActualizado = { ...selected, estado: estadoSeleccionado as Trabajo['estado'] };
-    
-    setSelected(trabajoActualizado);
-    setTrabajos(trabajos.map(t => 
-      t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
-    ));
-    
-    setShowModalEstado(false);
-    alert('Estado actualizado correctamente');
+    try {
+      setLoading(true);
+      
+      const estadoAPI = mapEstadoToAPI(estadoSeleccionado as Trabajo['estado']);
+      const response = await ordenTrabajoService.updateEstado(selected._ordenId, estadoAPI);
+      
+      if (response.success) {
+        await cargarOrdenes(); // Recargar la lista
+        setShowModalEstado(false);
+        alert('Estado actualizado correctamente');
+      } else {
+        alert(response.error || 'Error al actualizar el estado');
+      }
+    } catch (err) {
+      console.error('Error actualizando estado:', err);
+      alert('Error de conexión al actualizar el estado');
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* === CERRAR MODALES === */
@@ -482,6 +525,23 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
           <span className="stat-item">Pendientes: {trabajos.filter(t => t.estado === 'Pendiente').length}</span>
         </div>
       </div>
+
+      {/* MENSAJE DE ERROR */}
+      {error && (
+        <div className="alert alert-error">
+          <p>{error}</p>
+          <button className="boton boton-secundario" onClick={cargarOrdenes}>
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {/* INDICADOR DE CARGA */}
+      {loading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner">Cargando órdenes de trabajo...</div>
+        </div>
+      )}
 
       {/* CONTENEDOR PRINCIPAL */}
       <div className="contenedor-principal">
