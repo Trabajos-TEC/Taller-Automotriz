@@ -1,6 +1,6 @@
 import { Handler } from '@netlify/functions';
 import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
-
+import { requireAuth } from './utils/requireAuth';
 /**
  * Función Netlify para gestionar citas del taller
  * Endpoint: /.netlify/functions/citas
@@ -12,6 +12,9 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    const user = requireAuth(event);
+    const TALLER_ID = user.taller_id;
+    
     const sql = getConnection();
     const path = event.path.replace('/.netlify/functions/citas', '');
     const segments = path.split('/').filter(Boolean);
@@ -22,23 +25,24 @@ export const handler: Handler = async (event) => {
         if (id) {
           // Obtener una cita específica con detalles
           const cita = await sql`
-            SELECT 
-              c.*,
-              vc.placa as vehiculo_placa,
-              vb.marca as vehiculo_marca,
-              vb.modelo as vehiculo_modelo,
-              cl.nombre as cliente_nombre,
-              cl.cedula as cliente_cedula,
-              cl.correo as cliente_correo,
-              cl.numero as cliente_telefono,
-              u.nombre as mecanico_nombre
-            FROM citas c
-            INNER JOIN vehiculos_clientes vc ON c.vehiculo_cliente_id = vc.id
-            INNER JOIN vehiculos_base vb ON vc.vehiculo_base_id = vb.id
-            INNER JOIN clientes cl ON vc.cliente_id = cl.id
-            LEFT JOIN usuarios u ON c.usuario_id = u.id
-            WHERE c.id = ${id}
-          `;
+          SELECT 
+            c.*,
+            vc.placa as vehiculo_placa,
+            vb.marca as vehiculo_marca,
+            vb.modelo as vehiculo_modelo,
+            cl.nombre as cliente_nombre,
+            cl.cedula as cliente_cedula,
+            cl.correo as cliente_correo,
+            cl.numero as cliente_telefono,
+            u.nombre as mecanico_nombre
+          FROM citas c
+          INNER JOIN vehiculos_clientes vc ON c.vehiculo_cliente_id = vc.id
+          INNER JOIN vehiculos_base vb ON vc.vehiculo_base_id = vb.id
+          INNER JOIN clientes cl ON vc.cliente_id = cl.id
+          LEFT JOIN usuarios u ON c.usuario_id = u.id
+          WHERE c.id = ${id}
+            AND cl.taller_id = ${TALLER_ID}  -- ¡Aquí el filtro!
+        `;
           
           if (cita.length === 0) {
             return errorResponse('Cita no encontrada', 404);
@@ -46,7 +50,7 @@ export const handler: Handler = async (event) => {
           
           return successResponse(cita[0]);
         } else {
-          // Obtener todas las citas con información relacionada
+          // Obtener todas las citas CON FILTRO DE TALLER
           const estado = event.queryStringParameters?.estado;
           const fecha = event.queryStringParameters?.fecha;
           
@@ -65,11 +69,11 @@ export const handler: Handler = async (event) => {
             INNER JOIN vehiculos_base vb ON vc.vehiculo_base_id = vb.id
             INNER JOIN clientes cl ON vc.cliente_id = cl.id
             LEFT JOIN usuarios u ON c.usuario_id = u.id
-            WHERE 1=1
+            WHERE cl.taller_id = $1  -- 🔐 FILTRO PRINCIPAL
           `;
           
-          const params: any[] = [];
-          let paramCount = 1;
+          const params: any[] = [TALLER_ID];
+          let paramCount = 2;
 
           if (estado) {
             query += ` AND c.estado = $${paramCount}`;
@@ -89,6 +93,7 @@ export const handler: Handler = async (event) => {
           return successResponse(citas);
         }
 
+
       case 'POST': {
         // Crear nueva cita
         const { 
@@ -106,8 +111,13 @@ export const handler: Handler = async (event) => {
         }
 
         // Verificar que el vehículo existe
+        // Verificar que el vehículo pertenece al taller del usuario
         const vehiculo = await sql`
-          SELECT id FROM vehiculos_clientes WHERE id = ${vehiculo_cliente_id}
+          SELECT vc.id 
+          FROM vehiculos_clientes vc
+          INNER JOIN clientes cl ON vc.cliente_id = cl.id
+          WHERE vc.id = ${vehiculo_cliente_id}
+            AND cl.taller_id = ${TALLER_ID}  -- Filtro importante
         `;
 
         if (vehiculo.length === 0) {
@@ -165,8 +175,14 @@ export const handler: Handler = async (event) => {
         } = body;
 
         // Verificar que la cita existe
+        // Verificar que la cita existe y pertenece al taller
         const citaExistente = await sql`
-          SELECT id FROM citas WHERE id = ${id}
+          SELECT c.id 
+          FROM citas c
+          INNER JOIN vehiculos_clientes vc ON c.vehiculo_cliente_id = vc.id
+          INNER JOIN clientes cl ON vc.cliente_id = cl.id
+          WHERE c.id = ${id}
+            AND cl.taller_id = ${TALLER_ID}
         `;
 
         if (citaExistente.length === 0) {
@@ -251,9 +267,13 @@ export const handler: Handler = async (event) => {
         }
 
         const result = await sql`
-          DELETE FROM citas 
-          WHERE id = ${id}
-          RETURNING *
+          DELETE FROM citas c
+          USING vehiculos_clientes vc, clientes cl
+          WHERE c.id = ${id}
+            AND c.vehiculo_cliente_id = vc.id
+            AND vc.cliente_id = cl.id
+            AND cl.taller_id = ${TALLER_ID}  -- Solo eliminar si pertenece al taller
+          RETURNING c.*
         `;
 
         if (result.length === 0) {
