@@ -1,6 +1,6 @@
-/* src/styles/pages/Citas.css - ACTUALIZADO PARA SER IGUAL A INVENTARIO */
-/*============================= Gestion de Citas =================================*/
-.gestion-citas {
+/* src/components/GestionCotizacion.css - TEMA VERDE AZULADO */
+/*============================= Gestion de Cotizaciones =================================*/
+.gestion-cotizaciones {
   width: 100%;
   margin: 0;
   font-family: Arial, sans-serif;
@@ -12,7 +12,7 @@
   box-sizing: border-box;
 }
 
-.gestion-citas h2 {
+.gestion-cotizaciones h2 {
   text-align: left;
   margin-bottom: 10px;
   color: #ffffff;
@@ -22,34 +22,34 @@
 }
 
 /* ================== HEADER SECTION ================== */
-.gestion-citas .header-section {
+.gestion-cotizaciones .header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
 
-.gestion-citas .header-section h1 {
+.gestion-cotizaciones .header-section h1 {
   font-size: 28px;
   color: #fff;
   margin: 0;
 }
 
-.gestion-citas .stats {
+.gestion-cotizaciones .stats {
   display: flex;
   gap: 15px;
   color: #9aa4b2;
   font-size: 14px;
 }
 
-.gestion-citas .stat-item {
+.gestion-cotizaciones .stat-item {
   padding: 4px 12px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 6px;
 }
 
 /* ================== CONTENEDOR PRINCIPAL ================== */
-.gestion-citas .contenedor-principal {
+.gestion-cotizaciones .contenedor-principal {
   display: flex;
   gap: 20px;
   height: calc(100vh - 200px - 30px);
@@ -58,7 +58,7 @@
 }
 
 /* ================== CONTENEDOR IZQUIERDO (Lista) ================== */
-.gestion-citas .contenedor-lista {
+.gestion-cotizaciones .contenedor-lista {
   flex: 2;
   display: flex;
   flex-direction: column;
@@ -67,7 +67,7 @@
 }
 
 /* ================== BARRA DE BÚSQUEDA ================== */
-.gestion-citas .busqueda-agregar {
+.gestion-cotizaciones .busqueda-agregar {
   display: flex;
   gap: 10px;
   align-items: center;
@@ -76,26 +76,26 @@
   box-sizing: border-box;
 }
 
-.gestion-citas .search-bar {
+.gestion-cotizaciones .search-bar {
   flex: 1;
   padding: 12px 16px;
   border-radius: 8px;
-  border: 1px solid #574d38;
-  background: rgba(122, 86, 12, 0.15);
+  border: 1px solid #334244;
+  background: rgba(255, 255, 255, 0.05);
   color: #fff;
   font-size: 15px;
   transition: all 0.3s ease;
 }
 
-.gestion-citas .search-bar:focus {
+.gestion-cotizaciones .search-bar:focus {
   outline: none;
-  border-color: #ffd700;
-  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+  border-color: #11695c;
+  box-shadow: 0 0 0 3px rgba(17, 105, 92, 0.2);
 }
 
 /* ================== TABLA CONTAINER ================== */
-.gestion-citas .table-container {
-  background: rgba(255, 255, 255, 0.05);
+.gestion-cotizaciones .table-container {
+  background: rgba(51, 69, 66, 0.9);
   border-radius: 10px;
   padding: 10px;
   flex: 1;
@@ -105,11 +105,12 @@
   overflow-x: auto;
   max-height: calc(100vh - 250px - 30px - 10px);
   position: relative;
-  border: 1px solid rgba(122, 86, 12, 0.4);
+  border: 1px solid rgba(17, 105, 92, 0.3);
+  box-shadow: 0 6px 25px rgba(17, 105, 92, 0.4);
 }
 
 /* Tabla dentro del contenedor */
-.gestion-citas .data-table {
+.gestion-cotizaciones .data-table {
   width: 100%;
   border-collapse: collapse;
   min-width: 800px;
@@ -117,17 +118,17 @@
 }
 
 /* CABECERA */
-.gestion-citas .data-table thead {
-  background: rgba(122, 86, 12, 0.95);
+.gestion-cotizaciones .data-table thead {
+  background: rgba(17, 105, 92, 0.95);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
   position: relative;
   z-index: 2;
-  border-bottom: 2px solid rgba(255, 215, 0, 0.2);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Celdas de la cabecera */
-.gestion-citas .data-table th {
+.gestion-cotizaciones .data-table th {
   padding: 16px 15px;
   text-align: left;
   color: #fff;
@@ -135,17 +136,17 @@
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 2px solid rgba(255, 215, 0, 0.2);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
   position: relative;
   background: inherit;
 }
 
 /* Cuerpo de la tabla */
-.gestion-citas .data-table tbody {
+.gestion-cotizaciones .data-table tbody {
   position: relative;
 }
 
-.gestion-citas .data-table td {
+.gestion-cotizaciones .data-table td {
   padding: 14px 15px;
   color: #e5e7eb;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -153,51 +154,102 @@
 }
 
 /* Primera fila del cuerpo */
-.gestion-citas .data-table tbody tr:first-child td {
+.gestion-cotizaciones .data-table tbody tr:first-child td {
   border-top: none;
 }
 
-.gestion-citas .data-table tbody tr {
+.gestion-cotizaciones .data-table tbody tr {
   transition: background 0.2s;
   cursor: pointer;
   background: transparent;
 }
 
-.gestion-citas .data-table tbody tr:hover {
-  background: rgba(122, 86, 12, 0.1);
+.gestion-cotizaciones .data-table tbody tr:hover {
+  background: rgba(17, 105, 92, 0.08);
 }
 
-.gestion-citas .data-table tbody tr.selected-row {
-  background: rgba(122, 86, 12, 0.2);
+.gestion-cotizaciones .data-table tbody tr.selected-row {
+  background: rgba(17, 105, 92, 0.15);
 }
 
 /* Columnas específicas */
-.gestion-citas .data-table .placa-column {
+.gestion-cotizaciones .data-table .codigo-column {
   font-weight: 600;
-  color: #ffd700;
+  color: #5eead4;
   font-family: monospace;
   letter-spacing: 1px;
 }
 
-/* ================== BADGE DE ESTADO ================== */
-.gestion-citas .estado-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
+.gestion-cotizaciones .data-table .nombre-column {
   font-weight: 600;
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  min-width: 80px;
-  text-align: center;
+  color: #ffffff;
+}
+
+.gestion-cotizaciones .data-table .total-column {
+  font-weight: 700;
+  color: #10b981;
+}
+
+/* ================== BADGES ESPECÍFICOS PARA COTIZACIONES ================== */
+/* Badge de tipo (Cotización/Proforma) */
+.gestion-cotizaciones .tipo-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.gestion-cotizaciones .tipo-badge.cotizacion {
+  background: rgba(17, 105, 92, 0.2);
+  color: #5eead4;
+  border: 1px solid rgba(17, 105, 92, 0.3);
+}
+
+.gestion-cotizaciones .tipo-badge.proforma {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Estados de cotización */
+.gestion-cotizaciones .estado-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.gestion-cotizaciones .estado-borrador {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.gestion-cotizaciones .estado-pendiente {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.gestion-cotizaciones .estado-aprobada {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.gestion-cotizaciones .estado-rechazada {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 /* ================== MENSAJE SIN RESULTADOS ================== */
-.gestion-citas .no-results {
+.gestion-cotizaciones .no-results {
   text-align: center;
   padding: 60px 20px;
-  color: #d4b64c;
+  color: #9aa4b2;
   font-style: italic;
   flex: 1;
   display: flex;
@@ -207,59 +259,60 @@
   gap: 10px;
 }
 
-.gestion-citas .no-results i {
+.gestion-cotizaciones .no-results i {
   font-size: 48px;
-  color: rgba(122, 86, 12, 0.5);
+  color: rgba(17, 105, 92, 0.5);
   margin-bottom: 10px;
 }
 
 /* ================== SCROLLBAR PERSONALIZADO ================== */
-.gestion-citas .table-container::-webkit-scrollbar {
+.gestion-cotizaciones .table-container::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
-.gestion-citas .table-container::-webkit-scrollbar-track {
-  background: rgba(122, 86, 12, 0.1);
+.gestion-cotizaciones .table-container::-webkit-scrollbar-track {
+  background: rgba(17, 105, 92, 0.1);
   border-radius: 5px;
 }
 
-.gestion-citas .table-container::-webkit-scrollbar-thumb {
-  background: #7a560c;
+.gestion-cotizaciones .table-container::-webkit-scrollbar-thumb {
+  background: #11695c;
   border-radius: 5px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
-.gestion-citas .table-container::-webkit-scrollbar-thumb:hover {
-  background: #a3780f;
+.gestion-cotizaciones .table-container::-webkit-scrollbar-thumb:hover {
+  background: #148571;
   background-clip: content-box;
 }
 
 /* Firefox */
-.gestion-citas .table-container {
+.gestion-cotizaciones .table-container {
   scrollbar-width: thin;
-  scrollbar-color: #7a560c rgba(122, 86, 12, 0.1);
+  scrollbar-color: #11695c rgba(17, 105, 92, 0.1);
 }
 
 /* ================== CONTENEDOR DERECHO (Detalles) ================== */
-.gestion-citas .contenedor-detalles {
+.gestion-cotizaciones .contenedor-detalles {
   flex: 1;
   min-width: 300px;
   max-width: 400px;
 }
 
-.gestion-citas .sidebar-details {
-  background: rgba(122, 86, 12, 0.1);
+.gestion-cotizaciones .sidebar-details {
+  background: rgba(51, 69, 66, 0.9);
   border-radius: 10px;
   padding: 20px;
-  border: 1px solid rgba(122, 86, 12, 0.3);
+  border: 1px solid rgba(17, 105, 92, 0.3);
   height: 100%;
   display: flex;
   flex-direction: column;
   opacity: 0;
   transform: translateX(20px);
   animation: slideIn 0.3s ease-out forwards;
+  box-shadow: 0 6px 25px rgba(17, 105, 92, 0.4);
 }
 
 @keyframes slideIn {
@@ -269,7 +322,7 @@
   }
 }
 
-.gestion-citas .sidebar-header {
+.gestion-cotizaciones .sidebar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -278,51 +331,36 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.gestion-citas .sidebar-header h4 {
+.gestion-cotizaciones .sidebar-header h4 {
   margin: 0;
   color: #fff;
   font-size: 18px;
 }
 
-.gestion-citas .sidebar-body {
+.gestion-cotizaciones .sidebar-body {
   margin-bottom: 20px;
   flex: 1;
 }
 
-.gestion-citas .detail-item {
+.gestion-cotizaciones .detail-item {
   display: flex;
   justify-content: space-between;
   padding: 12px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.gestion-citas .detail-item:last-child {
+.gestion-cotizaciones .detail-item:last-child {
   border-bottom: none;
 }
 
-.gestion-citas .detail-item.full-width {
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.gestion-citas .descripcion-text {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 10px;
-  border-radius: 6px;
-  margin-top: 5px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.gestion-citas .detail-label {
-  color: #d4b64c;
+.gestion-cotizaciones .detail-label {
+  color: #9aa4b2;
   font-weight: 500;
   min-width: 120px;
   font-size: 0.9rem;
 }
 
-.gestion-citas .detail-value {
+.gestion-cotizaciones .detail-value {
   color: #fff;
   font-weight: 600;
   text-align: right;
@@ -330,32 +368,16 @@
   font-size: 0.95rem;
 }
 
-.gestion-citas .placa-value {
-  color: #ffd700;
-  font-weight: 700;
-  font-family: monospace;
-  letter-spacing: 1px;
-}
-
-.gestion-citas .sidebar-footer {
+.gestion-cotizaciones .sidebar-footer {
   display: flex;
   gap: 10px;
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.gestion-citas .estado-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
 /* ================== BOTONES ================== */
-
-
-.gestion-citas .boton-agregar {
-  background: #7a560c;
+.gestion-cotizaciones .boton-agregar {
+  background: #11695c;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -365,180 +387,107 @@
   font-weight: 600;
 }
 
-.gestion-citas .boton-editar {
-  background: #7a560c;
-  color: white;
-}
-
-.gestion-citas .boton-eliminar {
-  background: #983e3e;
-  color: white;
-}
-
-.gestion-citas .boton-guardar {
+.gestion-cotizaciones .boton-editar {
   background: #11695c;
   color: white;
 }
 
-.gestion-citas .boton-cancelar {
-  background: #7a560c;
+.gestion-cotizaciones .boton-eliminar {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.gestion-cotizaciones .boton-guardar {
+  background: #11695c;
   color: white;
 }
 
-.gestion-citas .boton-aceptar {
-  background: #7a560c;
+.gestion-cotizaciones .boton-cancelar {
+  background: #334155;
   color: white;
 }
 
-.gestion-citas .boton-completar {
-  background: #7a560c;
-  color: white;
-}
-
-/* Botón grande */
-.gestion-citas .boton-grande {
-  padding: 12px 24px;
-  font-size: 15px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.gestion-citas .icono {
-  font-size: 16px;
+.gestion-cotizaciones .boton-pdf {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 /* Hover effects */
-.gestion-citas .boton-agregar:hover {
-  background: #a3780f;
+.gestion-cotizaciones .boton-agregar:hover {
+  background: #148571;
   transform: translateY(-1px);
 }
 
-.gestion-citas .boton-editar:hover {
-  background: #a3780f;
+.gestion-cotizaciones .boton-editar:hover {
+  background: #148571;
 }
 
-.gestion-citas .boton-eliminar:hover {
-  background: #983e3e;
+.gestion-cotizaciones .boton-eliminar:hover {
+  background: rgba(239, 68, 68, 0.3);
 }
 
-.gestion-citas .boton-guardar:hover {
-  background: #a3780f;
+.gestion-cotizaciones .boton-guardar:hover {
+  background: #148571;
 }
 
-.gestion-citas .boton-cancelar:hover {
-  background: #a3780f;
+.gestion-cotizaciones .boton-cancelar:hover {
+  background: #4b5563;
 }
 
-.gestion-citas .boton-aceptar:hover {
-  background: #a3780f;
-}
-
-.gestion-citas .boton-completar:hover {
-  background: #a3780f;
+.gestion-cotizaciones .boton-pdf:hover {
+  background: rgba(239, 68, 68, 0.3);
 }
 
 /* ================== FORMULARIOS EN MODALES ================== */
-.gestion-citas .form-group {
+.gestion-cotizaciones .form-group {
   margin-bottom: 20px;
 }
 
-.gestion-citas .form-group label {
-  color: #d4b64c;
+.gestion-cotizaciones .form-group label {
+  color: #c1c5cc;
   margin-bottom: 8px;
   font-weight: 500;
   display: block;
   font-size: 0.95rem;
 }
 
-.gestion-citas .form-group input,
-.gestion-citas .form-group select,
-.gestion-citas .form-group textarea {
+.gestion-cotizaciones .form-group input,
+.gestion-cotizaciones .form-group select,
+.gestion-cotizaciones .form-group textarea {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #7a560c;
+  border: 1px solid #4b5563;
   background: rgba(255, 255, 255, 0.05);
   color: #fff;
   font-size: 15px;
   transition: all 0.3s ease;
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
 }
 
-.gestion-citas .form-group input:focus,
-.gestion-citas .form-group select:focus,
-.gestion-citas .form-group textarea:focus {
+.gestion-cotizaciones .form-group input:focus,
+.gestion-cotizaciones .form-group select:focus,
+.gestion-cotizaciones .form-group textarea:focus {
   outline: none;
-  border-color: #ffd700;
-  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+  border-color: #11695c;
+  box-shadow: 0 0 0 3px rgba(17, 105, 92, 0.2);
 }
 
-.gestion-citas .input-error {
+.gestion-cotizaciones .input-error {
   border-color: #ef4444 !important;
   background: rgba(239, 68, 68, 0.1) !important;
 }
 
-.gestion-citas .input-disabled {
+.gestion-cotizaciones .input-disabled {
   background: rgba(255, 255, 255, 0.1) !important;
-  color: #d4b64c !important;
+  color: #9aa4b2 !important;
   cursor: not-allowed;
 }
 
-.gestion-citas .error-message {
-  color: #ef4444;
-  font-size: 13px;
-  margin-top: 5px;
-  display: block;
-}
-
-.gestion-citas .field-info {
-  color: #d4b64c;
-  font-size: 12px;
-  margin-top: 5px;
-  display: block;
-}
-
-/* Form row para columnas */
-.gestion-citas .form-row {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.gestion-citas .half-width {
-  flex: 1;
-}
-
-/* Estilos para textarea */
-.gestion-citas .form-control {
-  resize: vertical;
-  min-height: 80px;
-}
-
-/* ================== INFO BOXES ================== */
-.gestion-citas .info-cliente,
-.gestion-citas .info-cita {
-  background: rgba(122, 86, 12, 0.2);
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  border-radius: 8px;
-  padding: 15px;
-  margin: 15px 0;
-}
-
-.gestion-citas .info-cliente p,
-.gestion-citas .info-cita p {
-  margin: 5px 0;
-  color: #fff;
-}
-
-.gestion-citas .info-cliente strong,
-.gestion-citas .info-cita strong {
-  color: #ffd700;
-}
-
 /* ================== MODALES MEJORADOS ================== */
-.gestion-citas .modal-overlay {
+.gestion-cotizaciones .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -558,15 +507,13 @@
   to { opacity: 1; }
 }
 
-.gestion-citas .modal {
-  background: linear-gradient(135deg, 
-    rgba(22, 25, 29, 0.95) 0%, 
-    rgba(122, 86, 12, 0.9) 100%);
+.gestion-cotizaciones .modal {
+  background: rgba(51, 69, 66, 0.95);
   border-radius: 16px;
   padding: 35px;
   box-shadow: 
     0 25px 60px rgba(0, 0, 0, 0.8),
-    0 0 0 1px rgba(255, 215, 0, 0.2),
+    0 0 0 1px rgba(17, 105, 92, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   max-width: 520px;
   width: 90%;
@@ -575,14 +522,14 @@
   overflow: hidden;
 }
 
-.gestion-citas .modal::before {
+.gestion-cotizaciones .modal::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #7a560c, #ffd700, #7a560c);
+  background: linear-gradient(90deg, #11695c, #5eead4, #11695c);
   z-index: 1;
 }
 
@@ -597,71 +544,71 @@
   }
 }
 
-.gestion-citas .modal-header {
+.gestion-cotizaciones .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+  border-bottom: 1px solid rgba(94, 234, 212, 0.3);
   position: relative;
 }
 
-.gestion-citas .modal-header::after {
+.gestion-cotizaciones .modal-header::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(94, 234, 212, 0.5), transparent);
 }
 
-.gestion-citas .modal-header h3 {
+.gestion-cotizaciones .modal-header h3 {
   margin: 0;
-  color: #ffd700;
+  color: #5eead4;
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
-.gestion-citas .modal-body {
+.gestion-cotizaciones .modal-body {
   margin-bottom: 30px;
   max-height: 60vh;
   overflow-y: auto;
   padding-right: 8px;
 }
 
-.gestion-citas .modal-body::-webkit-scrollbar {
+.gestion-cotizaciones .modal-body::-webkit-scrollbar {
   width: 8px;
 }
 
-.gestion-citas .modal-body::-webkit-scrollbar-track {
-  background: rgba(122, 86, 12, 0.1);
+.gestion-cotizaciones .modal-body::-webkit-scrollbar-track {
+  background: rgba(17, 105, 92, 0.1);
   border-radius: 4px;
 }
 
-.gestion-citas .modal-body::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #7a560c, #ffd700);
+.gestion-cotizaciones .modal-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #11695c, #5eead4);
   border-radius: 4px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
-.gestion-citas .modal-footer {
+.gestion-cotizaciones .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 15px;
   padding-top: 25px;
-  border-top: 1px solid rgba(255, 215, 0, 0.2);
+  border-top: 1px solid rgba(94, 234, 212, 0.2);
 }
 
 /* ================== BOTÓN CERRAR MODAL MEJORADO ================== */
-.gestion-citas .btn-close {
-  background: rgba(122, 86, 12, 0.3);
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  color: #ffd700;
+.gestion-cotizaciones .btn-close {
+  background: rgba(17, 105, 92, 0.3);
+  border: 1px solid rgba(94, 234, 212, 0.3);
+  color: #5eead4;
   font-size: 24px;
   cursor: pointer;
   padding: 0;
@@ -676,15 +623,15 @@
   overflow: hidden;
 }
 
-.gestion-citas .btn-close:hover {
-  background: rgba(255, 215, 0, 0.3);
+.gestion-cotizaciones .btn-close:hover {
+  background: rgba(94, 234, 212, 0.3);
   color: #ffffff;
   transform: rotate(90deg);
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-  border-color: #ffd700;
+  box-shadow: 0 0 15px rgba(94, 234, 212, 0.4);
+  border-color: #5eead4;
 }
 
-.gestion-citas .btn-close::before {
+.gestion-cotizaciones .btn-close::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -692,72 +639,383 @@
   width: 0;
   height: 0;
   border-radius: 50%;
-  background: rgba(255, 215, 0, 0.2);
+  background: rgba(94, 234, 212, 0.2);
   transform: translate(-50%, -50%);
   transition: width 0.3s, height 0.3s;
 }
 
-.gestion-citas .btn-close:hover::before {
+.gestion-cotizaciones .btn-close:hover::before {
   width: 100%;
   height: 100%;
 }
 
-/* ================== WARNING MESSAGE ================== */
-.gestion-citas .warning-message {
-  background: rgba(122, 12, 12, 0.2);
-  border: 1px solid rgba(255, 0, 0, 0.3);
-  border-radius: 8px;
-  padding: 20px;
-  margin: 15px 0;
+/* ================== MODAL GRANDE ================== */
+.gestion-cotizaciones .modal-grande {
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: rgba(51, 69, 66, 0.95);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8),
+              0 6px 25px rgba(17, 105, 92, 0.4);
 }
 
-.gestion-citas .cita-existente {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 15px;
-  border-radius: 6px;
-  margin: 10px 0;
+/* ================== SECCIONES MODAL GRANDE ================== */
+.gestion-cotizaciones .seccion-info,
+.gestion-cotizaciones .seccion-items {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.gestion-citas .warning-text {
-  color: #ffd700;
+.gestion-cotizaciones .seccion-info:last-child,
+.gestion-cotizaciones .seccion-items:last-child {
+  border-bottom: none;
+}
+
+.gestion-cotizaciones .seccion-info h4,
+.gestion-cotizaciones .seccion-items h4 {
+  color: #5eead4;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+/* ================== GRID DE INFORMACIÓN ================== */
+.gestion-cotizaciones .grid-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.gestion-cotizaciones .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.gestion-cotizaciones .info-item label {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+}
+
+.gestion-cotizaciones .info-item input {
+  color: #fff;
   font-weight: 600;
-  margin-top: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #4b5563;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+/* ================== TABLA SCROLLABLE ================== */
+.gestion-cotizaciones .table-scrollable {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(51, 69, 66, 0.9);
+}
+
+.gestion-cotizaciones .items-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.gestion-cotizaciones .items-table th {
+  background: rgba(17, 105, 92, 0.8);
+  padding: 12px 15px;
+  color: #fff;
+  font-weight: 600;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.gestion-cotizaciones .items-table td {
+  padding: 10px 15px;
+  color: #e5e7eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gestion-cotizaciones .items-table tr:hover {
+  background: rgba(17, 105, 92, 0.08);
+}
+
+.gestion-cotizaciones .no-items {
   text-align: center;
-  font-size: 16px;
+  color: #9aa4b2;
+  font-style: italic;
+  padding: 20px !important;
 }
 
-/* ================== MODALES ESPECIALES ================== */
-.gestion-citas .modal-wide {
-  max-width: 600px;
+/* ================== FORMULARIOS INLINE ================== */
+.gestion-cotizaciones .form-group-inline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
-.gestion-citas .modal-alerta {
-  max-width: 550px;
-  background: linear-gradient(135deg, 
-    rgba(22, 25, 29, 0.95) 0%, 
-    rgba(51, 27, 27, 0.9) 100%);
+.gestion-cotizaciones .form-group-inline input {
+  flex: 1;
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: 1px solid #4b5563;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* ================== DROPDOWN PERSONALIZADO ================== */
+.gestion-cotizaciones .dropdown-container {
+  position: relative;
+  flex: 1;
+}
+
+.gestion-cotizaciones .dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(51, 69, 66, 0.95);
+  border: 1px solid rgba(17, 105, 92, 0.5);
+  border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.gestion-cotizaciones .dropdown-item {
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gestion-cotizaciones .dropdown-item:hover {
+  background: rgba(17, 105, 92, 0.3);
+}
+
+.gestion-cotizaciones .dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.gestion-cotizaciones .dropdown-item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.gestion-cotizaciones .dropdown-item-main strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.gestion-cotizaciones .dropdown-price {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.gestion-cotizaciones .dropdown-item-details {
+  display: flex;
+  gap: 10px;
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+}
+
+.gestion-cotizaciones .dropdown-item-desc {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+.gestion-cotizaciones .dropdown-item-code {
+  color: #5eead4;
+  font-size: 0.85rem;
+  font-family: monospace;
+}
+
+.gestion-cotizaciones .dropdown-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.gestion-cotizaciones .dropdown-badge.universal {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.gestion-cotizaciones .dropdown-badge.specific {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.gestion-cotizaciones .dropdown-stock {
+  color: #9aa4b2;
+}
+
+/* ================== AGREGAR ITEM FORM ================== */
+.gestion-cotizaciones .agregar-item-form {
+  background: rgba(51, 69, 66, 0.9);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ================== RESUMEN DE TOTALES ================== */
+.gestion-cotizaciones .resumen-totales {
+  background: rgba(51, 69, 66, 0.9);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(17, 105, 92, 0.3);
+  margin-top: 20px;
+  box-shadow: 0 6px 25px rgba(17, 105, 92, 0.4);
+}
+
+.gestion-cotizaciones .resumen-totales h4 {
+  color: #5eead4;
+  margin-bottom: 15px;
+  font-size: 18px;
+  text-align: center;
+}
+
+.gestion-cotizaciones .total-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gestion-cotizaciones .total-item:last-child {
+  border-bottom: none;
+}
+
+.gestion-cotizaciones .total-item span:first-child {
+  color: #9aa4b2;
+}
+
+.gestion-cotizaciones .total-item span:last-child {
+  color: #fff;
+  font-weight: 600;
+}
+
+.gestion-cotizaciones .total-item.total-final {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 2px solid rgba(17, 105, 92, 0.3);
+}
+
+.gestion-cotizaciones .total-item.total-final span:first-child {
+  color: #5eead4;
+  font-size: 1.1rem;
+}
+
+.gestion-cotizaciones .total-item.total-final span:last-child {
+  color: #10b981;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* ================== ACCIONES FINALES ================== */
+.gestion-cotizaciones .acciones-finales {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ================== BOTONES PEQUEÑOS ================== */
+.gestion-cotizaciones .boton-eliminar-pequeno {
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-.gestion-citas .modal-alerta::before {
-  background: linear-gradient(90deg, #7b2c25, #ef4444, #7b2c25);
+.gestion-cotizaciones .boton-eliminar-pequeno:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+/* ================== INFO USUARIO ================== */
+.gestion-cotizaciones .info-usuario {
+  background: rgba(17, 105, 92, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(17, 105, 92, 0.3);
+}
+
+.gestion-cotizaciones .info-text {
+  color: #5eead4;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.gestion-cotizaciones .warning-text {
+  color: #f59e0b;
+  font-size: 0.9rem;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+/* ================== SELECTOR DE COTIZACIÓN ================== */
+.gestion-cotizaciones .separador {
+  text-align: center;
+  margin: 20px 0;
+  color: #9aa4b2;
+  position: relative;
+}
+
+.gestion-cotizaciones .separador:before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 1;
+}
+
+.gestion-cotizaciones .separador span {
+  background: rgba(51, 69, 66, 0.95);
+  padding: 0 20px;
+  display: inline-block;
+  position: relative;
+  z-index: 2;
+}
+
+/* ================== SUBTITULO ================== */
+.gestion-cotizaciones .subtitulo {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+  font-weight: normal;
+  margin-left: 10px;
 }
 
 /* ================== RESPONSIVE ================== */
 @media (max-width: 1588px) {
-  .gestion-citas .contenedor-principal {
+  .gestion-cotizaciones .contenedor-principal {
     flex-direction: column;
     height: auto;
     min-height: auto;
   }
   
-  .gestion-citas .contenedor-lista {
+  .gestion-cotizaciones .contenedor-lista {
     width: 100%;
     height: 60vh;
     min-height: 400px;
   }
   
-  .gestion-citas .contenedor-detalles {
+  .gestion-cotizaciones .contenedor-detalles {
     width: 100%;
     max-width: 100%;
     height: auto;
@@ -765,67 +1023,84 @@
     margin-top: 20px;
   }
   
-  .gestion-citas .sidebar-details {
+  .gestion-cotizaciones .sidebar-details {
     height: auto;
     min-height: 200px;
   }
   
-  .gestion-citas .table-container {
+  .gestion-cotizaciones .table-container {
     max-height: 60vh;
   }
 }
 
+@media (max-width: 1024px) {
+  .gestion-cotizaciones .grid-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .gestion-cotizaciones .modal-grande {
+    width: 95%;
+    margin: 10px;
+  }
+}
+
 @media (max-width: 768px) {
-  .gestion-citas .busqueda-agregar {
+  .gestion-cotizaciones .busqueda-agregar {
     flex-direction: column;
   }
   
-  .gestion-citas .sidebar-footer,
-  .gestion-citas .estado-actions,
-  .gestion-citas .modal-footer {
+  .gestion-cotizaciones .sidebar-footer,
+  .gestion-cotizaciones .modal-footer {
     flex-direction: column;
   }
   
-  .gestion-citas .detail-item {
+  .gestion-cotizaciones .detail-item {
     flex-direction: column;
     gap: 5px;
   }
   
-  .gestion-citas .detail-label,
-  .gestion-citas .detail-value {
+  .gestion-cotizaciones .detail-label,
+  .gestion-cotizaciones .detail-value {
     min-width: auto;
     text-align: left;
   }
   
-  .gestion-citas .form-row {
+  .gestion-cotizaciones .form-group-inline {
     flex-direction: column;
-    gap: 0;
   }
   
-  .gestion-citas .modal,
-  .gestion-citas .modal-wide,
-  .gestion-citas .modal-alerta {
+  .gestion-cotizaciones .form-group-inline input,
+  .gestion-cotizaciones .form-group-inline button {
+    width: 100%;
+  }
+  
+  .gestion-cotizaciones .acciones-finales {
+    flex-direction: column;
+  }
+  
+  .gestion-cotizaciones .modal-footer {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .gestion-cotizaciones .modal {
     padding: 25px;
     width: 95%;
   }
 }
 
 /* ================== ANIMACIONES ================== */
-.gestion-citas .fade-in {
-  animation: fadeIn 0.3s ease-in;
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* ================== ESTILOS ADICIONALES ================== */
-.gestion-citas .descripcion-text {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 215, 0, 0.1);
-}
-
-.gestion-citas .search-bar::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+.gestion-cotizaciones .modal-grande {
+  animation: slideInRight 0.3s ease-out;
 }

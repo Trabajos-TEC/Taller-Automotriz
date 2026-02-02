@@ -1,4 +1,4 @@
-/* Fondo oscuro */
+/* Fondo oscuro del overlay */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -10,88 +10,375 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease-out;
 }
 
-/* Caja del modal */
+/* Caja del modal - GRIS CLARO APAGADO */
 .modal-container {
-  background: #ffffff;
-  width: 420px;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-  animation: fadeIn 0.25s ease-in-out;
+  background: rgba(190, 184, 184, 0.98); /* Gris claro sólido con toque de transparencia */
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 
+    0 25px 60px rgba(218, 209, 209, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  max-width: 520px;
+  width: 90%;
+  animation: modalAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(228, 228, 228, 0.9);
 }
 
-/* Animación */
-@keyframes fadeIn {
+/* Línea decorativa superior - GRIS NEUTRO */
+.modal-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    rgba(180, 180, 180, 0.6), 
+    rgba(140, 140, 140, 0.8), 
+    rgba(180, 180, 180, 0.6));
+  z-index: 1;
+}
+
+@keyframes modalAppear {
   from {
     opacity: 0;
-    transform: translateY(-15px);
+    transform: scale(0.9) translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1) translateY(0);
   }
 }
 
 /* Título */
 .modal-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 20px;
-  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 25px;
+  color: #444; /* Gris oscuro */
+  text-align: left;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(180, 180, 180, 0.6);
+  position: relative;
+  letter-spacing: 0.3px;
+}
+
+.modal-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(140, 140, 140, 0.5), 
+    transparent);
 }
 
 /* Formulario */
 .modal-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
+  margin-bottom: 25px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
 }
 
-/* Inputs y select */
+.modal-form::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-form::-webkit-scrollbar-track {
+  background: rgba(180, 180, 180, 0.3);
+  border-radius: 3px;
+}
+
+.modal-form::-webkit-scrollbar-thumb {
+  background: rgba(140, 140, 140, 0.5);
+  border-radius: 3px;
+}
+
+/* Grupos de formulario */
+.modal-form .form-group {
+  margin-bottom: 0;
+}
+
+/* Labels */
+.modal-form label {
+  color: #555; /* Gris medio */
+  margin-bottom: 6px;
+  font-weight: 600;
+  display: block;
+  font-size: 0.9rem;
+  letter-spacing: 0.2px;
+}
+
+/* Inputs y select - APAGADOS/SUAVES */
 .modal-form input,
-.modal-form select {
-  padding: 10px 12px;
-  font-size: 0.95rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  outline: none;
+.modal-form select,
+.modal-form textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(180, 180, 180, 0.8);
+  background: rgba(228, 222, 222, 0.9);
+  color: #333;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  font-weight: 500;
+}
+
+.modal-form input:hover,
+.modal-form select:hover,
+.modal-form textarea:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(160, 160, 160, 0.8);
 }
 
 .modal-form input:focus,
-.modal-form select:focus {
-  border-color: #007bff;
+.modal-form select:focus,
+.modal-form textarea:focus {
+  outline: none;
+  border-color: rgba(88, 69, 67, 0.7); /* Color rojo apagado para focus */
+  box-shadow: 0 0 0 3px rgba(123, 44, 37, 0.15);
+  background: #ffffff;
+}
+
+/* Placeholder más apagado */
+.modal-form input::placeholder {
+  color: #999;
+  opacity: 0.8;
+}
+
+/* Options del select */
+.modal-form select option {
+  background: #ffffff;
+  color: #333;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.modal-form select option:hover,
+.modal-form select option:focus,
+.modal-form select option:checked {
+  background: rgba(59, 51, 50, 0.9);
+  color: #fff;
 }
 
 /* Botones */
 .modal-actions {
   display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(180, 180, 180, 0.5);
 }
 
 .btn-modal {
-  padding: 10px 16px;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
   border: none;
+  transition: all 0.3s ease;
+  min-width: 110px;
+  text-align: center;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 13px;
 }
 
+/* BOTÓN GUARDAR - VERDE APAGADO (mismo tono que el rojo) */
 .btn-modal-primary {
-  background-color: #007bff;
+  background: rgba(23, 107, 92, 0.9); /* Verde azulado apagado #176b5c */
   color: white;
+  border: 1px solid rgba(23, 107, 92, 0.5);
+  box-shadow: 0 3px 8px rgba(23, 107, 92, 0.25);
 }
 
 .btn-modal-primary:hover {
-  background-color: #0056b3;
+  background: rgba(28, 128, 109, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(23, 107, 92, 0.3);
+  border-color: rgba(23, 107, 92, 0.7);
 }
 
+.btn-modal-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(23, 107, 92, 0.25);
+}
+
+/* BOTÓN CANCELAR - ROJO APAGADO */
 .btn-modal-cancel {
-  background-color: #e0e0e0;
+  background: rgba(123, 44, 37, 0.9); /* Rojo apagado #7b2c25 */
+  color: white;
+  border: 1px solid rgba(123, 44, 37, 0.5);
+  box-shadow: 0 3px 8px rgba(123, 44, 37, 0.25);
 }
 
 .btn-modal-cancel:hover {
-  background-color: #cfcfcf;
+  background: rgba(152, 62, 62, 0.95); /* #983e3e */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(123, 44, 37, 0.3);
+  border-color: rgba(65, 61, 61, 0.7);
+}
+
+.btn-modal-cancel:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(123, 44, 37, 0.25);
+}
+
+/* Botón cerrar */
+.btn-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(220, 220, 220, 0.8);
+  border: 1px solid rgba(180, 180, 180, 0.6);
+  color: #666;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  z-index: 2;
+  font-weight: bold;
+}
+
+.btn-close:hover {
+  background: rgba(123, 44, 37, 0.1);
+  color: #7b2c25;
+  transform: rotate(90deg);
+  border-color: rgba(123, 44, 37, 0.3);
+}
+
+/* Estados de error */
+.modal-form .input-error {
+  border-color: rgba(229, 62, 62, 0.8) !important;
+  background: rgba(229, 62, 62, 0.08) !important;
+}
+
+.modal-form .error-message {
+  color: #c33;
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+  font-weight: 500;
+}
+
+/* Info text */
+.modal-form .field-info {
+  color: #777;
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+  font-style: italic;
+}
+
+/* Textarea */
+.modal-form textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* Checkboxes y radios */
+.modal-form input[type="checkbox"],
+.modal-form input[type="radio"] {
+  width: auto;
+  margin-right: 8px;
+  accent-color: rgba(123, 44, 37, 0.8);
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-container {
+    padding: 20px;
+    width: 95%;
+    margin: 10px;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn-modal {
+    width: 100%;
+    padding: 14px;
+  }
+  
+  .modal-title {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-container {
+    padding: 15px;
+  }
+  
+  .modal-form {
+    gap: 12px;
+  }
+  
+  .modal-form input,
+  .modal-form select,
+  .modal-form textarea {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .btn-modal {
+    padding: 12px;
+    min-width: auto;
+  }
+}
+
+/* Estilos adicionales para mejor legibilidad */
+.modal-form input:disabled,
+.modal-form select:disabled,
+.modal-form textarea:disabled {
+  background: rgba(240, 240, 240, 0.8);
+  color: #888;
+  cursor: not-allowed;
+}
+
+.modal-form input:read-only {
+  background: rgba(245, 245, 245, 0.9);
+  color: #666;
+}
+
+/* Focus visible para accesibilidad */
+.modal-form input:focus-visible,
+.modal-form select:focus-visible,
+.modal-form textarea:focus-visible {
+  outline: 2px solid rgba(66, 55, 54, 0.7);
+  outline-offset: 2px;
 }

@@ -660,3 +660,19 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+.gestion-vehiculos select option {
+  background: #1f2937; /* Fondo oscuro para las opciones */
+  color: #fff; /* Texto blanco */
+  padding: 10px;
+}
+
+.gestion-vehiculos select {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* Para el dropdown del select */
+.gestion-vehiculos select:focus option {
+  background: #440f02;
+}

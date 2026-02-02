@@ -1104,3 +1104,19 @@
 .gestion-cotizaciones .modal-grande {
   animation: slideInRight 0.3s ease-out;
 }
+
+.gestion-cotizaciones select option {
+  background: #1f2937; /* Fondo oscuro para las opciones */
+  color: #fff; /* Texto blanco */
+  padding: 10px;
+}
+
+.gestion-cotizaciones select {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* Para el dropdown del select */
+.gestion-cotizaciones select:focus option {
+  background: #4b3751;
+}

@@ -1035,3 +1035,19 @@
     font-size: 13px !important;
   }
 }
+
+.gestion-inventario select option {
+  background: #1f2937; /* Fondo oscuro para las opciones */
+  color: #fff; /* Texto blanco */
+  padding: 10px;
+}
+
+.gestion-inventario select {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* Para el dropdown del select */
+.gestion-inventario select:focus option {
+  background: #394e33;
+}
