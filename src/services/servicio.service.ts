@@ -17,16 +17,16 @@ export interface Servicio {
 export const servicioService = {
   // Obtener todos los servicios del taller actual
   async getServicios(): Promise<ApiResponse<Servicio[]>> {
-    return fetchApi<Servicio[]>('/servicios');
+    return fetchApi<Servicio[]>('/servicios'); // ← Esto llama a GET /servicios
   },
 
   // Obtener un servicio por ID
   async getServicioById(id: number): Promise<ApiResponse<Servicio>> {
-    return fetchApi<Servicio>(`/servicios/${id}`);
+    return fetchApi<Servicio>(`/servicios/${id}`); // ← Esto llama a GET /servicios/:id
   },
 
   // Obtener un servicio por código
   async getServicioByCodigo(codigo: string): Promise<ApiResponse<Servicio>> {
-    return fetchApi<Servicio>(`/servicios/codigo/${codigo}`);
+    return fetchApi<Servicio>(`/servicios/codigo/${codigo}`); // ← Esto llama a GET /servicios/codigo/:codigo
   }
 };
