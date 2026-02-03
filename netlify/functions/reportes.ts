@@ -21,7 +21,6 @@ export const handler: Handler = async (event) => {
     
     const sql = getConnection();
 
-  try {
     // GET - Obtener reportes (todos o por ID)
     if (event.httpMethod === 'GET') {
       const pathParts = event.path.split('/').filter(Boolean);
