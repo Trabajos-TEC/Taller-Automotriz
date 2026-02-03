@@ -326,10 +326,10 @@ const crearOrdenDesdeCita = async () => {
 
     const citaDetalle = citaDetalleResponse.data;
     
-    // ORDEN SIMPLE con servicio_id: 0
+    // ORDEN sin servicio asociado - se agregará después manualmente
     const nuevaOrden: Omit<OrdenTrabajo, 'id' | 'created_at' | 'updated_at'> = {
       vehiculo_cliente_id: citaDetalle.vehiculo_cliente_id,
-      servicio_id: 0, // ← SOLO ESTO ES NECESARIO
+      servicio_id: null, // Sin servicio asociado inicialmente
       tipo_servicio: 'Servicio general',
       descripcion: observacionesIniciales.trim() || `Orden desde cita ${citaSeleccionada.idFormateado}`,
       fecha_entrada: new Date().toISOString(),
@@ -634,6 +634,16 @@ const agregarServicioTrabajo = () => {
     return total;
   };
 
+  /* === FORMATO DE MONEDA === */
+  const formatoMoneda = (valor: number): string => {
+    // Redondear a 2 decimales y formatear para Costa Rica
+    const valorRedondeado = Math.round(valor * 100) / 100;
+    return '₡' + new Intl.NumberFormat('es-CR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(valorRedondeado);
+  };
+
   return (
     <div className="gestion-trabajos">
       <div className="header-section">
@@ -722,7 +732,7 @@ const agregarServicioTrabajo = () => {
                       </span>
                     </td>
                     <td>{trabajo.fechaCreacion}</td>
-                    <td className="total-column">₡{calcularTotal(trabajo).toLocaleString()}</td>
+                    <td className="total-column">{formatoMoneda(calcularTotal(trabajo))}</td>
                   </tr>
                 ))}
               </tbody>
@@ -776,7 +786,7 @@ const agregarServicioTrabajo = () => {
                 </div>
                 <div className="detail-item">
                   <span className="detail-label">Total:</span>
-                  <span className="detail-value">₡{calcularTotal(selected).toLocaleString()}</span>
+                  <span className="detail-value">{formatoMoneda(calcularTotal(selected))}</span>
                 </div>
               </div>
               
@@ -947,8 +957,8 @@ const agregarServicioTrabajo = () => {
                           <td>{repuesto.codigo}</td>
                           <td>{repuesto.nombre}</td>
                           <td>{repuesto.cantidad}</td>
-                          <td>₡{repuesto.precio.toLocaleString()}</td>
-                          <td>₡{repuesto.subtotal.toLocaleString()}</td>
+                          <td>{formatoMoneda(repuesto.precio)}</td>
+                          <td>{formatoMoneda(repuesto.subtotal)}</td>
                           <td>
                             <button 
                               className="boton boton-eliminar-pequeno"
@@ -1025,7 +1035,7 @@ const agregarServicioTrabajo = () => {
                           <td>{servicio.codigo}</td>
                           <td>{servicio.nombre}</td>
                           <td>{servicio.descripcion}</td>
-                          <td>₡{servicio.precio.toLocaleString()}</td>
+                          <td>{formatoMoneda(servicio.precio)}</td>
                           <td>
                             <button 
                               className="boton boton-eliminar-pequeno"
@@ -1057,7 +1067,7 @@ const agregarServicioTrabajo = () => {
                     <datalist id="servicios-lista">
                       {manoDeObra.map(serv => (
                         <option key={serv.codigo} value={serv.codigo}>
-                          {serv.nombre} - ₡{serv.precio.toLocaleString()}
+                          {serv.nombre} - {formatoMoneda(serv.precio)}
                         </option>
                       ))}
                     </datalist>
@@ -1117,7 +1127,7 @@ const agregarServicioTrabajo = () => {
             <div className="modal-footer">
               <div className="total-resumen">
                 <span className="total-label">Total de la Orden:</span>
-                <span className="total-valor">₡{calcularTotal(selected).toLocaleString()}</span>
+                <span className="total-valor">{formatoMoneda(calcularTotal(selected))}</span>
               </div>
               
               <div className="acciones-finales">
