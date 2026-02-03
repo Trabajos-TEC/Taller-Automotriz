@@ -281,30 +281,70 @@ const apiOrdenesTrabajo = {
       const data = await response.json();
       
       if (data.success && data.data) {
-        // Transformar datos del API al formato esperado
-        const ordenesTransformadas: OrdenTrabajo[] = data.data.map((orden: any) => ({
-          codigoOrden: `OT-${String(orden.id).padStart(3, '0')}`,
-          clienteNombre: orden.cliente_nombre || 'N/A',
-          clienteCedula: orden.cliente_cedula || 'N/A',
-          placa: orden.vehiculo_placa || 'N/A',
-          fechaCreacion: orden.fecha_entrada ? new Date(orden.fecha_entrada).toISOString().split('T')[0] : '',
-          estado: orden.estado || 'Pendiente',
-          observacionesIniciales: orden.descripcion || '',
-          repuestosUtilizados: [],
-          serviciosRealizados: orden.servicio_nombre ? [{
-            codigo: `S${orden.servicio_id || '000'}`,
-            nombre: orden.servicio_nombre,
-            precio: orden.costo || 0,
-            descripcion: orden.tipo_servicio || ''
-          }] : [],
-          mecanico: orden.mecanico_nombre || 'Sin asignar'
-        }));
-        
+        // Cargar detalles de cada orden (repuestos y servicios)
+        const ordenesConDetalles = await Promise.all(
+          data.data.map(async (orden: any) => {
+            // Cargar repuestos y servicios de la orden
+            const [repuestosRes, serviciosRes] = await Promise.all([
+              fetch(`/.netlify/functions/orden-detalles/${orden.id}/repuestos`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+              }),
+              fetch(`/.netlify/functions/orden-detalles/${orden.id}/servicios`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+              })
+            ]);
+
+            const repuestosData = repuestosRes.ok ? await repuestosRes.json() : { success: false, data: [] };
+            const serviciosData = serviciosRes.ok ? await serviciosRes.json() : { success: false, data: [] };
+
+            // Convertir repuestos
+            const repuestos = repuestosData.success && repuestosData.data ? repuestosData.data.map((r: any) => ({
+              codigo: r.producto_codigo,
+              nombre: r.producto_nombre,
+              cantidad: r.cantidad,
+              precio: parseFloat(r.precio_unitario) || 0,
+              subtotal: parseFloat(r.subtotal) || 0
+            })) : [];
+
+            // Convertir servicios
+            const servicios = serviciosData.success && serviciosData.data ? serviciosData.data.map((s: any) => ({
+              codigo: s.servicio_codigo,
+              nombre: s.servicio_nombre,
+              precio: parseFloat(s.precio) || 0,
+              descripcion: s.descripcion
+            })) : [];
+
+            // Si hay servicio_id principal, agregarlo también
+            if (orden.servicio_nombre) {
+              servicios.push({
+                codigo: `S${orden.servicio_id || '000'}`,
+                nombre: orden.servicio_nombre,
+                precio: parseFloat(String(orden.servicio_precio || 0)),
+                descripcion: orden.tipo_servicio || ''
+              });
+            }
+
+            return {
+              codigoOrden: `OT-${String(orden.id).padStart(3, '0')}`,
+              clienteNombre: orden.cliente_nombre || 'N/A',
+              clienteCedula: orden.cliente_cedula || 'N/A',
+              placa: orden.vehiculo_placa || 'N/A',
+              fechaCreacion: orden.fecha_entrada ? new Date(orden.fecha_entrada).toISOString().split('T')[0] : '',
+              estado: orden.estado || 'Pendiente',
+              observacionesIniciales: orden.descripcion || '',
+              repuestosUtilizados: repuestos,
+              serviciosRealizados: servicios,
+              mecanico: orden.mecanico_nombre || 'Sin asignar'
+            };
+          })
+        );
+
         // Filtrar por usuario si es necesario
-        if (usuario) {
-          return ordenesTransformadas.filter(ot => ot.mecanico === usuario);
-        }
-        return ordenesTransformadas;
+        const ordenesFiltradas = usuario 
+          ? ordenesConDetalles.filter(ot => ot.mecanico === usuario)
+          : ordenesConDetalles;
+        
+        return ordenesFiltradas;
       }
       return [];
     } catch (error) {
