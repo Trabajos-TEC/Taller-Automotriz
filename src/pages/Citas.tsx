@@ -624,8 +624,8 @@ const Citas: React.FC = () => {
                 <label>Hora *</label>
                 <input
                   type="time"
-                  value={nuevaCita.hora}
-                  onChange={e => setNuevaCita({ ...nuevaCita, hora: e.target.value })}
+                  value={nuevaCita.hora.substring(0, 5)}
+                  onChange={e => setNuevaCita({ ...nuevaCita, hora: e.target.value + ':00' })}
                   className={errors.hora ? 'input-error' : ''}
                   min="08:00"
                   max="18:00"
