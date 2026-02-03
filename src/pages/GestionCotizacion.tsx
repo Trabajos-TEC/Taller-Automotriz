@@ -491,20 +491,29 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
 
   /* === CÁLCULO DE TOTALES === */
   const calculoTotales = useMemo<Totales>(() => {
+    // Subtotal de repuestos
     const subtotalRepuestos = (form.repuestos || []).reduce((total: number, repuesto: Repuesto) => {
       return total + (repuesto.cantidad * repuesto.precio);
     }, 0);
 
+    // Subtotal de mano de obra (sin descuento)
     const subtotalManoObra = (form.manoObra || []).reduce((total: number, servicio: ManoObra) => {
       return total + servicio.tarifa;
     }, 0);
 
+    // Calcular descuento sobre mano de obra
     const descuentoPorcentaje = Number(form.descuentoManoObra) || 0;
     const descuentoMonto = (subtotalManoObra * descuentoPorcentaje) / 100;
+    const manoObraConDescuento = subtotalManoObra - descuentoMonto;
 
-    const subtotalDespuesDescuento = (subtotalRepuestos + subtotalManoObra) - descuentoMonto;
-    const iva = subtotalDespuesDescuento * 0.13;
-    const total = subtotalDespuesDescuento + iva;
+    // Calcular subtotal antes de IVA (repuestos + mano de obra con descuento)
+    const subtotalAntesIVA = subtotalRepuestos + manoObraConDescuento;
+    
+    // Calcular IVA del 13% sobre el subtotal
+    const iva = subtotalAntesIVA * 0.13;
+    
+    // Total final
+    const total = subtotalAntesIVA + iva;
 
     return {
       subtotalRepuestos,
@@ -517,7 +526,12 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
 
   /* === FORMATO DE MONEDA === */
   const formatoMoneda = (valor: number): string => {
-    return '₡' + new Intl.NumberFormat('es-CO').format(valor);
+    // Redondear a 2 decimales y formatear para Costa Rica
+    const valorRedondeado = Math.round(valor * 100) / 100;
+    return '₡' + new Intl.NumberFormat('es-CR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(valorRedondeado);
   };
 
   /* === AGREGAR REPUESTO === */

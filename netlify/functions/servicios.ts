@@ -15,7 +15,7 @@ export const handler: Handler = async (event) => {
 
   try {
     const user = requireAuth(event);
-    const TALLER_ID = user.taller_id;
+    // Servicios es una tabla global sin taller_id
 
     const sql = getConnection();
     const pathParts = event.path.split('/').filter(Boolean);
@@ -30,7 +30,6 @@ export const handler: Handler = async (event) => {
           const servicio = await sql`
             SELECT * FROM servicios 
             WHERE codigo = ${codigo} 
-              AND taller_id = ${TALLER_ID}
               AND activo = true
             LIMIT 1
           `;
@@ -51,7 +50,6 @@ export const handler: Handler = async (event) => {
           const servicio = await sql`
             SELECT * FROM servicios 
             WHERE id = ${id} 
-              AND taller_id = ${TALLER_ID}
               AND activo = true
             LIMIT 1
           `;
@@ -64,11 +62,10 @@ export const handler: Handler = async (event) => {
         }
       }
       
-      // GET /servicios (todos los servicios del taller)
+      // GET /servicios (todos los servicios activos)
       const servicios = await sql`
         SELECT * FROM servicios 
-        WHERE taller_id = ${TALLER_ID}
-          AND activo = true
+        WHERE activo = true
         ORDER BY nombre
       `;
       

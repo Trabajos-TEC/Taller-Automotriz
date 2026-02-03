@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import '../styles/pages/ReportesAdmin.css';
 import '../styles/Botones.css';
+import { fetchApi, type ApiResponse } from '../services/api';
 
 interface Reporte {
   id: number;
@@ -10,12 +11,6 @@ interface Reporte {
   fecha: string;
   estado: "pendiente" | "en-proceso" | "atendido";
   detalles?: Record<string, any>;
-}
-
-interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  message?: string;
 }
 
 const ReportesAdministrador: React.FC = () => {
@@ -42,9 +37,7 @@ const ReportesAdministrador: React.FC = () => {
         usuario: filtroUsuario || "",
       }).toString();
 
-      const res = await fetch(`/.netlify/functions/reportes?${query}`);
-      if (!res.ok) throw new Error("Error al obtener reportes");
-      const data: ApiResponse<Reporte[]> = await res.json();
+      const data = await fetchApi<Reporte[]>(`/reportes?${query}`);
       
       if (data.success) {
         setReportes(data.data);
@@ -71,15 +64,10 @@ const ReportesAdministrador: React.FC = () => {
   // 🔽 ACTUALIZAR ESTADO DEL REPORTE
   const actualizarEstadoReporte = async (id: number, nuevoEstado: Reporte["estado"]) => {
     try {
-      const res = await fetch(`/.netlify/functions/reportes/${id}`, {
+      const data = await fetchApi<Reporte>(`/reportes/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estado: nuevoEstado }),
       });
-
-      if (!res.ok) throw new Error("Error al actualizar reporte");
-
-      const data: ApiResponse<Reporte> = await res.json();
       
       if (data.success) {
         // 🔄 ACTUALIZAR LISTA INMEDIATAMENTE

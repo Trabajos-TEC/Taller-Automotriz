@@ -221,6 +221,7 @@ export const handler: Handler = async (event) => {
           }
         }
 
+        // Actualizar solo los campos que vienen definidos
         const ordenActualizada = await sql`
           UPDATE ordenes_trabajo
           SET 

@@ -557,9 +557,8 @@ const agregarServicioTrabajo = () => {
     
     const costoTotal = calcularTotal(selected);
     
-    // Siempre mantener servicio_id: 0
+    // No enviar servicio_id si es null, solo descripción, costo y notas
     const datosActualizados: Partial<OrdenTrabajo> = {
-      servicio_id: 0, // ← SIEMPRE 0
       descripcion: selected.observacionesIniciales,
       costo: costoTotal,
       notas: selected.notasDiagnostico?.map(n => n.texto).join(' | ') || null

@@ -24,6 +24,15 @@ interface Cotizacion {
   descuentoManoObra?: number;
 }
 
+// Función helper para formato de moneda
+const formatoMoneda = (valor: number): string => {
+  const valorRedondeado = Math.round(valor * 100) / 100;
+  return new Intl.NumberFormat('es-CR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(valorRedondeado);
+};
+
 const GeneradorPDF = {
   generarCotizacionPDF: async (cotizacion: Cotizacion): Promise<void> => {
     try {
@@ -260,7 +269,7 @@ const GeneradorPDF = {
             color: rgb(0, 0, 0),
           });
 
-          page.drawText(`CRC ${(repuesto.precio || 0).toLocaleString()}`, {
+          page.drawText(`CRC ${formatoMoneda(repuesto.precio || 0)}`, {
             x: 370,
             y: yPosition,
             size: 9,
@@ -269,7 +278,7 @@ const GeneradorPDF = {
           });
 
           const subtotal = (repuesto.cantidad || 0) * (repuesto.precio || 0);
-          page.drawText(`CRC ${subtotal.toLocaleString()}`, {
+          page.drawText(`CRC ${formatoMoneda(subtotal)}`, {
             x: 450,
             y: yPosition,
             size: 9,
@@ -337,7 +346,7 @@ const GeneradorPDF = {
             color: rgb(0, 0, 0),
           });
 
-          page.drawText(`CRC ${(servicio.tarifa || 0).toLocaleString()}`, {
+          page.drawText(`CRC ${formatoMoneda(servicio.tarifa || 0)}`, {
             x: 450,
             y: yPosition,
             size: 9,
@@ -370,7 +379,7 @@ const GeneradorPDF = {
       // Posición para los totales (esquina inferior izquierda)
       const totalYPosition = 120;
 
-      page.drawText(`Subtotal Repuestos: CRC ${subtotalRepuestos.toLocaleString()}`, {
+      page.drawText(`Subtotal Repuestos: CRC ${formatoMoneda(subtotalRepuestos)}`, {
         x: 50,
         y: totalYPosition + 40,
         size: 10,
@@ -378,7 +387,7 @@ const GeneradorPDF = {
         color: rgb(0, 0, 0),
       });
 
-      page.drawText(`Subtotal Mano Obra: CRC ${subtotalManoObra.toLocaleString()}`, {
+      page.drawText(`Subtotal Mano Obra: CRC ${formatoMoneda(subtotalManoObra)}`, {
         x: 50,
         y: totalYPosition + 25,
         size: 10,
@@ -387,7 +396,7 @@ const GeneradorPDF = {
       });
 
       if (descuento > 0) {
-        page.drawText(`Descuento (${cotizacion.descuentoManoObra}%): -CRC ${descuento.toLocaleString()}`, {
+        page.drawText(`Descuento (${cotizacion.descuentoManoObra}%): -CRC ${formatoMoneda(descuento)}`, {
           x: 50,
           y: totalYPosition + 10,
           size: 10,
@@ -395,7 +404,7 @@ const GeneradorPDF = {
           color: rgb(0.8, 0, 0),
         });
 
-        page.drawText(`IVA (13%): CRC ${iva.toLocaleString()}`, {
+        page.drawText(`IVA (13%): CRC ${formatoMoneda(iva)}`, {
           x: 50,
           y: totalYPosition - 5,
           size: 10,
@@ -403,7 +412,7 @@ const GeneradorPDF = {
           color: rgb(0, 0, 0),
         });
 
-        page.drawText(`TOTAL: CRC ${total.toLocaleString()}`, {
+        page.drawText(`TOTAL: CRC ${formatoMoneda(total)}`, {
           x: 50,
           y: totalYPosition - 25,
           size: 14,
@@ -411,7 +420,7 @@ const GeneradorPDF = {
           color: rgb(0.9, 0.2, 0.2),
         });
       } else {
-        page.drawText(`IVA (13%): CRC ${iva.toLocaleString()}`, {
+        page.drawText(`IVA (13%): CRC ${formatoMoneda(iva)}`, {
           x: 50,
           y: totalYPosition + 10,
           size: 10,
@@ -419,7 +428,7 @@ const GeneradorPDF = {
           color: rgb(0, 0, 0),
         });
 
-        page.drawText(`TOTAL: CRC ${total.toLocaleString()}`, {
+        page.drawText(`TOTAL: CRC ${formatoMoneda(total)}`, {
           x: 50,
           y: totalYPosition - 10,
           size: 14,
