@@ -18,6 +18,7 @@ interface Trabajo {
   estado: 'Pendiente' | 'En proceso' | 'Finalizada' | 'Cancelada';
   observacionesIniciales: string;
   repuestosUtilizados?: {
+    id?: number;
     codigo: string;
     nombre: string;
     cantidad: number;
@@ -25,7 +26,8 @@ interface Trabajo {
     subtotal: number;
   }[];
   serviciosRealizados?: {
-    codigo: string;  // SIN id aquí
+    id?: number;
+    codigo: string;
     nombre: string;
     precio: number;
     descripcion: string;
@@ -150,6 +152,7 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
           const repuestos = repuestosData.success && repuestosData.data ? repuestosData.data.map((r: any) => {
             console.log(`   Repuesto: ${r.producto_nombre}, subtotal: ${r.subtotal}, tipo: ${typeof r.subtotal}`);
             return {
+              id: r.id,
               codigo: r.producto_codigo,
               nombre: r.producto_nombre,
               cantidad: r.cantidad,
@@ -162,6 +165,7 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
           const servicios = serviciosData.success && serviciosData.data ? serviciosData.data.map((s: any) => {
             console.log(`   Servicio: ${s.servicio_nombre}, precio: ${s.precio}, tipo: ${typeof s.precio}`);
             return {
+              id: s.id,
               codigo: s.servicio_codigo,
               nombre: s.servicio_nombre,
               precio: parseFloat(s.precio) || 0,
@@ -496,22 +500,42 @@ const crearOrdenDesdeCita = async () => {
   };
 
   /* === ELIMINAR REPUESTO === */
-  const eliminarRepuesto = (index: number) => {
-    if (!selected || !selected.repuestosUtilizados) return;
+  const eliminarRepuesto = async (index: number) => {
+    if (!selected || !selected.repuestosUtilizados || !selected._ordenId) return;
 
-    const trabajoActualizado = { ...selected };
-    const repuestoEliminado = trabajoActualizado.repuestosUtilizados?.[index];
+    const repuestoEliminado = selected.repuestosUtilizados[index];
     
-    trabajoActualizado.repuestosUtilizados = trabajoActualizado.repuestosUtilizados?.filter((_, i) => i !== index);
-    
-    setSelected(trabajoActualizado);
-    setTrabajos(trabajos.map(t => 
-      t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
-    ));
+    if (!repuestoEliminado?.id) {
+      showToast('No se puede eliminar este repuesto', 'error');
+      return;
+    }
 
-    // Aquí podrías devolver la cantidad al inventario si es necesario
-    if (repuestoEliminado) {
-      // await inventarioService.incrementarStock(repuestoEliminado.codigo, repuestoEliminado.cantidad);
+    try {
+      // Eliminar de la base de datos
+      const response = await fetch(`/.netlify/functions/orden-detalles/${selected._ordenId}/repuestos/${repuestoEliminado.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar el repuesto');
+      }
+
+      // Actualizar estado local
+      const trabajoActualizado = { ...selected };
+      trabajoActualizado.repuestosUtilizados = trabajoActualizado.repuestosUtilizados?.filter((_, i) => i !== index);
+      
+      setSelected(trabajoActualizado);
+      setTrabajos(trabajos.map(t => 
+        t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
+      ));
+
+      showToast('Repuesto eliminado exitosamente', 'success');
+    } catch (err) {
+      console.error('Error eliminando repuesto:', err);
+      showToast('Error al eliminar el repuesto', 'error');
     }
   };
 
@@ -578,16 +602,43 @@ const agregarServicioTrabajo = async () => {
 };
 
   /* === ELIMINAR SERVICIO === */
-  const eliminarServicio = (index: number) => {
-    if (!selected || !selected.serviciosRealizados) return;
+  const eliminarServicio = async (index: number) => {
+    if (!selected || !selected.serviciosRealizados || !selected._ordenId) return;
 
-    const trabajoActualizado = { ...selected };
-    trabajoActualizado.serviciosRealizados = trabajoActualizado.serviciosRealizados?.filter((_, i) => i !== index);
+    const servicioEliminado = selected.serviciosRealizados[index];
     
-    setSelected(trabajoActualizado);
-    setTrabajos(trabajos.map(t => 
-      t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
-    ));
+    if (!servicioEliminado?.id) {
+      showToast('No se puede eliminar este servicio', 'error');
+      return;
+    }
+
+    try {
+      // Eliminar de la base de datos
+      const response = await fetch(`/.netlify/functions/orden-detalles/${selected._ordenId}/servicios/${servicioEliminado.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar el servicio');
+      }
+
+      // Actualizar estado local
+      const trabajoActualizado = { ...selected };
+      trabajoActualizado.serviciosRealizados = trabajoActualizado.serviciosRealizados?.filter((_, i) => i !== index);
+      
+      setSelected(trabajoActualizado);
+      setTrabajos(trabajos.map(t => 
+        t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
+      ));
+
+      showToast('Servicio eliminado exitosamente', 'success');
+    } catch (err) {
+      console.error('Error eliminando servicio:', err);
+      showToast('Error al eliminar el servicio', 'error');
+    }
   };
 
   /* === AGREGAR NOTA DE DIAGNÓSTICO === */
