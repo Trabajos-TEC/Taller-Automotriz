@@ -705,6 +705,8 @@ const agregarServicioTrabajo = async () => {
 
   /* === CALCULAR TOTAL === */
   const calcularTotal = (trabajo: Trabajo) => {
+    if (!trabajo) return 0;
+    
     let total = 0;
     
     if (trabajo.repuestosUtilizados) {
@@ -722,11 +724,16 @@ const agregarServicioTrabajo = async () => {
     }
     
     // Redondear a 2 decimales para evitar problemas de precisión
-    return Math.round(total * 100) / 100;
+    const resultado = Math.round(total * 100) / 100;
+    return isNaN(resultado) ? 0 : resultado;
   };
 
   /* === FORMATO DE MONEDA === */
   const formatoMoneda = (valor: number): string => {
+    // Validar que el valor sea un número válido
+    if (valor === null || valor === undefined || isNaN(valor)) {
+      return '₡0,00';
+    }
     // Redondear a 2 decimales y formatear para Costa Rica
     const valorRedondeado = Math.round(valor * 100) / 100;
     return '₡' + new Intl.NumberFormat('es-CR', {
