@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../styles/AgregarUsuarioModal.css';
+import { fetchApi } from '../services/api';
 
 interface Props {
   onClose: () => void;
@@ -16,9 +17,8 @@ const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
   try {
-    const res = await fetch('/.netlify/functions/usuarios', {
+    const data = await fetchApi('/usuarios', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         nombre,
         correo,
@@ -27,14 +27,11 @@ const handleSubmit = async (e: React.FormEvent) => {
       })
     });
 
-    const data = await res.json();
-
- if (!res.ok) {
-  console.error('Error backend:', data);
-  alert(data.message || 'Error al crear usuario');
-  return;
-}
-
+    if (!data.success) {
+      console.error('Error backend:', data);
+      alert(data.error || data.message || 'Error al crear usuario');
+      return;
+    }
 
     alert('Usuario creado correctamente');
     onClose();
