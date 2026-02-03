@@ -41,6 +41,49 @@ interface Usuario {
 const Citas: React.FC = () => {
   const { showToast } = useToast();
   
+  // Mapeo de estados BD <-> Frontend
+  const mapEstadoFromDB = (estadoDB: string): Cita['estado'] => {
+    const map: Record<string, Cita['estado']> = {
+      'pendiente': 'En Espera',
+      'aceptada': 'Aceptada',
+      'rechazada': 'Cancelada',
+      'completada': 'Completada'
+    };
+    return map[estadoDB.toLowerCase()] || 'En Espera';
+  };
+
+  const mapEstadoToDB = (estadoFrontend: Cita['estado']): string => {
+    const map: Record<Cita['estado'], string> = {
+      'En Espera': 'pendiente',
+      'Aceptada': 'aceptada',
+      'Cancelada': 'rechazada',
+      'Completada': 'completada'
+    };
+    return map[estadoFrontend];
+  };
+
+  // Normalizar formato de hora a HH:MM:SS
+  const normalizarHora = (hora: string): string => {
+    if (!hora) return '';
+    // Si ya tiene formato HH:MM:SS, devolverla tal cual
+    if (hora.length === 8 && hora.split(':').length === 3) {
+      return hora;
+    }
+    // Si tiene formato HH:MM, agregar :00
+    if (hora.length === 5 && hora.split(':').length === 2) {
+      return hora + ':00';
+    }
+    // Si no coincide con ningún formato, intentar limpiar
+    const partes = hora.split(':');
+    if (partes.length >= 2) {
+      const hh = partes[0].padStart(2, '0');
+      const mm = partes[1].padStart(2, '0');
+      const ss = partes[2] ? partes[2].padStart(2, '0') : '00';
+      return `${hh}:${mm}:${ss}`;
+    }
+    return hora + ':00';
+  };
+  
   // Estado para la lista de citas
   const [citas, setCitas] = useState<Cita[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
@@ -84,7 +127,11 @@ const Citas: React.FC = () => {
       // Cargar citas
       const citasRes = await citaService.getCitas();
       if (citasRes.success && citasRes.data) {
-        setCitas(citasRes.data as unknown as Cita[]);
+        const citasMapeadas = (citasRes.data as unknown as any[]).map(cita => ({
+          ...cita,
+          estado: mapEstadoFromDB(cita.estado)
+        }));
+        setCitas(citasMapeadas as Cita[]);
       }
 
       // Cargar vehículos de clientes con autenticación
@@ -225,7 +272,10 @@ const Citas: React.FC = () => {
     }
 
     try {
-      await citaService.createCita(nuevaCita);
+      await citaService.createCita({
+        ...nuevaCita,
+        estado: mapEstadoToDB(nuevaCita.estado) as any
+      });
       
       // Limpiar formulario
       setNuevaCita({
@@ -242,7 +292,7 @@ const Citas: React.FC = () => {
       showToast('Cita agendada exitosamente', 'success');
       
       // Recargar datos
-      await cargarDatos();
+      await canormalizarHora(citaEditada.hora)
     } catch (error) {
       console.error('Error creando cita:', error);
       showToast('Error al crear cita. Intenta nuevamente.', 'error');
@@ -266,7 +316,7 @@ const Citas: React.FC = () => {
         fecha: citaEditada.fecha,
         hora: citaEditada.hora,
         descripcion: citaEditada.descripcion,
-        estado: citaEditada.estado
+        estado: mapEstadoToDB(citaEditada.estado) as any
       });
       
       setErrors({});
@@ -311,7 +361,7 @@ const Citas: React.FC = () => {
     }
 
     try {
-      await citaService.updateEstado(id, nuevoEstado);
+      await citaService.updateEstado(id, mapEstadoToDB(nuevoEstado) as any);
       
       if (selected?.id === id) {
         setSelected({ ...selected, estado: nuevoEstado });
@@ -712,7 +762,10 @@ const Citas: React.FC = () => {
                 <input
                   type="time"
                   value={citaEditada.hora.substring(0, 5)}
-                  onChange={e => setCitaEditada({ ...citaEditada, hora: e.target.value + ':00' })}
+                  onChange={e => {
+                    const nuevaHora = e.target.value ? e.target.value + ':00' : '';
+                    setCitaEditada({ ...citaEditada, hora: nuevaHora });
+                  }}
                   className={errors.hora ? 'input-error' : ''}
                   min="08:00"
                   max="18:00"
