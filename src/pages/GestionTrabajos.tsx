@@ -153,8 +153,8 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
               codigo: r.producto_codigo,
               nombre: r.producto_nombre,
               cantidad: r.cantidad,
-              precio: r.precio_unitario,
-              subtotal: r.subtotal
+              precio: parseFloat(r.precio_unitario) || 0,
+              subtotal: parseFloat(r.subtotal) || 0
             };
           }) : [];
 
@@ -164,7 +164,7 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
             return {
               codigo: s.servicio_codigo,
               nombre: s.servicio_nombre,
-              precio: s.precio,
+              precio: parseFloat(s.precio) || 0,
               descripcion: s.descripcion
             };
           }) : [];
