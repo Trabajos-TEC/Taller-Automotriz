@@ -233,8 +233,6 @@ export const handler: Handler = async (event) => {
       return errorResponse(error.message, 500);
     }
     
-    return errorResponse('Error desconocido',
-      500
-    );
+    return errorResponse('Error desconocido', 500);
   }
 };
