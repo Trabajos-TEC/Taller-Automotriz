@@ -23,6 +23,7 @@ export interface OrdenTrabajo {
   cliente_cedula?: string;
   mecanico_nombre?: string;
   servicio_nombre?: string;
+  servicio_precio?: number;
 }
 
 // Servicio para gestión de órdenes de trabajo

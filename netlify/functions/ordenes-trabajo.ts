@@ -66,7 +66,8 @@ export const handler: Handler = async (event) => {
               ot.*,
               vc.placa as vehiculo_placa,
               u.nombre as mecanico_nombre,
-              s.nombre as servicio_nombre
+              s.nombre as servicio_nombre,
+              s.precio as servicio_precio
             FROM ordenes_trabajo ot
             INNER JOIN vehiculos_clientes vc ON ot.vehiculo_cliente_id = vc.id
             INNER JOIN clientes c ON vc.cliente_id = c.id
@@ -88,6 +89,7 @@ export const handler: Handler = async (event) => {
               c.nombre as cliente_nombre,
               c.cedula as cliente_cedula,
               u.nombre as mecanico_nombre,
+              s.precio as servicio_precio,
               s.nombre as servicio_nombre
             FROM ordenes_trabajo ot
             INNER JOIN vehiculos_clientes vc ON ot.vehiculo_cliente_id = vc.id
@@ -145,6 +147,9 @@ export const handler: Handler = async (event) => {
           }
         }
 
+        // Validar y ajustar el costo si excede el límite
+        const costoFinal = (costo && costo > 99999999.99) ? 99999999.99 : (costo || 0);
+
         const nuevaOrden = await sql`
           INSERT INTO ordenes_trabajo (
             vehiculo_cliente_id, 
@@ -163,7 +168,7 @@ export const handler: Handler = async (event) => {
             ${tipo_servicio}, 
             ${descripcion}, 
             ${fecha_entrada || new Date().toISOString()},
-            ${costo || 0}, 
+            ${costoFinal}, 
             ${estado || 'pendiente'},
             ${mecanico_id || null},
             ${notas || null}
@@ -229,7 +234,14 @@ export const handler: Handler = async (event) => {
             descripcion = COALESCE(${descripcion}, descripcion),
             fecha_entrada = COALESCE(${fecha_entrada}, fecha_entrada),
             fecha_salida = COALESCE(${fecha_salida}, fecha_salida),
-            costo = COALESCE(${costo}, costo),
+            costo = COALESCE(
+              CASE 
+                WHEN ${costo} IS NOT NULL AND ${costo}::numeric > 99999999.99 
+                THEN 99999999.99 
+                ELSE ${costo}::numeric 
+              END, 
+              costo
+            ),
             estado = COALESCE(${estado}, estado),
             mecanico_id = COALESCE(${mecanico_id}, mecanico_id),
             servicio_id = COALESCE(${servicio_id}, servicio_id),

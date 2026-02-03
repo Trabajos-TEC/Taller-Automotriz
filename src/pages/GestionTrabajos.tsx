@@ -127,31 +127,71 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
     const response = await ordenTrabajoService.getOrdenes();
     
     if (response.success && response.data) {
-      const trabajosConvertidos: Trabajo[] = response.data.map(orden => ({
-        codigoOrden: `OT-${String(orden.id).padStart(3, '0')}`,
-        clienteNombre: orden.cliente_nombre || 'N/A',
-        clienteCedula: orden.cliente_cedula || 'N/A',
-        placa: orden.vehiculo_placa || 'N/A',
-        fechaCreacion: orden.fecha_entrada ? new Date(orden.fecha_entrada).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        estado: mapEstadoFromAPI(orden.estado),
-        observacionesIniciales: orden.descripcion || 'Sin observaciones',
-        repuestosUtilizados: [],
-        serviciosRealizados: orden.servicio_nombre ? [{
-          codigo: `S${orden.servicio_id || '000'}`,
-          nombre: orden.servicio_nombre,
-          precio: orden.costo || 0,
-          descripcion: orden.tipo_servicio || ''
-        }] : [],
-        notasDiagnostico: orden.notas ? [{
-          id: orden.id || 0,
-          texto: orden.notas,
-          fecha: orden.created_at ? new Date(orden.created_at).toLocaleString('es-ES') : ''
-        }] : [],
-        _ordenId: orden.id,
-        _vehiculoClienteId: orden.vehiculo_cliente_id
-      }));
+      // Cargar órdenes con sus detalles
+      const trabajosConDetalles = await Promise.all(
+        response.data.map(async (orden) => {
+          // Cargar repuestos y servicios de la orden
+          const [repuestosRes, serviciosRes] = await Promise.all([
+            fetch(`/.netlify/functions/orden-detalles/${orden.id}/repuestos`, {
+              headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            }),
+            fetch(`/.netlify/functions/orden-detalles/${orden.id}/servicios`, {
+              headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            })
+          ]);
+
+          const repuestosData = repuestosRes.ok ? await repuestosRes.json() : { success: false, data: [] };
+          const serviciosData = serviciosRes.ok ? await serviciosRes.json() : { success: false, data: [] };
+
+          // Convertir repuestos
+          const repuestos = repuestosData.success && repuestosData.data ? repuestosData.data.map((r: any) => ({
+            codigo: r.producto_codigo,
+            nombre: r.producto_nombre,
+            cantidad: r.cantidad,
+            precio: r.precio_unitario,
+            subtotal: r.subtotal
+          })) : [];
+
+          // Convertir servicios
+          const servicios = serviciosData.success && serviciosData.data ? serviciosData.data.map((s: any) => ({
+            codigo: s.servicio_codigo,
+            nombre: s.servicio_nombre,
+            precio: s.precio,
+            descripcion: s.descripcion
+          })) : [];
+
+          // Si hay servicio_id principal, agregarlo también
+          if (orden.servicio_nombre) {
+            servicios.push({
+              codigo: `S${orden.servicio_id || '000'}`,
+              nombre: orden.servicio_nombre,
+              precio: orden.servicio_precio || 0,
+              descripcion: orden.tipo_servicio || ''
+            });
+          }
+
+          return {
+            codigoOrden: `OT-${String(orden.id).padStart(3, '0')}`,
+            clienteNombre: orden.cliente_nombre || 'N/A',
+            clienteCedula: orden.cliente_cedula || 'N/A',
+            placa: orden.vehiculo_placa || 'N/A',
+            fechaCreacion: orden.fecha_entrada ? new Date(orden.fecha_entrada).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            estado: mapEstadoFromAPI(orden.estado),
+            observacionesIniciales: orden.descripcion || 'Sin observaciones',
+            repuestosUtilizados: repuestos,
+            serviciosRealizados: servicios,
+            notasDiagnostico: orden.notas ? [{
+              id: orden.id || 0,
+              texto: orden.notas,
+              fecha: orden.created_at ? new Date(orden.created_at).toLocaleString('es-ES') : ''
+            }] : [],
+            _ordenId: orden.id,
+            _vehiculoClienteId: orden.vehiculo_cliente_id
+          };
+        })
+      );
       
-      setTrabajos(trabajosConvertidos);
+      setTrabajos(trabajosConDetalles);
     } else {
       setError(response.error || 'Error al cargar órdenes de trabajo');
     }
@@ -366,7 +406,7 @@ const crearOrdenDesdeCita = async () => {
 
   /* === AGREGAR REPUESTO A ORDEN === */
   const agregarRepuestoTrabajo = async () => {
-    if (!selected || !repSeleccionado) return;
+    if (!selected || !repSeleccionado || !selected._ordenId) return;
 
     try {
       // Buscar producto en inventario real
@@ -384,39 +424,55 @@ const crearOrdenDesdeCita = async () => {
         return;
       }
 
-      // Crear copia del trabajo seleccionado
+      const subtotal = producto.precio_venta * cantidadRep;
+
+      // Guardar en la base de datos
+      const response = await fetch(`/.netlify/functions/orden-detalles/${selected._ordenId}/repuestos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          producto_codigo: producto.codigo,
+          producto_nombre: producto.nombre,
+          cantidad: cantidadRep,
+          precio_unitario: producto.precio_venta,
+          subtotal: subtotal
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al guardar el repuesto');
+      }
+
+      // Actualizar estado local
       const trabajoActualizado = { ...selected };
       
-      // Inicializar array si no existe
       if (!trabajoActualizado.repuestosUtilizados) {
         trabajoActualizado.repuestosUtilizados = [];
       }
 
-      // Verificar si ya existe
       const repuestoExistente = trabajoActualizado.repuestosUtilizados.find(r => r.codigo === repSeleccionado);
       
       if (repuestoExistente) {
-        // Actualizar cantidad existente
         repuestoExistente.cantidad += cantidadRep;
         repuestoExistente.subtotal = repuestoExistente.cantidad * producto.precio_venta;
       } else {
-        // Agregar nuevo
         trabajoActualizado.repuestosUtilizados.push({
           codigo: producto.codigo,
           nombre: producto.nombre,
           cantidad: cantidadRep,
           precio: producto.precio_venta,
-          subtotal: producto.precio_venta * cantidadRep
+          subtotal: subtotal
         });
       }
 
-      // Actualizar estados
       setSelected(trabajoActualizado);
       setTrabajos(trabajos.map(t => 
         t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
       ));
 
-      // Limpiar formulario
       setRepSeleccionado('');
       setCantidadRep(1);
       
@@ -455,8 +511,8 @@ const crearOrdenDesdeCita = async () => {
   };
 
   /* === AGREGAR SERVICIO A ORDEN === */
-const agregarServicioTrabajo = () => {
-  if (!selected || !servicioSeleccionado) return;
+const agregarServicioTrabajo = async () => {
+  if (!selected || !servicioSeleccionado || !selected._ordenId) return;
 
   const servicio = manoDeObra.find(s => s.codigo === servicioSeleccionado);
   if (!servicio) {
@@ -464,30 +520,56 @@ const agregarServicioTrabajo = () => {
     return;
   }
 
-  const trabajoActualizado = { ...selected };
-  
-  if (!trabajoActualizado.serviciosRealizados) {
-    trabajoActualizado.serviciosRealizados = [];
-  }
-
-  const servicioExistente = trabajoActualizado.serviciosRealizados.find(s => s.codigo === servicioSeleccionado);
-  
-  if (!servicioExistente) {
-    trabajoActualizado.serviciosRealizados.push({
-      codigo: servicio.codigo,
-      nombre: servicio.nombre,
-      precio: servicio.precio,
-      descripcion: servicio.descripcion
+  try {
+    // Guardar en la base de datos
+    const response = await fetch(`/.netlify/functions/orden-detalles/${selected._ordenId}/servicios`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        servicio_codigo: servicio.codigo,
+        servicio_nombre: servicio.nombre,
+        descripcion: servicio.descripcion,
+        precio: servicio.precio
+      })
     });
+
+    if (!response.ok) {
+      throw new Error('Error al guardar el servicio');
+    }
+
+    // Actualizar estado local
+    const trabajoActualizado = { ...selected };
+    
+    if (!trabajoActualizado.serviciosRealizados) {
+      trabajoActualizado.serviciosRealizados = [];
+    }
+
+    const servicioExistente = trabajoActualizado.serviciosRealizados.find(s => s.codigo === servicioSeleccionado);
+    
+    if (!servicioExistente) {
+      trabajoActualizado.serviciosRealizados.push({
+        codigo: servicio.codigo,
+        nombre: servicio.nombre,
+        precio: servicio.precio,
+        descripcion: servicio.descripcion
+      });
+    }
+
+    setSelected(trabajoActualizado);
+    setTrabajos(trabajos.map(t => 
+      t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
+    ));
+
+    setServicioSeleccionado('');
+    showToast('Servicio agregado exitosamente', 'success');
+    
+  } catch (err) {
+    console.error('Error agregando servicio:', err);
+    showToast('Error al agregar el servicio', 'error');
   }
-
-  setSelected(trabajoActualizado);
-  setTrabajos(trabajos.map(t => 
-    t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
-  ));
-
-  setServicioSeleccionado('');
-  showToast('Servicio agregado exitosamente', 'success');
 };
 
   /* === ELIMINAR SERVICIO === */
@@ -560,6 +642,10 @@ const agregarServicioTrabajo = () => {
     
     const costoTotal = calcularTotal(selected);
     
+    console.log('💰 Costo total calculado:', costoTotal);
+    console.log('🛠️ Repuestos:', selected.repuestosUtilizados);
+    console.log('🔧 Servicios:', selected.serviciosRealizados);
+    
     // No enviar servicio_id si es null, solo descripción, costo y notas
     const datosActualizados: Partial<OrdenTrabajo> = {
       descripcion: selected.observacionesIniciales,
@@ -626,14 +712,27 @@ const agregarServicioTrabajo = () => {
     let total = 0;
     
     if (trabajo.repuestosUtilizados) {
-      total += trabajo.repuestosUtilizados.reduce((sum, rep) => sum + rep.subtotal, 0);
+      total += trabajo.repuestosUtilizados.reduce((sum, rep) => {
+        const subtotal = rep.subtotal || 0;
+        return sum + subtotal;
+      }, 0);
     }
     
     if (trabajo.serviciosRealizados) {
-      total += trabajo.serviciosRealizados.reduce((sum, serv) => sum + serv.precio, 0);
+      total += trabajo.serviciosRealizados.reduce((sum, serv) => {
+        const precio = serv.precio || 0;
+        return sum + precio;
+      }, 0);
     }
     
-    return total;
+    // Validar que el total no exceda el límite de DECIMAL(10,2) = 99,999,999.99
+    if (total > 99999999.99) {
+      console.warn('⚠️ Costo total excede el límite permitido:', total);
+      return 99999999.99;
+    }
+    
+    // Redondear a 2 decimales para evitar problemas de precisión
+    return Math.round(total * 100) / 100;
   };
 
   /* === FORMATO DE MONEDA === */
