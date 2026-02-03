@@ -226,26 +226,34 @@ export const handler: Handler = async (event) => {
           }
         }
 
+        // Validar y ajustar el costo si viene definido y excede el límite
+        const costoFinal = costo !== undefined 
+          ? (costo && costo > 99999999.99 ? 99999999.99 : costo) 
+          : null;
+
+        // Convertir undefined a null para evitar problemas con PostgreSQL
+        const tipo_servicio_val = tipo_servicio !== undefined ? tipo_servicio : null;
+        const descripcion_val = descripcion !== undefined ? descripcion : null;
+        const fecha_entrada_val = fecha_entrada !== undefined ? fecha_entrada : null;
+        const fecha_salida_val = fecha_salida !== undefined ? fecha_salida : null;
+        const estado_val = estado !== undefined ? estado : null;
+        const mecanico_id_val = mecanico_id !== undefined ? mecanico_id : null;
+        const servicio_id_val = servicio_id !== undefined ? servicio_id : null;
+        const notas_val = notas !== undefined ? notas : null;
+
         // Actualizar solo los campos que vienen definidos
         const ordenActualizada = await sql`
           UPDATE ordenes_trabajo
           SET 
-            tipo_servicio = COALESCE(${tipo_servicio}, tipo_servicio),
-            descripcion = COALESCE(${descripcion}, descripcion),
-            fecha_entrada = COALESCE(${fecha_entrada}, fecha_entrada),
-            fecha_salida = COALESCE(${fecha_salida}, fecha_salida),
-            costo = COALESCE(
-              CASE 
-                WHEN ${costo} IS NOT NULL AND ${costo}::numeric > 99999999.99 
-                THEN 99999999.99 
-                ELSE ${costo}::numeric 
-              END, 
-              costo
-            ),
-            estado = COALESCE(${estado}, estado),
-            mecanico_id = COALESCE(${mecanico_id}, mecanico_id),
-            servicio_id = COALESCE(${servicio_id}, servicio_id),
-            notas = COALESCE(${notas}, notas)
+            tipo_servicio = COALESCE(${tipo_servicio_val}, tipo_servicio),
+            descripcion = COALESCE(${descripcion_val}, descripcion),
+            fecha_entrada = COALESCE(${fecha_entrada_val}, fecha_entrada),
+            fecha_salida = COALESCE(${fecha_salida_val}, fecha_salida),
+            costo = COALESCE(${costoFinal}, costo),
+            estado = COALESCE(${estado_val}, estado),
+            mecanico_id = COALESCE(${mecanico_id_val}, mecanico_id),
+            servicio_id = COALESCE(${servicio_id_val}, servicio_id),
+            notas = COALESCE(${notas_val}, notas)
           WHERE id = ${id}
           RETURNING *
         `;
