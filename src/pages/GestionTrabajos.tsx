@@ -207,7 +207,6 @@ const cargarCitas = async () => {
     const response = await citaService.getCitas({ estado: 'Aceptada' });
     
     if (response.success && response.data) {
-      console.log('📅 Citas aceptadas cargadas:', response.data.length);
       const citasFormateadas: CitaFrontend[] = response.data.map(cita => ({
         ...cita,
         idFormateado: `CITA-${String(cita.id).padStart(3, '0')}`,
@@ -218,8 +217,6 @@ const cargarCitas = async () => {
       }));
       
       setCitasReales(citasFormateadas);
-    } else {
-      console.log('⚠️ No se pudieron cargar citas:', response.error);
     }
   } catch (err) {
     console.error('Error cargando citas:', err);
@@ -316,29 +313,18 @@ const cargarCitas = async () => {
   const citasDisponibles = useMemo(() => {
     if (loadingCitas) return [];
     
-    console.log('🔍 Total citas reales:', citasReales.length);
-    console.log('🔍 Total trabajos:', trabajos.length);
-    
-    // Filtrar citas aceptadas que no tienen orden de trabajo
+    // Filtrar citas aceptadas que no tienen orden de trabajo vinculada directamente
     const citasSinOrden = citasReales.filter(cita => {
-      // Buscar si ya hay una orden con esta cita
-      const ordenExistente = trabajos.find(t => 
-        t._citaId === cita.id || 
-        // O buscar por vehículo y cliente similar
-        (t.placa === cita.vehiculoPlaca && t.clienteCedula === cita.clienteCedula)
-      );
+      // Solo buscar por _citaId, NO por vehículo/cliente
+      const ordenExistente = trabajos.find(t => t._citaId === cita.id);
       return !ordenExistente;
     });
     
-    console.log('🔍 Citas sin orden:', citasSinOrden.length);
-    
     if (session.rol !== 'admin') {
       // Filtrar por mecánico asignado
-      const citasDelMecanico = citasSinOrden.filter(cita => 
+      return citasSinOrden.filter(cita => 
         cita.mecanico === session.nombre
       );
-      console.log('🔍 Citas del mecánico:', citasDelMecanico.length);
-      return citasDelMecanico;
     }
     
     return citasSinOrden;
@@ -467,7 +453,7 @@ const crearOrdenDesdeCita = async () => {
       
       if (repuestoExistente) {
         repuestoExistente.cantidad += cantidadRep;
-        repuestoExistente.subtotal = repuestoExistente.cantidad * producto.precio_venta;
+        repuestoExistente.subtotal += subtotal; // Incrementar subtotal, no recalcular
       } else {
         trabajoActualizado.repuestosUtilizados.push({
           codigo: producto.codigo,
@@ -733,12 +719,6 @@ const agregarServicioTrabajo = async () => {
         const precio = serv.precio || 0;
         return sum + precio;
       }, 0);
-    }
-    
-    // Validar que el total no exceda el límite de DECIMAL(10,2) = 99,999,999.99
-    if (total > 99999999.99) {
-      console.warn('⚠️ Costo total excede el límite permitido:', total);
-      return 99999999.99;
     }
     
     // Redondear a 2 decimales para evitar problemas de precisión

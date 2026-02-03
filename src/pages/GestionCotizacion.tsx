@@ -279,7 +279,6 @@ const apiOrdenesTrabajo = {
       }
       
       const data = await response.json();
-      console.log('🔧 Órdenes de trabajo API response:', data);
       
       if (data.success && data.data) {
         // Transformar datos del API al formato esperado
@@ -301,13 +300,9 @@ const apiOrdenesTrabajo = {
           mecanico: orden.mecanico_nombre || 'Sin asignar'
         }));
         
-        console.log('🔧 Órdenes transformadas:', ordenesTransformadas.length);
-        
         // Filtrar por usuario si es necesario
         if (usuario) {
-          const filtradas = ordenesTransformadas.filter(ot => ot.mecanico === usuario);
-          console.log('🔧 Órdenes filtradas por usuario:', filtradas.length);
-          return filtradas;
+          return ordenesTransformadas.filter(ot => ot.mecanico === usuario);
         }
         return ordenesTransformadas;
       }
