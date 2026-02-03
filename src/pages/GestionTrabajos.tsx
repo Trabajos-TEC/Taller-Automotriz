@@ -6,6 +6,7 @@ import { citaService, type Cita } from '../services/cita.service';
 import { inventarioService, type Producto } from '../services/inventario.service';
 //import { clienteService } from '../services/cliente.service';
 import { vehiculoClienteService, type VehiculoClienteCompleto } from '../services/vehiculo_cliente.service';
+import { servicioService, type Servicio } from '../services/servicio.service';
 
 // Interfaces
 interface Trabajo {
@@ -63,14 +64,10 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
   const [error, setError] = useState<string | null>(null);
    vehiculosClientes;
   // Datos mockeados de servicios (como solicitaste, NO cambiar esto)
-  const [manoDeObra] = useState([
-    { codigo: 'S001', nombre: 'Cambio de Aceite', precio: 15000, descripcion: 'Cambio completo de aceite' },
-    { codigo: 'S002', nombre: 'Revisión de Frenos', precio: 20000, descripcion: 'Revisión completa del sistema de frenos' },
-    { codigo: 'S003', nombre: 'Cambio de Pastillas', precio: 15000, descripcion: 'Cambio de pastillas delanteras' },
-    { codigo: 'S004', nombre: 'Alineación', precio: 12000, descripcion: 'Alineación de las 4 ruedas' },
-    { codigo: 'S005', nombre: 'Balanceo', precio: 10000, descripcion: 'Balanceo de ruedas' },
-    { codigo: 'S006', nombre: 'Cambio de Batería', precio: 10000, descripcion: 'Cambio e instalación de batería' }
-  ]);
+  const [serviciosReales, setServiciosReales] = useState<Servicio[]>([]);
+  const [loadingServicios, setLoadingServicios] = useState(false);
+  loadingServicios;
+
 
   // Estados para búsqueda y selección
   const [search, setSearch] = useState('');
@@ -109,7 +106,8 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
         cargarOrdenes(),
         cargarCitas(),
         cargarInventario(),
-        cargarVehiculosClientes()
+        cargarVehiculosClientes(),
+        cargarServicios(),
       ]);
     } catch (err) {
       console.error('Error cargando datos:', err);
@@ -118,7 +116,23 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
       setLoading(false);
     }
   };
-
+  const cargarServicios = async () => {
+  try {
+    setLoadingServicios(true);
+    const response = await servicioService.getServicios();
+    
+    if (response.success && response.data) {
+      setServiciosReales(response.data);
+    } else {
+      console.error('Error cargando servicios:', response.error);
+      // Mantener los mocks como fallback temporal
+    }
+  } catch (err) {
+    console.error('Error cargando servicios:', err);
+  } finally {
+    setLoadingServicios(false);
+  }
+};
   const cargarOrdenes = async () => {
     try {
       setError(null);
@@ -320,7 +334,6 @@ const crearOrdenDesdeCita = async () => {
   try {
     setLoading(true);
     
-    // Obtener vehículo_cliente_id de la cita
     const citaDetalleResponse = await citaService.getCitaById(citaIdNumero);
     
     if (!citaDetalleResponse.success || !citaDetalleResponse.data) {
@@ -330,31 +343,87 @@ const crearOrdenDesdeCita = async () => {
 
     const citaDetalle = citaDetalleResponse.data;
     
-    // Crear nueva orden de trabajo
+    // BUSCAR SERVICIO BASADO EN DESCRIPCIÓN DE CITA
+    let servicioId: number | null = null;
+    let tipoServicio = 'Servicio general';
+    let precioServicio = 0;
+    
+    const descripcionCita = citaDetalle.descripcion?.toLowerCase() || '';
+    
+    // Mapear descripción a servicios reales
+    const servicioEncontrado = serviciosReales.find(servicio => {
+      const palabrasClave = [
+        ...servicio.nombre.toLowerCase().split(' '),
+        ...servicio.descripcion.toLowerCase().split(' ')
+      ];
+      
+      return palabrasClave.some(palabra => 
+        palabra.length > 3 && descripcionCita.includes(palabra)
+      );
+    });
+    
+    if (servicioEncontrado) {
+      servicioId = servicioEncontrado.id;
+      tipoServicio = servicioEncontrado.nombre;
+      precioServicio = servicioEncontrado.precio;
+    } else {
+      // Si no encuentra, usar el primer servicio como default
+      if (serviciosReales.length > 0) {
+        servicioId = serviciosReales[0].id;
+        tipoServicio = serviciosReales[0].nombre;
+        precioServicio = serviciosReales[0].precio;
+      }
+    }
+    
+    // Crear nueva orden de trabajo CON servicio_id real
     const nuevaOrden: Omit<OrdenTrabajo, 'id' | 'created_at' | 'updated_at'> = {
       vehiculo_cliente_id: citaDetalle.vehiculo_cliente_id,
-      tipo_servicio: 'Servicio general',
-      descripcion: observacionesIniciales.trim() || `Orden creada desde cita ${citaSeleccionada.idFormateado}`,
+      servicio_id: servicioId,
+      tipo_servicio: tipoServicio,
+      descripcion: observacionesIniciales.trim() || 
+                  `Orden creada desde cita ${citaSeleccionada.idFormateado}. ` +
+                  `Servicio: ${tipoServicio}`,
       fecha_entrada: new Date().toISOString(),
-      costo: 0,
+      costo: precioServicio,
       estado: 'pendiente',
+      mecanico_id: citaDetalle.usuario_id || null,
       notas: observacionesIniciales.trim() || null
     };
 
     const response = await ordenTrabajoService.createOrden(nuevaOrden);
     
     if (response.success && response.data) {
-      // Actualizar estado de la cita a "Completada"
       await citaService.updateEstado(citaIdNumero, 'Completada');
       
-      // Recargar datos
+      // Crear trabajo para estado local CON servicio real
+      const nuevoTrabajo: Trabajo = {
+        codigoOrden: `OT-${String(response.data.id).padStart(3, '0')}`,
+        clienteNombre: citaSeleccionada.clienteNombre || citaDetalle.cliente_nombre || 'N/A',
+        clienteCedula: citaSeleccionada.clienteCedula || citaDetalle.cliente_cedula || 'N/A',
+        placa: citaSeleccionada.vehiculoPlaca || citaDetalle.vehiculo_placa || 'N/A',
+        fechaCreacion: new Date().toISOString().split('T')[0],
+        estado: 'Pendiente',
+        observacionesIniciales: observacionesIniciales.trim() || 'Sin observaciones',
+        repuestosUtilizados: [],
+        serviciosRealizados: servicioEncontrado ? [{
+          codigo: servicioEncontrado.codigo,
+          nombre: servicioEncontrado.nombre,
+          precio: servicioEncontrado.precio,
+          descripcion: servicioEncontrado.descripcion
+        }] : [],
+        notasDiagnostico: [],
+        _ordenId: response.data.id,
+        _vehiculoClienteId: citaDetalle.vehiculo_cliente_id,
+        _citaId: citaIdNumero
+      };
+      
+      setTrabajos(prev => [...prev, nuevoTrabajo]);
+      setSelected(nuevoTrabajo);
       await Promise.all([cargarOrdenes(), cargarCitas()]);
       
       setNewOT({ codigoCita: '', observacionesIniciales: '' });
       setShowModalNuevaOT(false);
-      alert(`Orden creada exitosamente desde la cita ${citaSeleccionada.idFormateado}`);
-    } else {
-      alert(response.error || 'Error al crear la orden de trabajo');
+      alert(`Orden ${nuevoTrabajo.codigoOrden} creada con servicio "${tipoServicio}"`);
     }
   } catch (err) {
     console.error('Error creando orden:', err);
@@ -455,15 +524,19 @@ const crearOrdenDesdeCita = async () => {
   };
 
   /* === AGREGAR SERVICIO A ORDEN === */
-  const agregarServicioTrabajo = () => {
-    if (!selected || !servicioSeleccionado) return;
+ const agregarServicioTrabajo = async () => {
+  if (!selected || !servicioSeleccionado) return;
 
-    // Usar datos mockeados de servicios (como solicitaste)
-    const servicio = manoDeObra.find(s => s.codigo === servicioSeleccionado);
-    if (!servicio) {
-      alert('Servicio no encontrado');
+  try {
+    // Buscar servicio en la base de datos
+    const servicioResponse = await servicioService.getServicioByCodigo(servicioSeleccionado);
+    
+    if (!servicioResponse.success || !servicioResponse.data) {
+      alert('Servicio no encontrado en la base de datos');
       return;
     }
+
+    const servicio = servicioResponse.data;
 
     const trabajoActualizado = { ...selected };
     
@@ -479,8 +552,25 @@ const crearOrdenDesdeCita = async () => {
         codigo: servicio.codigo,
         nombre: servicio.nombre,
         precio: servicio.precio,
-        descripcion: servicio.descripcion
+        descripcion: servicio.descripcion || ''
       });
+      
+      // Si la orden ya tiene un ID, actualizar en el backend también
+      if (trabajoActualizado._ordenId) {
+        try {
+          // Actualizar el servicio_id en la orden de trabajo
+          await ordenTrabajoService.updateOrden(trabajoActualizado._ordenId, {
+            servicio_id: servicio.id,
+            costo: calcularTotal(trabajoActualizado) + servicio.precio
+          });
+        } catch (err) {
+          console.error('Error actualizando servicio en backend:', err);
+          // Continuar en frontend aunque falle en backend
+        }
+      }
+    } else {
+      alert('Este servicio ya fue agregado a la orden');
+      return;
     }
 
     setSelected(trabajoActualizado);
@@ -489,21 +579,43 @@ const crearOrdenDesdeCita = async () => {
     ));
 
     setServicioSeleccionado('');
-    alert('Servicio agregado exitosamente');
-  };
+    alert(`Servicio "${servicio.nombre}" agregado exitosamente`);
+  } catch (err) {
+    console.error('Error agregando servicio:', err);
+    alert('Error de conexión al agregar el servicio');
+  }
+};
 
   /* === ELIMINAR SERVICIO === */
-  const eliminarServicio = (index: number) => {
-    if (!selected || !selected.serviciosRealizados) return;
+const eliminarServicio = async (index: number) => {
+  if (!selected || !selected.serviciosRealizados) return;
 
-    const trabajoActualizado = { ...selected };
-    trabajoActualizado.serviciosRealizados = trabajoActualizado.serviciosRealizados?.filter((_, i) => i !== index);
-    
-    setSelected(trabajoActualizado);
-    setTrabajos(trabajos.map(t => 
-      t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
-    ));
-  };
+  const trabajoActualizado = { ...selected };
+  const servicioEliminado = trabajoActualizado.serviciosRealizados?.[index];
+  
+  trabajoActualizado.serviciosRealizados = trabajoActualizado.serviciosRealizados?.filter((_, i) => i !== index);
+  
+  // Si se eliminó el único servicio, limpiar servicio_id en backend
+  if (trabajoActualizado._ordenId && trabajoActualizado.serviciosRealizados?.length === 0) {
+    try {
+      await ordenTrabajoService.updateOrden(trabajoActualizado._ordenId, {
+        servicio_id: null,
+        costo: calcularTotal(trabajoActualizado)
+      });
+    } catch (err) {
+      console.error('Error actualizando servicio en backend:', err);
+    }
+  }
+  
+  setSelected(trabajoActualizado);
+  setTrabajos(trabajos.map(t => 
+    t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
+  ));
+  
+  if (servicioEliminado) {
+    alert(`Servicio "${servicioEliminado.nombre}" eliminado`);
+  }
+};
 
   /* === AGREGAR NOTA DE DIAGNÓSTICO === */
   const agregarNotaDiagnostico = () => {
@@ -1058,21 +1170,22 @@ const crearOrdenDesdeCita = async () => {
                       onChange={e => setServicioSeleccionado(e.target.value)}
                       list="servicios-lista"
                     />
-                    <datalist id="servicios-lista">
-                      {manoDeObra.map(serv => (
-                        <option key={serv.codigo} value={serv.codigo}>
-                          {serv.nombre} - ₡{serv.precio.toLocaleString()}
-                        </option>
-                      ))}
-                    </datalist>
+                  {/* En el JSX, reemplazar el datalist: */}
+                  <datalist id="servicios-lista">
+                    {serviciosReales.map(servicio => (
+                      <option key={servicio.codigo} value={servicio.codigo}>
+                        {servicio.nombre} - ₡{servicio.precio.toLocaleString()}
+                      </option>
+                    ))}
+                  </datalist>
                     
-                    <button 
-                      className="boton boton-agregar"
-                      onClick={agregarServicioTrabajo}
-                      disabled={!servicioSeleccionado}
-                    >
-                      Agregar
-                    </button>
+                  <button 
+                    className="boton boton-agregar"
+                    onClick={agregarServicioTrabajo}
+                    disabled={!servicioSeleccionado || loadingServicios}
+                  >
+                    {loadingServicios ? 'Cargando...' : 'Agregar'}
+                  </button>
                   </div>
                 </div>
               </div>

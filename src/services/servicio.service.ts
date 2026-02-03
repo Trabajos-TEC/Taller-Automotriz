@@ -1,51 +1,32 @@
-﻿import { fetchApi, type ApiResponse } from './api';
+﻿// src/services/servicio.service.ts
+import { fetchApi, type ApiResponse } from './api';
 
-// Interfaz para Servicio
 export interface Servicio {
-  id?: number;
-  vehiculo_id: number;
-  tipo_servicio: string;
+  id: number;
+  codigo: string;
+  nombre: string;
   descripcion: string;
-  fecha_entrada: Date;
-  fecha_salida?: Date;
-  costo: number;
-  estado: 'pendiente' | 'en_proceso' | 'completado' | 'cancelado';
+  precio: number;
+  duracion_estimada_minutos: number;
+  taller_id: number;
+  activo: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
-// Servicios para Servicios del taller
 export const servicioService = {
-  // Obtener todos los servicios
+  // Obtener todos los servicios del taller actual
   async getServicios(): Promise<ApiResponse<Servicio[]>> {
-    return fetchApi<Servicio[]>('/ordenes-trabajo');
+    return fetchApi<Servicio[]>('/servicios');
   },
 
-  // Obtener servicios por vehículo
-  async getServiciosByVehiculo(vehiculoId: number): Promise<ApiResponse<Servicio[]>> {
-    return fetchApi<Servicio[]>(`/ordenes-trabajo?vehiculo_id=${vehiculoId}`);
+  // Obtener un servicio por ID
+  async getServicioById(id: number): Promise<ApiResponse<Servicio>> {
+    return fetchApi<Servicio>(`/servicios/${id}`);
   },
 
-  // Crear un nuevo servicio
-  async createServicio(servicio: Omit<Servicio, 'id'>): Promise<ApiResponse<Servicio>> {
-    return fetchApi<Servicio>('/ordenes-trabajo', {
-      method: 'POST',
-      body: JSON.stringify(servicio),
-    });
-  },
-
-  // Actualizar un servicio
-  async updateServicio(id: number, servicio: Partial<Servicio>): Promise<ApiResponse<Servicio>> {
-    return fetchApi<Servicio>(`/ordenes-trabajo/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(servicio),
-    });
-  },
-
-  // Eliminar un servicio
-  async deleteServicio(id: number): Promise<ApiResponse<{ message: string }>> {
-    return fetchApi<{ message: string }>(`/ordenes-trabajo/${id}`, {
-      method: 'DELETE',
-    });
-  },
+  // Obtener un servicio por código
+  async getServicioByCodigo(codigo: string): Promise<ApiResponse<Servicio>> {
+    return fetchApi<Servicio>(`/servicios/codigo/${codigo}`);
+  }
 };
-
-export default servicioService;
