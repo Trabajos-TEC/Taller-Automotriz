@@ -157,7 +157,7 @@ const Citas: React.FC = () => {
     if (!cita.hora.trim()) {
       newErrors.hora = 'La hora es obligatoria';
     } else {
-      const horaRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      const horaRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/;
       if (!horaRegex.test(cita.hora)) {
         newErrors.hora = 'Formato de hora inválido (HH:MM)';
       }
