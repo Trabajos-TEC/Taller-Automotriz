@@ -1,5 +1,6 @@
 import { Handler } from '@netlify/functions';
 import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
+import { requireAuth } from './utils/requireAuth';
 
 /**
  * Función Netlify para gestionar inventario
@@ -12,6 +13,10 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    const user = requireAuth(event);
+    const TALLER_ID = user.taller_id;
+    TALLER_ID; // Usado para futuras extensiones
+    
     const sql = getConnection();
     const pathParts = event.path.split('/').filter(Boolean);
     const codigo = pathParts[pathParts.length - 1] !== 'inventario' ? pathParts[pathParts.length - 1] : null;
@@ -209,6 +214,17 @@ export const handler: Handler = async (event) => {
 
   } catch (error) {
     console.error('Error en inventario:', error);
-    return errorResponse(error instanceof Error ? error : 'Error interno del servidor');
+    
+    if (error instanceof Error) {
+      if (error.message === 'NO_TOKEN') {
+        return errorResponse('No se proporcionó token de autenticación', 401);
+      }
+      if (error.message === 'INVALID_TOKEN') {
+        return errorResponse('Token de autenticación inválido', 401);
+      }
+      return errorResponse(error.message);
+    }
+    
+    return errorResponse('Error interno del servidor');
   }
 };

@@ -1,5 +1,6 @@
 import { Handler } from '@netlify/functions';
 import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
+import { requireAuth } from './utils/requireAuth';
 
 /**
  * Función Netlify para gestionar cotizaciones
@@ -12,6 +13,10 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    const user = requireAuth(event);
+    const TALLER_ID = user.taller_id;
+    TALLER_ID; // Usado para futuras extensiones
+    
     const sql = getConnection();
     const path = event.path.replace('/.netlify/functions/cotizaciones', '');
     const segments = path.split('/').filter(Boolean);
@@ -217,8 +222,18 @@ export const handler: Handler = async (event) => {
     }
   } catch (error) {
     console.error('Error en cotizaciones:', error);
-    return errorResponse(
-      error instanceof Error ? error.message : 'Error desconocido',
+    
+    if (error instanceof Error) {
+      if (error.message === 'NO_TOKEN') {
+        return errorResponse('No se proporcionó token de autenticación', 401);
+      }
+      if (error.message === 'INVALID_TOKEN') {
+        return errorResponse('Token de autenticación inválido', 401);
+      }
+      return errorResponse(error.message, 500);
+    }
+    
+    return errorResponse('Error desconocido',
       500
     );
   }
