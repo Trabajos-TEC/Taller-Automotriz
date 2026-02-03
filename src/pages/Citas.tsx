@@ -292,7 +292,7 @@ const Citas: React.FC = () => {
       showToast('Cita agendada exitosamente', 'success');
       
       // Recargar datos
-      await canormalizarHora(citaEditada.hora)
+      await cargarDatos();
     } catch (error) {
       console.error('Error creando cita:', error);
       showToast('Error al crear cita. Intenta nuevamente.', 'error');
@@ -311,10 +311,12 @@ const Citas: React.FC = () => {
     }
 
     try {
+      const horaNormalizada = normalizarHora(citaEditada.hora);
+      
       await citaService.updateCita(citaEditada.id, {
         vehiculo_cliente_id: citaEditada.vehiculo_cliente_id,
         fecha: citaEditada.fecha,
-        hora: citaEditada.hora,
+        hora: horaNormalizada,
         descripcion: citaEditada.descripcion,
         estado: mapEstadoToDB(citaEditada.estado) as any
       });
