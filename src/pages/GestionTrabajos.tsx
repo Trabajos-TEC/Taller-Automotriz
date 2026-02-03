@@ -207,6 +207,7 @@ const cargarCitas = async () => {
     const response = await citaService.getCitas({ estado: 'Aceptada' });
     
     if (response.success && response.data) {
+      console.log('📅 Citas aceptadas cargadas:', response.data.length);
       const citasFormateadas: CitaFrontend[] = response.data.map(cita => ({
         ...cita,
         idFormateado: `CITA-${String(cita.id).padStart(3, '0')}`,
@@ -217,6 +218,8 @@ const cargarCitas = async () => {
       }));
       
       setCitasReales(citasFormateadas);
+    } else {
+      console.log('⚠️ No se pudieron cargar citas:', response.error);
     }
   } catch (err) {
     console.error('Error cargando citas:', err);
@@ -313,6 +316,9 @@ const cargarCitas = async () => {
   const citasDisponibles = useMemo(() => {
     if (loadingCitas) return [];
     
+    console.log('🔍 Total citas reales:', citasReales.length);
+    console.log('🔍 Total trabajos:', trabajos.length);
+    
     // Filtrar citas aceptadas que no tienen orden de trabajo
     const citasSinOrden = citasReales.filter(cita => {
       // Buscar si ya hay una orden con esta cita
@@ -324,11 +330,15 @@ const cargarCitas = async () => {
       return !ordenExistente;
     });
     
+    console.log('🔍 Citas sin orden:', citasSinOrden.length);
+    
     if (session.rol !== 'admin') {
       // Filtrar por mecánico asignado
-      return citasSinOrden.filter(cita => 
+      const citasDelMecanico = citasSinOrden.filter(cita => 
         cita.mecanico === session.nombre
       );
+      console.log('🔍 Citas del mecánico:', citasDelMecanico.length);
+      return citasDelMecanico;
     }
     
     return citasSinOrden;

@@ -14,6 +14,10 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    const user = requireAuth(event);
+    const TALLER_ID = user.taller_id;
+    const sql = getConnection();
+
     const method = event.httpMethod;
     const path = event.path;
     const pathParts = path.split('/').filter(Boolean);
@@ -33,11 +37,7 @@ export const handler: Handler = async (event) => {
       INNER JOIN vehiculos_clientes vc ON ot.vehiculo_cliente_id = vc.id
       INNER JOIN clientes c ON vc.cliente_id = c.id
       WHERE ot.id = ${ordenId}
-        ANuser = requireAuth(event);
-    const TALLER_ID = user.taller_id;
-    const sql = getConnection();
-
-    const D c.taller_id = ${TALLER_ID}
+        AND c.taller_id = ${TALLER_ID}
     `;
 
     if (ordenValida.length === 0) {
@@ -156,6 +156,10 @@ export const handler: Handler = async (event) => {
 
       default:
         return errorResponse('Método no permitido', 405);
+    }
+
+  } catch (error: any) {
+    console.error('Error en orden-detalles:', error);
     
     if (error.message === 'NO_TOKEN') {
       return errorResponse('No se proporcionó token de autenticación', 401);
@@ -164,10 +168,6 @@ export const handler: Handler = async (event) => {
       return errorResponse('Token de autenticación inválido', 401);
     }
     
-    }
-
-  } catch (error: any) {
-    console.error('Error en orden-detalles:', error);
     return errorResponse(error.message || 'Error interno del servidor', 500);
   }
 };

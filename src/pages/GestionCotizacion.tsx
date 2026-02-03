@@ -264,13 +264,23 @@ const apiManoDeObra = {
 const apiOrdenesTrabajo = {
   getAll: async (usuario: string | null = null): Promise<OrdenTrabajo[]> => {
     try {
-      const response = await fetch('/.netlify/functions/ordenes-trabajo');
+      const response = await fetch('/.netlify/functions/ordenes-trabajo', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      console.log('🔧 Status de órdenes:', response.status);
+      
       if (!response.ok) {
-        console.error('Error cargando órdenes de trabajo');
+        const errorText = await response.text();
+        console.error('❌ Error cargando órdenes de trabajo:', response.status, errorText);
         return [];
       }
       
       const data = await response.json();
+      console.log('🔧 Órdenes de trabajo API response:', data);
+      
       if (data.success && data.data) {
         // Transformar datos del API al formato esperado
         const ordenesTransformadas: OrdenTrabajo[] = data.data.map((orden: any) => ({
@@ -291,9 +301,13 @@ const apiOrdenesTrabajo = {
           mecanico: orden.mecanico_nombre || 'Sin asignar'
         }));
         
+        console.log('🔧 Órdenes transformadas:', ordenesTransformadas.length);
+        
         // Filtrar por usuario si es necesario
         if (usuario) {
-          return ordenesTransformadas.filter(ot => ot.mecanico === usuario);
+          const filtradas = ordenesTransformadas.filter(ot => ot.mecanico === usuario);
+          console.log('🔧 Órdenes filtradas por usuario:', filtradas.length);
+          return filtradas;
         }
         return ordenesTransformadas;
       }
