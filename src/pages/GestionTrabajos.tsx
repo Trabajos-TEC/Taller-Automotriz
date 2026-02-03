@@ -143,22 +143,31 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
           const repuestosData = repuestosRes.ok ? await repuestosRes.json() : { success: false, data: [] };
           const serviciosData = serviciosRes.ok ? await serviciosRes.json() : { success: false, data: [] };
 
+          console.log(`📦 Orden ${orden.id} - Repuestos BD:`, repuestosData.data);
+          console.log(`🔧 Orden ${orden.id} - Servicios BD:`, serviciosData.data);
+
           // Convertir repuestos
-          const repuestos = repuestosData.success && repuestosData.data ? repuestosData.data.map((r: any) => ({
-            codigo: r.producto_codigo,
-            nombre: r.producto_nombre,
-            cantidad: r.cantidad,
-            precio: r.precio_unitario,
-            subtotal: r.subtotal
-          })) : [];
+          const repuestos = repuestosData.success && repuestosData.data ? repuestosData.data.map((r: any) => {
+            console.log(`   Repuesto: ${r.producto_nombre}, subtotal: ${r.subtotal}, tipo: ${typeof r.subtotal}`);
+            return {
+              codigo: r.producto_codigo,
+              nombre: r.producto_nombre,
+              cantidad: r.cantidad,
+              precio: r.precio_unitario,
+              subtotal: r.subtotal
+            };
+          }) : [];
 
           // Convertir servicios
-          const servicios = serviciosData.success && serviciosData.data ? serviciosData.data.map((s: any) => ({
-            codigo: s.servicio_codigo,
-            nombre: s.servicio_nombre,
-            precio: s.precio,
-            descripcion: s.descripcion
-          })) : [];
+          const servicios = serviciosData.success && serviciosData.data ? serviciosData.data.map((s: any) => {
+            console.log(`   Servicio: ${s.servicio_nombre}, precio: ${s.precio}, tipo: ${typeof s.precio}`);
+            return {
+              codigo: s.servicio_codigo,
+              nombre: s.servicio_nombre,
+              precio: s.precio,
+              descripcion: s.descripcion
+            };
+          }) : [];
 
           // Si hay servicio_id principal, agregarlo también
           if (orden.servicio_nombre) {
@@ -705,26 +714,34 @@ const agregarServicioTrabajo = async () => {
 
   /* === CALCULAR TOTAL === */
   const calcularTotal = (trabajo: Trabajo) => {
-    if (!trabajo) return 0;
+    if (!trabajo) {
+      console.log('⚠️ calcularTotal: trabajo es null/undefined');
+      return 0;
+    }
     
     let total = 0;
     
     if (trabajo.repuestosUtilizados) {
+      console.log(`💰 Calculando repuestos para ${trabajo.codigoOrden}:`, trabajo.repuestosUtilizados);
       total += trabajo.repuestosUtilizados.reduce((sum, rep) => {
         const subtotal = rep.subtotal || 0;
+        console.log(`   ${rep.nombre}: subtotal=${subtotal} (${typeof rep.subtotal})`);
         return sum + subtotal;
       }, 0);
     }
     
     if (trabajo.serviciosRealizados) {
+      console.log(`💰 Calculando servicios para ${trabajo.codigoOrden}:`, trabajo.serviciosRealizados);
       total += trabajo.serviciosRealizados.reduce((sum, serv) => {
         const precio = serv.precio || 0;
+        console.log(`   ${serv.nombre}: precio=${precio} (${typeof serv.precio})`);
         return sum + precio;
       }, 0);
     }
     
     // Redondear a 2 decimales para evitar problemas de precisión
     const resultado = Math.round(total * 100) / 100;
+    console.log(`💰 Total final para ${trabajo.codigoOrden}: ${resultado}`);
     return isNaN(resultado) ? 0 : resultado;
   };
 
