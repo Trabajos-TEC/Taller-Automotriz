@@ -2,6 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import '../styles/pages/GestionTrabajos.css';
 import '../styles/Botones.css';
 import { ordenTrabajoService, type OrdenTrabajo } from '../services/ordenTrabajo.service';
+import { citaService, type Cita } from '../services/cita.service';
+import { inventarioService, type Producto } from '../services/inventario.service';
+import { clienteService } from '../services/cliente.service';
+import { vehiculoClienteService, type VehiculoClienteCompleto } from '../services/vehiculo_cliente.service';
 
 // Interfaces
 interface Trabajo {
@@ -34,45 +38,31 @@ interface Trabajo {
   // Campos internos para sincronizar con la API
   _ordenId?: number;
   _vehiculoClienteId?: number;
+  _citaId?: number; // Para relación con citas reales
 }
 
-// Interface Vehiculo definida pero no usada actualmente
-// interface Vehiculo {
-//   placa: string;
-//   marca: string;
-//   modelo: string;
-//   tipo: string;
-//   vehiculoBaseId?: number;
-// }
-
-interface Cita {
-  id: string;
-  clienteNombre: string;
-  clienteCedula: string;
-  vehiculoPlaca: string;
-  estado: string;
-  mecanico: string;
-  _citaId?: number;
-  _vehiculoClienteId?: number;
+// Interface Cita extendida para frontend
+interface CitaFrontend extends Omit<Cita, 'id'> {
+  id?: number;
+  idFormateado: string; // Siempre tendrá un valor formateado
+  clienteNombre?: string;
+  clienteCedula?: string;
+  vehiculoPlaca?: string;
+  mecanico?: string;
 }
 
 const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
   // Estados para datos del API
   const [trabajos, setTrabajos] = useState<Trabajo[]>([]);
+  const [citasReales, setCitasReales] = useState<CitaFrontend[]>([]);
+  const [inventario, setInventario] = useState<Producto[]>([]);
+  const [vehiculosClientes, setVehiculosClientes] = useState<VehiculoClienteCompleto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingCitas, setLoadingCitas] = useState(false);
+  const [loadingInventario, setLoadingInventario] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Datos mockeados de inventario
-  const [inventario] = useState([
-    { codigo: 'R001', nombre: 'Aceite Motor 5W-30', precio: 25000, cantidad: 25, vehiculoId: null },
-    { codigo: 'R002', nombre: 'Filtro de Aceite', precio: 12000, cantidad: 40, vehiculoId: null },
-    { codigo: 'R003', nombre: 'Pastillas de Freno Delanteras', precio: 18000, cantidad: 15, vehiculoId: 1 },
-    { codigo: 'R004', nombre: 'Batería 12V 60Ah', precio: 65000, cantidad: 8, vehiculoId: null },
-    { codigo: 'R005', nombre: 'Filtro de Aire', precio: 15000, cantidad: 30, vehiculoId: null },
-    { codigo: 'R006', nombre: 'Bujías', precio: 8000, cantidad: 50, vehiculoId: 2 }
-  ]);
-
-  // Datos mockeados de servicios
+  // Datos mockeados de servicios (como solicitaste, NO cambiar esto)
   const [manoDeObra] = useState([
     { codigo: 'S001', nombre: 'Cambio de Aceite', precio: 15000, descripcion: 'Cambio completo de aceite' },
     { codigo: 'S002', nombre: 'Revisión de Frenos', precio: 20000, descripcion: 'Revisión completa del sistema de frenos' },
@@ -81,9 +71,6 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
     { codigo: 'S005', nombre: 'Balanceo', precio: 10000, descripcion: 'Balanceo de ruedas' },
     { codigo: 'S006', nombre: 'Cambio de Batería', precio: 10000, descripcion: 'Cambio e instalación de batería' }
   ]);
-
-  // Cargar citas desde el API
-  const [citas, setCitas] = useState<Cita[]>([]);
 
   // Estados para búsqueda y selección
   const [search, setSearch] = useState('');
@@ -110,47 +97,34 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
   // Constantes
   const ESTADOS = ['Pendiente', 'En proceso', 'Finalizada', 'Cancelada'];
 
-  // Cargar órdenes de trabajo desde el API
+  // Cargar todos los datos necesarios
   useEffect(() => {
-    cargarOrdenes();
-    cargarCitas();
+    cargarDatos();
   }, []);
 
-  const cargarCitas = async () => {
+  const cargarDatos = async () => {
     try {
-      const response = await fetch('/.netlify/functions/citas');
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data) {
-          // Transformar citas del API al formato esperado
-          const citasTransformadas: Cita[] = data.data
-            .filter((c: any) => c.estado === 'Aceptada')
-            .map((c: any) => ({
-              id: `CITA-${String(c.id).padStart(3, '0')}`,
-              clienteNombre: c.cliente_nombre || 'N/A',
-              clienteCedula: c.cliente_cedula || 'N/A',
-              vehiculoPlaca: c.vehiculo_placa || 'N/A',
-              estado: c.estado,
-              mecanico: c.mecanico_nombre || 'Sin asignar',
-              _citaId: c.id,
-              _vehiculoClienteId: c.vehiculo_cliente_id
-            }));
-          setCitas(citasTransformadas);
-        }
-      }
-    } catch (error) {
-      console.error('Error cargando citas:', error);
+      setLoading(true);
+      await Promise.all([
+        cargarOrdenes(),
+        cargarCitas(),
+        cargarInventario(),
+        cargarVehiculosClientes()
+      ]);
+    } catch (err) {
+      console.error('Error cargando datos:', err);
+      setError('Error al cargar los datos');
+    } finally {
+      setLoading(false);
     }
   };
 
   const cargarOrdenes = async () => {
     try {
-      setLoading(true);
       setError(null);
       const response = await ordenTrabajoService.getOrdenes();
       
       if (response.success && response.data) {
-        // Convertir de OrdenTrabajo (API) a Trabajo (frontend)
         const trabajosConvertidos: Trabajo[] = response.data.map(orden => ({
           codigoOrden: `OT-${String(orden.id).padStart(3, '0')}`,
           clienteNombre: orden.cliente_nombre || 'N/A',
@@ -182,8 +156,81 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
     } catch (err) {
       console.error('Error cargando órdenes:', err);
       setError('Error de conexión al cargar órdenes de trabajo');
+    }
+  };
+
+const cargarCitas = async () => {
+  try {
+    setLoadingCitas(true);
+    const response = await citaService.getCitas({ estado: 'Aceptada' });
+    
+    if (response.success && response.data) {
+      const citasFormateadas: CitaFrontend[] = response.data.map(cita => ({
+        ...cita,
+        idFormateado: `CITA-${String(cita.id).padStart(3, '0')}`,
+        clienteNombre: cita.cliente_nombre,
+        clienteCedula: cita.cliente_cedula,
+        vehiculoPlaca: cita.vehiculo_placa,
+        mecanico: cita.mecanico_nombre
+      }));
+      
+      setCitasReales(citasFormateadas);
+    }
+  } catch (err) {
+    console.error('Error cargando citas:', err);
+  } finally {
+    setLoadingCitas(false);
+  }
+};
+
+  const cargarInventario = async () => {
+    try {
+      setLoadingInventario(true);
+      const response = await inventarioService.getProductos();
+      
+      if (response.success && response.data) {
+        setInventario(response.data);
+      }
+    } catch (err) {
+      console.error('Error cargando inventario:', err);
     } finally {
-      setLoading(false);
+      setLoadingInventario(false);
+    }
+  };
+
+  const cargarVehiculosClientes = async () => {
+    try {
+      const response = await vehiculoClienteService.getVehiculosClientes();
+      
+      if (response.success && response.data) {
+        setVehiculosClientes(response.data);
+      }
+    } catch (err) {
+      console.error('Error cargando vehículos de clientes:', err);
+    }
+  };
+
+  // Obtener vehículo por ID
+  const obtenerVehiculoPorId = (id: number) => {
+    return vehiculosClientes.find(v => v.id === id);
+  };
+
+  // Obtener cliente por ID
+  const obtenerClientePorId = async (id: number) => {
+    try {
+      // Nota: Necesitamos una función en clienteService para obtener por ID
+      // Por ahora usamos el array de vehículos que ya tiene la info del cliente
+      const vehiculo = vehiculosClientes.find(v => v.cliente_id === id);
+      if (vehiculo) {
+        return {
+          nombre: vehiculo.cliente_nombre,
+          cedula: vehiculo.cliente_cedula
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error('Error obteniendo cliente:', err);
+      return null;
     }
   };
 
@@ -222,129 +269,169 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
 
   /* === OBTENER CITAS DISPONIBLES === */
   const citasDisponibles = useMemo(() => {
+    if (loadingCitas) return [];
+    
     // Filtrar citas aceptadas que no tienen orden de trabajo
-    const citasAceptadas = citas.filter(c => c.estado === 'Aceptada');
+    const citasSinOrden = citasReales.filter(cita => {
+      // Buscar si ya hay una orden con esta cita
+      const ordenExistente = trabajos.find(t => 
+        t._citaId === cita.id || 
+        // O buscar por vehículo y cliente similar
+        (t.placa === cita.vehiculoPlaca && t.clienteCedula === cita.clienteCedula)
+      );
+      return !ordenExistente;
+    });
     
     if (session.rol !== 'admin') {
       // Filtrar por mecánico asignado
-      return citasAceptadas.filter(cita => 
-        cita.mecanico === session.nombre &&
-        !trabajos.find(t => t.idCita === cita.id)
+      return citasSinOrden.filter(cita => 
+        cita.mecanico === session.nombre
       );
     }
     
-    // Admin ve todas las citas sin orden
-    return citasAceptadas.filter(cita => 
-      !trabajos.find(t => t.idCita === cita.id)
-    );
-  }, [citas, trabajos, session]);
+    return citasSinOrden;
+  }, [citasReales, trabajos, session, loadingCitas]);
 
   /* === CREAR ORDEN DESDE CITA === */
-  const crearOrdenDesdeCita = async () => {
-    const { codigoCita, observacionesIniciales } = newOT;
+const crearOrdenDesdeCita = async () => {
+  const { codigoCita, observacionesIniciales } = newOT;
+  
+  if (!codigoCita) {
+    alert('Debe seleccionar una cita');
+    return;
+  }
+
+  // Buscar cita por idFormateado
+  const citaSeleccionada = citasReales.find(c => c.idFormateado === codigoCita);
+  
+  if (!citaSeleccionada || !citaSeleccionada.id) {
+    alert('Cita no encontrada');
+    return;
+  }
+
+  const citaIdNumero = citaSeleccionada.id;
+
+  // Verificar permisos
+  if (session.rol !== 'admin' && citaSeleccionada.mecanico !== session.nombre) {
+    alert('No tienes permisos para crear una orden para esta cita');
+    return;
+  }
+
+  try {
+    setLoading(true);
     
-    if (!codigoCita) {
-      alert('Debe seleccionar una cita');
+    // Obtener vehículo_cliente_id de la cita
+    const citaDetalleResponse = await citaService.getCitaById(citaIdNumero);
+    
+    if (!citaDetalleResponse.success || !citaDetalleResponse.data) {
+      alert('No se pudo obtener los detalles de la cita');
       return;
     }
 
-    const citaSeleccionada = citas.find(c => c.id === codigoCita);
-    if (!citaSeleccionada) {
-      alert('Cita no encontrada');
-      return;
-    }
+    const citaDetalle = citaDetalleResponse.data;
+    
+    // Crear nueva orden de trabajo
+    const nuevaOrden: Omit<OrdenTrabajo, 'id' | 'created_at' | 'updated_at'> = {
+      vehiculo_cliente_id: citaDetalle.vehiculo_cliente_id,
+      tipo_servicio: 'Servicio general',
+      descripcion: observacionesIniciales.trim() || `Orden creada desde cita ${citaSeleccionada.idFormateado}`,
+      fecha_entrada: new Date().toISOString(),
+      costo: 0,
+      estado: 'pendiente',
+      notas: observacionesIniciales.trim() || null
+    };
 
-    // Verificar permisos
-    if (session.rol !== 'admin' && citaSeleccionada.mecanico !== session.nombre) {
-      alert('No tienes permisos para crear una orden para esta cita');
-      return;
+    const response = await ordenTrabajoService.createOrden(nuevaOrden);
+    
+    if (response.success && response.data) {
+      // Actualizar estado de la cita a "Completada"
+      await citaService.updateEstado(citaIdNumero, 'Completada');
+      
+      // Recargar datos
+      await Promise.all([cargarOrdenes(), cargarCitas()]);
+      
+      setNewOT({ codigoCita: '', observacionesIniciales: '' });
+      setShowModalNuevaOT(false);
+      alert(`Orden creada exitosamente desde la cita ${citaSeleccionada.idFormateado}`);
+    } else {
+      alert(response.error || 'Error al crear la orden de trabajo');
     }
-
-    try {
-      setLoading(true);
-      
-      // Obtener vehiculo_cliente_id de la cita seleccionada
-      const vehiculoClienteId = citaSeleccionada._vehiculoClienteId || 1;
-      
-      const nuevaOrden: Omit<OrdenTrabajo, 'id' | 'created_at' | 'updated_at'> = {
-        vehiculo_cliente_id: vehiculoClienteId,
-        tipo_servicio: 'Servicio general',
-        descripcion: observacionesIniciales.trim() || 'Sin observaciones iniciales',
-        fecha_entrada: new Date().toISOString(),
-        costo: 0,
-        estado: 'pendiente'
-      };
-
-      const response = await ordenTrabajoService.createOrden(nuevaOrden);
-      
-      if (response.success && response.data) {
-        await cargarOrdenes(); // Recargar la lista
-        setNewOT({ codigoCita: '', observacionesIniciales: '' });
-        setShowModalNuevaOT(false);
-        alert(`Orden creada exitosamente`);
-      } else {
-        alert(response.error || 'Error al crear la orden de trabajo');
-      }
-    } catch (err) {
-      console.error('Error creando orden:', err);
-      alert('Error de conexión al crear la orden');
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err) {
+    console.error('Error creando orden:', err);
+    alert('Error de conexión al crear la orden');
+  } finally {
+    setLoading(false);
+  }
+};
 
   /* === AGREGAR REPUESTO A ORDEN === */
-  const agregarRepuestoTrabajo = () => {
+  const agregarRepuestoTrabajo = async () => {
     if (!selected || !repSeleccionado) return;
 
-    const repuesto = inventario.find(r => r.codigo === repSeleccionado);
-    if (!repuesto) {
-      alert('Repuesto no encontrado');
-      return;
+    try {
+      // Buscar producto en inventario real
+      const productoResponse = await inventarioService.getProductoByCodigo(repSeleccionado);
+      
+      if (!productoResponse.success || !productoResponse.data) {
+        alert('Repuesto no encontrado en el inventario');
+        return;
+      }
+
+      const producto = productoResponse.data;
+      
+      if (cantidadRep > producto.cantidad) {
+        alert(`No hay suficiente stock. Stock disponible: ${producto.cantidad}`);
+        return;
+      }
+
+      // Crear copia del trabajo seleccionado
+      const trabajoActualizado = { ...selected };
+      
+      // Inicializar array si no existe
+      if (!trabajoActualizado.repuestosUtilizados) {
+        trabajoActualizado.repuestosUtilizados = [];
+      }
+
+      // Verificar si ya existe
+      const repuestoExistente = trabajoActualizado.repuestosUtilizados.find(r => r.codigo === repSeleccionado);
+      
+      if (repuestoExistente) {
+        // Actualizar cantidad existente
+        repuestoExistente.cantidad += cantidadRep;
+        repuestoExistente.subtotal = repuestoExistente.cantidad * producto.precio_venta;
+      } else {
+        // Agregar nuevo
+        trabajoActualizado.repuestosUtilizados.push({
+          codigo: producto.codigo,
+          nombre: producto.nombre,
+          cantidad: cantidadRep,
+          precio: producto.precio_venta,
+          subtotal: producto.precio_venta * cantidadRep
+        });
+      }
+
+      // Actualizar estados
+      setSelected(trabajoActualizado);
+      setTrabajos(trabajos.map(t => 
+        t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
+      ));
+
+      // Limpiar formulario
+      setRepSeleccionado('');
+      setCantidadRep(1);
+      
+      alert('Repuesto agregado exitosamente');
+      
+      // Actualizar inventario (restar cantidad)
+      // Nota: En un sistema real, deberías tener una función para esto
+      // await inventarioService.updateProducto(repSeleccionado, {
+      //   cantidad: producto.cantidad - cantidadRep
+      // });
+      
+    } catch (err) {
+      console.error('Error agregando repuesto:', err);
+      alert('Error al agregar el repuesto');
     }
-
-    if (cantidadRep > repuesto.cantidad) {
-      alert('No hay suficiente stock');
-      return;
-    }
-
-    // Crear copia del trabajo seleccionado
-    const trabajoActualizado = { ...selected };
-    
-    // Inicializar array si no existe
-    if (!trabajoActualizado.repuestosUtilizados) {
-      trabajoActualizado.repuestosUtilizados = [];
-    }
-
-    // Verificar si ya existe
-    const repuestoExistente = trabajoActualizado.repuestosUtilizados.find(r => r.codigo === repSeleccionado);
-    
-    if (repuestoExistente) {
-      // Actualizar cantidad existente
-      repuestoExistente.cantidad += cantidadRep;
-      repuestoExistente.subtotal = repuestoExistente.cantidad * repuesto.precio;
-    } else {
-      // Agregar nuevo
-      trabajoActualizado.repuestosUtilizados.push({
-        codigo: repuesto.codigo,
-        nombre: repuesto.nombre,
-        cantidad: cantidadRep,
-        precio: repuesto.precio,
-        subtotal: repuesto.precio * cantidadRep
-      });
-    }
-
-    // Actualizar estados
-    setSelected(trabajoActualizado);
-    setTrabajos(trabajos.map(t => 
-      t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
-    ));
-
-    // Limpiar formulario
-    setRepSeleccionado('');
-    setCantidadRep(1);
-    
-    alert('Repuesto agregado exitosamente');
   };
 
   /* === ELIMINAR REPUESTO === */
@@ -352,18 +439,26 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
     if (!selected || !selected.repuestosUtilizados) return;
 
     const trabajoActualizado = { ...selected };
+    const repuestoEliminado = trabajoActualizado.repuestosUtilizados?.[index];
+    
     trabajoActualizado.repuestosUtilizados = trabajoActualizado.repuestosUtilizados?.filter((_, i) => i !== index);
     
     setSelected(trabajoActualizado);
     setTrabajos(trabajos.map(t => 
       t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
     ));
+
+    // Aquí podrías devolver la cantidad al inventario si es necesario
+    if (repuestoEliminado) {
+      // await inventarioService.incrementarStock(repuestoEliminado.codigo, repuestoEliminado.cantidad);
+    }
   };
 
   /* === AGREGAR SERVICIO A ORDEN === */
   const agregarServicioTrabajo = () => {
     if (!selected || !servicioSeleccionado) return;
 
+    // Usar datos mockeados de servicios (como solicitaste)
     const servicio = manoDeObra.find(s => s.codigo === servicioSeleccionado);
     if (!servicio) {
       alert('Servicio no encontrado');
@@ -477,7 +572,7 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
       const response = await ordenTrabajoService.updateOrden(selected._ordenId, datosActualizados);
       
       if (response.success) {
-        await cargarOrdenes(); // Recargar la lista
+        await cargarOrdenes();
         setShowModalDetalle(false);
         alert('Orden actualizada correctamente');
       } else {
@@ -505,7 +600,7 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
       const response = await ordenTrabajoService.updateEstado(selected._ordenId, estadoAPI);
       
       if (response.success) {
-        await cargarOrdenes(); // Recargar la lista
+        await cargarOrdenes();
         setShowModalEstado(false);
         alert('Estado actualizado correctamente');
       } else {
@@ -557,16 +652,20 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
       {error && (
         <div className="alert alert-error">
           <p>{error}</p>
-          <button className="boton boton-secundario" onClick={cargarOrdenes}>
+          <button className="boton boton-secundario" onClick={cargarDatos}>
             Reintentar
           </button>
         </div>
       )}
 
       {/* INDICADOR DE CARGA */}
-      {loading && (
+      {(loading || loadingCitas || loadingInventario) && (
         <div className="loading-overlay">
-          <div className="loading-spinner">Cargando órdenes de trabajo...</div>
+          <div className="loading-spinner">
+            {loadingCitas ? 'Cargando citas...' : 
+             loadingInventario ? 'Cargando inventario...' : 
+             'Cargando datos...'}
+          </div>
         </div>
       )}
 
@@ -588,6 +687,7 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
                 setShowModalNuevaOT(true);
                 setNewOT({ codigoCita: '', observacionesIniciales: '' });
               }}
+              disabled={loadingCitas}
             >
               <span className="icono">+</span>
               Nueva Orden desde Cita
@@ -725,25 +825,33 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
               
               <div className="form-group">
                 <label>Seleccionar Cita *</label>
-                <select
-                  value={newOT.codigoCita}
-                  onChange={e => setNewOT({ ...newOT, codigoCita: e.target.value })}
-                  className={!newOT.codigoCita ? 'input-error' : ''}
-                >
-                  <option value="">Seleccione una cita</option>
-                  {citasDisponibles.map((cita) => (
-                    <option key={cita.id} value={cita.id}>
-                      Cita {cita.id} - {cita.clienteNombre} ({cita.vehiculoPlaca})
-                    </option>
-                  ))}
-                </select>
-                {citasDisponibles.length === 0 && (
-                  <p className="warning-text">
-                    {session.rol === 'admin' 
-                      ? 'No hay citas disponibles para generar órdenes.'
-                      : 'No tienes citas disponibles para generar órdenes.'
-                    }
-                  </p>
+                {loadingCitas ? (
+                  <p>Cargando citas disponibles...</p>
+                ) : (
+                  <>
+                    <select
+                      value={newOT.codigoCita}
+                      onChange={e => setNewOT({ ...newOT, codigoCita: e.target.value })}
+                      className={!newOT.codigoCita ? 'input-error' : ''}
+                    >
+                      <option value="">Seleccione una cita</option>
+                      {citasDisponibles.map((cita) => (
+  <option key={cita.idFormateado} value={cita.idFormateado}>
+    {cita.idFormateado} - {cita.clienteNombre} ({cita.vehiculoPlaca})
+    {session.rol !== 'admin' && cita.mecanico && ` - Mecánico: ${cita.mecanico}`}
+  </option>
+))}
+
+                    </select>
+                    {citasDisponibles.length === 0 && (
+                      <p className="warning-text">
+                        {session.rol === 'admin' 
+                          ? 'No hay citas aceptadas disponibles para generar órdenes.'
+                          : 'No tienes citas aceptadas asignadas para generar órdenes.'
+                        }
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
               
@@ -762,7 +870,7 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
               <button 
                 className="boton boton-guardar" 
                 onClick={crearOrdenDesdeCita}
-                disabled={!newOT.codigoCita}
+                disabled={!newOT.codigoCita || loadingCitas}
               >
                 Crear Orden
               </button>
@@ -874,9 +982,9 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
                       list="repuestos-lista"
                     />
                     <datalist id="repuestos-lista">
-                      {inventario.map(rep => (
-                        <option key={rep.codigo} value={rep.codigo}>
-                          {rep.nombre} (Stock: {rep.cantidad})
+                      {inventario.map(producto => (
+                        <option key={producto.codigo} value={producto.codigo}>
+                          {producto.nombre} (Stock: {producto.cantidad})
                         </option>
                       ))}
                     </datalist>
@@ -892,15 +1000,16 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
                     <button 
                       className="boton boton-agregar"
                       onClick={agregarRepuestoTrabajo}
-                      disabled={!repSeleccionado || cantidadRep < 1}
+                      disabled={!repSeleccionado || cantidadRep < 1 || loadingInventario}
                     >
-                      Agregar
+                      {loadingInventario ? 'Cargando...' : 'Agregar'}
                     </button>
                   </div>
+                  {loadingInventario && <p>Cargando inventario...</p>}
                 </div>
               </div>
 
-              {/* SERVICIOS REALIZADOS */}
+              {/* SERVICIOS REALIZADOS (mock) */}
               <div className="seccion-items">
                 <h4>Servicios Realizados</h4>
                 <div className="table-scrollable">
