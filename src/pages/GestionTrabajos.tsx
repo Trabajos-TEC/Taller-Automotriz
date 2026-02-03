@@ -174,7 +174,7 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
             servicios.push({
               codigo: `S${orden.servicio_id || '000'}`,
               nombre: orden.servicio_nombre,
-              precio: parseFloat(orden.servicio_precio) || 0,
+              precio: parseFloat(String(orden.servicio_precio || 0)),
               descripcion: orden.tipo_servicio || ''
             });
           }
