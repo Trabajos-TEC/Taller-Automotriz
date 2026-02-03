@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import '../styles/pages/GestionCotizacion.css';
 import '../styles/Botones.css';
+import GeneradorPDF from './GeneradorPDF';
 
 // Interfaces
 interface Repuesto {
@@ -840,6 +841,36 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
     setSelected(null);
   };
 
+  /* === GENERAR PDF DE COTIZACIÓN === */
+  const generarPDFCotizacion = async (cotizacion: Cotizacion): Promise<void> => {
+    try {
+      // Transformar datos de Cotizacion a formato compatible con GeneradorPDF
+      const datosPDF = {
+        esProforma: cotizacion.esProforma,
+        clienteNombre: cotizacion.clienteNombre,
+        clienteCedula: cotizacion.clienteCedula,
+        vehiculoPlaca: cotizacion.vehiculoPlaca,
+        codigo: cotizacion.codigo,
+        codigoOrdenTrabajo: cotizacion.codigoOrdenTrabajo,
+        repuestos: cotizacion.repuestos.map(r => ({
+          nombre: r.nombre,
+          cantidad: r.cantidad,
+          precio: r.precio
+        })),
+        manoObra: cotizacion.manoObra.map(m => ({
+          nombre: m.nombre,
+          tarifa: m.tarifa
+        })),
+        descuentoManoObra: cotizacion.descuentoManoObra
+      };
+      
+      await GeneradorPDF.generarCotizacionPDF(datosPDF);
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      alert('Error al generar el PDF. Por favor, intenta de nuevo.');
+    }
+  };
+
   /* === MANEJAR CLICK FUERA DE DROPDOWNS === */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent): void => {
@@ -1008,6 +1039,12 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
                   disabled={selected.esProforma}
                 >
                   {selected.esProforma ? 'Proforma (No Editable)' : 'Editar Cotización'}
+                </button>
+                <button 
+                  className="boton boton-secundario"
+                  onClick={() => generarPDFCotizacion(selected)}
+                >
+                  📄 Generar PDF
                 </button>
               </div>
             </div>
@@ -1383,6 +1420,22 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
                     {editMode && (
                       <button className="boton boton-editar" onClick={generarProforma}>
                         Generar Proforma
+                      </button>
+                    )}
+                    {editMode && (
+                      <button className="boton boton-secundario" onClick={() => {
+                        const cotizacionCompleta: Cotizacion = {
+                          ...form,
+                          codigo: form.codigo,
+                          fechaCreacion: new Date().toISOString().split('T')[0],
+                          subtotalRepuestos: calculoTotales.subtotalRepuestos,
+                          subtotalManoObra: calculoTotales.subtotalManoObra,
+                          iva: calculoTotales.iva,
+                          total: calculoTotales.total
+                        };
+                        generarPDFCotizacion(cotizacionCompleta);
+                      }}>
+                        📄Generar PDF
                       </button>
                     )}
                     {editMode && (
