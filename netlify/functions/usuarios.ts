@@ -1,5 +1,6 @@
 import { Handler } from '@netlify/functions';
 import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
+import { requireAuth } from './utils/requireAuth';
 
 /**
  * Función Netlify para gestionar usuarios del sistema
@@ -12,17 +13,21 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    const user = requireAuth(event);
+    const TALLER_ID = user.taller_id;
+    
     const sql = getConnection();
     const pathParts = event.path.split('/').filter(Boolean);
     const id = pathParts[pathParts.length - 1] !== 'usuarios' ? pathParts[pathParts.length - 1] : null;
 
     // GET - Obtener usuarios
     if (event.httpMethod === 'GET') {
-      // GET /usuarios - Todos los usuarios (sin password_hash)
+      // GET /usuarios - Todos los usuarios del taller (sin password_hash)
       const usuarios = await sql`
-        SELECT id, nombre, correo, cedula, roles, activo, created_at, updated_at
+        SELECT id, nombre, correo, cedula, roles as rol, activo, created_at, updated_at, taller_id
         FROM usuarios
         WHERE activo = true
+          AND taller_id = ${TALLER_ID}
         ORDER BY nombre
       `;
 
@@ -53,9 +58,9 @@ export const handler: Handler = async (event) => {
       const passwordHash = password || cedula;
 
       const result = await sql`
-        INSERT INTO usuarios (nombre, correo, cedula, password_hash, roles, activo)
-        VALUES (${nombre}, ${correo}, ${cedula}, ${passwordHash}, ${roles}, true)
-        RETURNING id, nombre, correo, cedula, roles, activo, created_at
+        INSERT INTO usuarios (nombre, correo, cedula, password_hash, roles, activo, taller_id)
+        VALUES (${nombre}, ${correo}, ${cedula}, ${passwordHash}, ${roles}, true, ${TALLER_ID})
+        RETURNING id, nombre, correo, cedula, roles, activo, created_at, taller_id
       `;
 
       return successResponse(result[0], 201);
@@ -74,7 +79,8 @@ export const handler: Handler = async (event) => {
             activo = COALESCE(${activo}, activo),
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ${parseInt(id)}
-        RETURNING id, nombre, correo, cedula, roles, activo, created_at, updated_at
+          AND taller_id = ${TALLER_ID}
+        RETURNING id, nombre, correo, cedula, roles, activo, created_at, updated_at, taller_id
       `;
 
       if (result.length === 0) {
@@ -90,6 +96,7 @@ export const handler: Handler = async (event) => {
         UPDATE usuarios
         SET activo = false
         WHERE id = ${parseInt(id)}
+          AND taller_id = ${TALLER_ID}
         RETURNING id
       `;
 
@@ -104,6 +111,17 @@ export const handler: Handler = async (event) => {
 
   } catch (error) {
     console.error('Error en usuarios:', error);
-    return errorResponse(error instanceof Error ? error : 'Error interno del servidor');
+    
+    if (error instanceof Error) {
+      if (error.message === 'NO_TOKEN') {
+        return errorResponse('No se proporcionó token de autenticación', 401);
+      }
+      if (error.message === 'INVALID_TOKEN') {
+        return errorResponse('Token de autenticación inválido', 401);
+      }
+      return errorResponse(error.message);
+    }
+    
+    return errorResponse('Error interno del servidor');
   }
 };
