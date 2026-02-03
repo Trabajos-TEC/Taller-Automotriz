@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import '../styles/pages/Citas.css';
 import { citaService } from '../services/cita.service';
 import { fetchApi } from '../services/api';
+import { useToast } from '../components/ToastContainer';
 
 interface Cita {
   id: number;
@@ -38,6 +39,8 @@ interface Usuario {
 }
 
 const Citas: React.FC = () => {
+  const { showToast } = useToast();
+  
   // Estado para la lista de citas
   const [citas, setCitas] = useState<Cita[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
@@ -100,7 +103,7 @@ const Citas: React.FC = () => {
       }
     } catch (error) {
       console.error('Error cargando datos:', error);
-      alert('Error al cargar datos. Intenta nuevamente.');
+      showToast('Error al cargar datos. Intenta nuevamente.', 'error');
     } finally {
       setLoading(false);
     }
@@ -208,7 +211,7 @@ const Citas: React.FC = () => {
       await cargarDatos(); // Recargar datos
     } catch (error) {
       console.error('Error cancelando cita:', error);
-      alert('Error al cancelar cita existente');
+      showToast('Error al cancelar cita existente', 'error');
     }
   };
 
@@ -236,13 +239,13 @@ const Citas: React.FC = () => {
       
       setErrors({});
       setShowModalAgregar(false);
-      alert('Cita agendada exitosamente');
+      showToast('Cita agendada exitosamente', 'success');
       
       // Recargar datos
       await cargarDatos();
     } catch (error) {
       console.error('Error creando cita:', error);
-      alert('Error al crear cita. Intenta nuevamente.');
+      showToast('Error al crear cita. Intenta nuevamente.', 'error');
     }
   };
 
@@ -269,20 +272,20 @@ const Citas: React.FC = () => {
       setErrors({});
       setShowModalEditar(false);
       setCitaEditada(null);
-      alert('Cita actualizada exitosamente');
+      showToast('Cita actualizada exitosamente', 'success');
       
       // Recargar datos
       await cargarDatos();
     } catch (error) {
       console.error('Error actualizando cita:', error);
-      alert('Error al actualizar cita. Intenta nuevamente.');
+      showToast('Error al actualizar cita. Intenta nuevamente.', 'error');
     }
   };
 
   /* === ASIGNAR MECÁNICO === */
   const asignarMecanico = async () => {
     if (!selected || !mecanicoSeleccionado) {
-      alert('Seleccione un mecánico');
+      showToast('Seleccione un mecánico', 'warning');
       return;
     }
 
@@ -291,13 +294,13 @@ const Citas: React.FC = () => {
       
       setShowModalAsignar(false);
       setMecanicoSeleccionado('');
-      alert('Mecánico asignado exitosamente');
+      showToast('Mecánico asignado exitosamente', 'success');
       
       // Recargar datos
       await cargarDatos();
     } catch (error) {
       console.error('Error asignando mecánico:', error);
-      alert('Error al asignar mecánico. Intenta nuevamente.');
+      showToast('Error al asignar mecánico. Intenta nuevamente.', 'error');
     }
   };
 
@@ -314,11 +317,11 @@ const Citas: React.FC = () => {
         setSelected({ ...selected, estado: nuevoEstado });
       }
       
-      alert('Estado actualizado exitosamente');
+      showToast('Estado actualizado exitosamente', 'success');
       await cargarDatos();
     } catch (error) {
       console.error('Error actualizando estado:', error);
-      alert('Error al actualizar estado');
+      showToast('Error al actualizar estado', 'error');
     }
   };
 
@@ -329,11 +332,11 @@ const Citas: React.FC = () => {
     try {
       await citaService.deleteCita(id);
       setSelected(null);
-      alert('Cita eliminada');
+      showToast('Cita eliminada', 'success');
       await cargarDatos();
     } catch (error) {
       console.error('Error eliminando cita:', error);
-      alert('Error al eliminar cita');
+      showToast('Error al eliminar cita', 'error');
     }
   };
 

@@ -2,10 +2,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { clienteService } from '../services/cliente.service';
 import type { Cliente } from '../services/cliente.service'; // Importación type-only
+import { useToast } from '../components/ToastContainer';
 import '../styles/pages/Clientes.css';
 import '../styles/Botones.css';
 
 const Clientes: React.FC = () => {
+  const { showToast } = useToast();
+  
   // Estados
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -147,7 +150,7 @@ const Clientes: React.FC = () => {
         setErrors({});
         setShowModalAgregar(false);
         
-        alert('Cliente agregado exitosamente');
+        showToast('Cliente agregado exitosamente', 'success');
       }
     } catch (error: any) {
       console.error('Error agregando cliente:', error);
@@ -157,7 +160,7 @@ const Clientes: React.FC = () => {
           error.message && error.message.includes('Cédula')) {
         setErrors({ ...errors, cedula: 'La cédula ya está registrada' });
       } else {
-        alert('Error al agregar cliente: ' + (error.message || 'Error desconocido'));
+        showToast('Error al agregar cliente: ' + (error.message || 'Error desconocido'), 'error');
       }
     } finally {
       setLoading(false);
@@ -192,11 +195,11 @@ const Clientes: React.FC = () => {
         setErrors({});
         setShowModalEditar(false);
         
-        alert('Cliente actualizado exitosamente');
+        showToast('Cliente actualizado exitosamente', 'success');
       }
     } catch (error: any) {
       console.error('Error actualizando cliente:', error);
-      alert('Error al actualizar cliente: ' + (error.message || 'Error desconocido'));
+      showToast('Error al actualizar cliente: ' + (error.message || 'Error desconocido'), 'error');
     } finally {
       setLoading(false);
     }
@@ -215,11 +218,11 @@ const Clientes: React.FC = () => {
         await cargarClientes();
         setSelected(null);
         
-        alert('Cliente eliminado exitosamente');
+        showToast('Cliente eliminado exitosamente', 'success');
       }
     } catch (error: any) {
       console.error('Error eliminando cliente:', error);
-      alert('Error al eliminar cliente: ' + (error.message || 'Error desconocido'));
+      showToast('Error al eliminar cliente: ' + (error.message || 'Error desconocido'), 'error');
     } finally {
       setLoading(false);
     }

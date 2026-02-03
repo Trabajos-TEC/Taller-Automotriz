@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import '../styles/pages/GestionTrabajos.css';
 import '../styles/Botones.css';
+import { useToast } from '../components/ToastContainer';
 import { ordenTrabajoService, type OrdenTrabajo } from '../services/ordenTrabajo.service';
 import { citaService, type Cita } from '../services/cita.service';
 import { inventarioService, type Producto } from '../services/inventario.service';
@@ -51,6 +52,8 @@ interface CitaFrontend extends Omit<Cita, 'id'> {
 }
 
 const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
+  const { showToast } = useToast();
+  
   // Estados para datos del API
   const [trabajos, setTrabajos] = useState<Trabajo[]>([]);
   const [citasReales, setCitasReales] = useState<CitaFrontend[]>([]);
@@ -296,21 +299,21 @@ const crearOrdenDesdeCita = async () => {
   const { codigoCita, observacionesIniciales } = newOT;
   
   if (!codigoCita) {
-    alert('Debe seleccionar una cita');
+    showToast('Debe seleccionar una cita', 'warning');
     return;
   }
 
   const citaSeleccionada = citasReales.find(c => c.idFormateado === codigoCita);
   
   if (!citaSeleccionada || !citaSeleccionada.id) {
-    alert('Cita no encontrada');
+    showToast('Cita no encontrada', 'error');
     return;
   }
 
   const citaIdNumero = citaSeleccionada.id;
 
   if (session.rol !== 'admin' && citaSeleccionada.mecanico !== session.nombre) {
-    alert('No tienes permisos para crear una orden para esta cita');
+    showToast('No tienes permisos para crear una orden para esta cita', 'warning');
     return;
   }
 
@@ -320,7 +323,7 @@ const crearOrdenDesdeCita = async () => {
     const citaDetalleResponse = await citaService.getCitaById(citaIdNumero);
     
     if (!citaDetalleResponse.success || !citaDetalleResponse.data) {
-      alert('No se pudo obtener los detalles de la cita');
+      showToast('No se pudo obtener los detalles de la cita', 'error');
       return;
     }
 
@@ -349,13 +352,13 @@ const crearOrdenDesdeCita = async () => {
       
       setNewOT({ codigoCita: '', observacionesIniciales: '' });
       setShowModalNuevaOT(false);
-      alert(`Orden creada exitosamente`);
+      showToast('Orden creada exitosamente', 'success');
     } else {
-      alert(response.error || 'Error al crear la orden de trabajo');
+      showToast(response.error || 'Error al crear la orden de trabajo', 'error');
     }
   } catch (err) {
     console.error('Error creando orden:', err);
-    alert('Error de conexión al crear la orden');
+    showToast('Error de conexión al crear la orden', 'error');
   } finally {
     setLoading(false);
   }
@@ -370,14 +373,14 @@ const crearOrdenDesdeCita = async () => {
       const productoResponse = await inventarioService.getProductoByCodigo(repSeleccionado);
       
       if (!productoResponse.success || !productoResponse.data) {
-        alert('Repuesto no encontrado en el inventario');
+        showToast('Repuesto no encontrado en el inventario', 'error');
         return;
       }
 
       const producto = productoResponse.data;
       
       if (cantidadRep > producto.cantidad) {
-        alert(`No hay suficiente stock. Stock disponible: ${producto.cantidad}`);
+        showToast(`No hay suficiente stock. Stock disponible: ${producto.cantidad}`, 'warning');
         return;
       }
 
@@ -417,7 +420,7 @@ const crearOrdenDesdeCita = async () => {
       setRepSeleccionado('');
       setCantidadRep(1);
       
-      alert('Repuesto agregado exitosamente');
+      showToast('Repuesto agregado exitosamente', 'success');
       
       // Actualizar inventario (restar cantidad)
       // Nota: En un sistema real, deberías tener una función para esto
@@ -427,7 +430,7 @@ const crearOrdenDesdeCita = async () => {
       
     } catch (err) {
       console.error('Error agregando repuesto:', err);
-      alert('Error al agregar el repuesto');
+      showToast('Error al agregar el repuesto', 'error');
     }
   };
 
@@ -457,7 +460,7 @@ const agregarServicioTrabajo = () => {
 
   const servicio = manoDeObra.find(s => s.codigo === servicioSeleccionado);
   if (!servicio) {
-    alert('Servicio no encontrado');
+    showToast('Servicio no encontrado', 'error');
     return;
   }
 
@@ -484,7 +487,7 @@ const agregarServicioTrabajo = () => {
   ));
 
   setServicioSeleccionado('');
-  alert('Servicio agregado exitosamente');
+  showToast('Servicio agregado exitosamente', 'success');
 };
 
   /* === ELIMINAR SERVICIO === */
@@ -548,7 +551,7 @@ const agregarServicioTrabajo = () => {
   /* === GUARDAR CAMBIOS === */
   const guardarDetalleTrabajo = async () => {
   if (!selected || !selected._ordenId) {
-    alert('No se puede actualizar: orden no identificada');
+    showToast('No se puede actualizar: orden no identificada', 'error');
     return;
   }
 
@@ -569,13 +572,13 @@ const agregarServicioTrabajo = () => {
     if (response.success) {
       await cargarOrdenes();
       setShowModalDetalle(false);
-      alert('Orden actualizada correctamente');
+      showToast('Orden actualizada correctamente', 'success');
     } else {
-      alert(response.error || 'Error al actualizar la orden');
+      showToast(response.error || 'Error al actualizar la orden', 'error');
     }
   } catch (err) {
     console.error('Error actualizando orden:', err);
-    alert('Error de conexión al actualizar la orden');
+    showToast('Error de conexión al actualizar la orden', 'error');
   } finally {
     setLoading(false);
   }
@@ -584,7 +587,7 @@ const agregarServicioTrabajo = () => {
   /* === CAMBIAR ESTADO === */
   const guardarNuevoEstado = async () => {
     if (!selected || !selected._ordenId) {
-      alert('No se puede actualizar: orden no identificada');
+      showToast('No se puede actualizar: orden no identificada', 'error');
       return;
     }
 
@@ -597,13 +600,13 @@ const agregarServicioTrabajo = () => {
       if (response.success) {
         await cargarOrdenes();
         setShowModalEstado(false);
-        alert('Estado actualizado correctamente');
+        showToast('Estado actualizado correctamente', 'success');
       } else {
-        alert(response.error || 'Error al actualizar el estado');
+        showToast(response.error || 'Error al actualizar el estado', 'error');
       }
     } catch (err) {
       console.error('Error actualizando estado:', err);
-      alert('Error de conexión al actualizar el estado');
+      showToast('Error de conexión al actualizar el estado', 'error');
     } finally {
       setLoading(false);
     }

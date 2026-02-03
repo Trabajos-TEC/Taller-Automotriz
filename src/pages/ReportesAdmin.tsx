@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import '../styles/pages/ReportesAdmin.css';
 import '../styles/Botones.css';
-import { fetchApi, type ApiResponse } from '../services/api';
+import { fetchApi } from '../services/api';
 
 interface Reporte {
   id: number;

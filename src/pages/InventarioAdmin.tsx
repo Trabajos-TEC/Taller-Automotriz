@@ -4,6 +4,7 @@ import { vehiculoBaseService } from '../services/vehiculo_base.service';
 import { inventarioService } from '../services/inventario.service';
 import type { VehiculoBase as VehiculoBaseServicio } from '../services/vehiculo_base.service';
 import type { Producto } from '../services/inventario.service';
+import { useToast } from '../components/ToastContainer';
 import '../styles/pages/Inventario.css';
 import '../styles/Botones.css';
 
@@ -34,6 +35,8 @@ interface RepuestoForm extends Omit<Repuesto, 'id'> {
 }
 
 const InventarioAdmin: React.FC = () => {
+  const { showToast } = useToast();
+  
   // Estados para vehículos base
   const [vehiculos, setVehiculos] = useState<VehiculoBase[]>([]);
   const [repuestos, setRepuestos] = useState<Repuesto[]>([]);
@@ -363,7 +366,7 @@ const InventarioAdmin: React.FC = () => {
         });
         
         setShowModalAgregarVehiculo(false);
-        alert('Vehículo creado exitosamente');
+        showToast('Vehículo creado exitosamente', 'success');
         
         await cargarVehiculosBase();
       }
@@ -449,7 +452,7 @@ const InventarioAdmin: React.FC = () => {
         setCategoriaInputValue('Repuesto');
         
         setShowModalAgregar(false);
-        alert('Repuesto agregado exitosamente');
+        showToast('Repuesto agregado exitosamente', 'success');
         
         await cargarProductos();
       }
@@ -524,7 +527,7 @@ const InventarioAdmin: React.FC = () => {
       
       if (response) {
         setShowModalEditar(false);
-        alert('Repuesto actualizado exitosamente');
+        showToast('Repuesto actualizado exitosamente', 'success');
         
         await cargarProductos();
         await cargarVehiculosBase();
@@ -861,11 +864,11 @@ const InventarioAdmin: React.FC = () => {
                       if (response) {
                         await cargarProductos();
                         setSelected(null);
-                        alert('Repuesto eliminado exitosamente');
+                        showToast('Repuesto eliminado exitosamente', 'success');
                       }
                     } catch (error: any) {
                       console.error('Error eliminando repuesto:', error);
-                      alert('Error al eliminar repuesto: ' + (error.message || 'Error desconocido'));
+                      showToast('Error al eliminar repuesto: ' + (error.message || 'Error desconocido'), 'error');
                     } finally {
                       setLoading(false);
                     }

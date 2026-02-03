@@ -6,6 +6,7 @@ import { clienteService } from '../services/cliente.service';
 import type { VehiculoClienteCompleto } from '../services/vehiculo_cliente.service';
 import type { VehiculoBase as VehiculoBaseServicio } from '../services/vehiculo_base.service';
 import type { Cliente as ClienteServicio } from '../services/cliente.service';
+import { useToast } from '../components/ToastContainer';
 import '../styles/pages/Vehiculos.css';
 
 // Interface local
@@ -40,6 +41,8 @@ interface Cliente {
 }
 
 const Vehiculos: React.FC = () => {
+  const { showToast } = useToast();
+  
   // Estados principales
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [search, setSearch] = useState('');
@@ -241,7 +244,7 @@ const Vehiculos: React.FC = () => {
         setErrors({});
         setShowModalAgregar(false);
         
-        alert('Vehículo agregado exitosamente');
+        showToast('Vehículo agregado exitosamente', 'success');
       }
     } catch (error: any) {
       console.error('Error agregando vehículo:', error);
@@ -249,7 +252,7 @@ const Vehiculos: React.FC = () => {
       if (error.message && error.message.includes('placa') || error.message && error.message.includes('Placa')) {
         setErrors({ ...errors, placa: 'La placa ya está registrada' });
       } else {
-        alert('Error al agregar vehículo: ' + (error.message || 'Error desconocido'));
+        showToast('Error al agregar vehículo: ' + (error.message || 'Error desconocido'), 'error');
       }
     } finally {
       setLoading(false);
@@ -282,11 +285,11 @@ const Vehiculos: React.FC = () => {
         setErrors({});
         setShowModalEditar(false);
         
-        alert('Vehículo actualizado exitosamente');
+        showToast('Vehículo actualizado exitosamente', 'success');
       }
     } catch (error: any) {
       console.error('Error actualizando vehículo:', error);
-      alert('Error al actualizar vehículo: ' + (error.message || 'Error desconocido'));
+      showToast('Error al actualizar vehículo: ' + (error.message || 'Error desconocido'), 'error');
     } finally {
       setLoading(false);
     }
@@ -305,11 +308,11 @@ const Vehiculos: React.FC = () => {
         await cargarVehiculosClientes();
         setSelected(null);
         
-        alert('Vehículo eliminado exitosamente');
+        showToast('Vehículo eliminado exitosamente', 'success');
       }
     } catch (error: any) {
       console.error('Error eliminando vehículo:', error);
-      alert('Error al eliminar vehículo: ' + (error.message || 'Error desconocido'));
+      showToast('Error al eliminar vehículo: ' + (error.message || 'Error desconocido'), 'error');
     } finally {
       setLoading(false);
     }

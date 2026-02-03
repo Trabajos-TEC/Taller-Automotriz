@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './styles/App.css';
 import './styles/Menu.css';
+import { ToastProvider } from './components/ToastContainer';
 import Login from './components/Login';
 import Clientes from './pages/Clientes';
 import Vehiculos from './pages/Vehiculos';
@@ -199,21 +200,23 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* Ruta de login */}
-          <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          
-          {/* Ruta principal - SIEMPRE usa MainLayout */}
-          <Route path="*" element={
-            <ProtectedRoute>
-              <MainLayout onLogout={handleLogout} session={session} />
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </div>
-    </Router>
+    <ToastProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* Ruta de login */}
+            <Route path="/login" element={<Login onLogin={handleLogin} />} />
+            
+            {/* Ruta principal - SIEMPRE usa MainLayout */}
+            <Route path="*" element={
+              <ProtectedRoute>
+                <MainLayout onLogout={handleLogout} session={session} />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </div>
+      </Router>
+    </ToastProvider>
   );
 }
 

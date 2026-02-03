@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import '../styles/pages/GestionCotizacion.css';
 import '../styles/Botones.css';
+import { useToast } from '../components/ToastContainer';
 import GeneradorPDF from './GeneradorPDF';
 
 // Interfaces
@@ -306,6 +307,8 @@ const apiOrdenesTrabajo = {
 
 // Componente Principal
 const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
+  const { showToast } = useToast();
+  
   // Estados principales
   const [cotizaciones, setCotizaciones] = useState<Cotizacion[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
@@ -377,7 +380,7 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
       
     } catch (e) {
       console.error("Error cargando datos:", e);
-      alert("No se pudieron cargar los datos del servidor.");
+      showToast("No se pudieron cargar los datos del servidor.", "error");
     }
   };
 
@@ -540,12 +543,12 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
     
     const rep = repuestosFiltrados.find((r) => r.codigo === repSeleccionado);
     if (!rep) {
-      alert("Repuesto no encontrado.");
+      showToast("Repuesto no encontrado.", "error");
       return;
     }
 
     if (cantidadRep < 1) {
-      alert("La cantidad debe ser al menos 1.");
+      showToast("La cantidad debe ser al menos 1.", "warning");
       return;
     }
 
@@ -667,7 +670,7 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
   /* === ABRIR EDICIÓN === */
   const abrirEdicion = (cotizacion: Cotizacion): void => {
     if (session.rol !== "admin" && cotizacion.mecanicoOrdenTrabajo !== session.nombre) {
-      alert("No tienes permiso para editar esta cotización.");
+      showToast("No tienes permiso para editar esta cotización.", "warning");
       return;
     }
     
@@ -703,17 +706,17 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
   /* === GUARDAR COTIZACIÓN === */
   const guardarCotizacion = async (): Promise<void> => {
     if (!form.clienteNombre.trim() || !form.clienteCedula.trim()) {
-      alert("Debe completar los datos del cliente.");
+      showToast("Debe completar los datos del cliente.", "warning");
       return;
     }
 
     if (!form.vehiculoPlaca.trim()) {
-      alert("Debe seleccionar un vehículo.");
+      showToast("Debe seleccionar un vehículo.", "warning");
       return;
     }
 
     if (form.repuestos.length === 0 && form.manoObra.length === 0) {
-      alert("Debe agregar al menos un repuesto o un servicio.");
+      showToast("Debe agregar al menos un repuesto o un servicio.", "warning");
       return;
     }
 
@@ -759,7 +762,7 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
           };
           setForm(formActualizada);
         }
-        alert("Cotización actualizada correctamente.");
+        showToast("Cotización actualizada correctamente.", "success");
       } else {
         const creada = await apiCotizaciones.create(payload);
         if (creada.cotizacion) {
@@ -781,18 +784,18 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
           setForm(formCreada);
         }
         setEditMode(true);
-        alert("Cotización creada correctamente.");
+        showToast("Cotización creada correctamente.", "success");
       }
     } catch (e: any) {
       console.error(e);
-      alert(e.message);
+      showToast(e.message, "error");
     }
   };
 
   /* === GENERAR PROFORMA === */
   const generarProforma = async (): Promise<void> => {
     if (!editMode) {
-      alert("Primero debe guardar la cotización.");
+      showToast("Primero debe guardar la cotización.", "warning");
       return;
     }
 
@@ -817,11 +820,11 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
         setForm({ ...form, esProforma: true });
       }
       
-      alert("Proforma generada correctamente.");
+      showToast("Proforma generada correctamente.", "success");
       
     } catch (e: any) {
       console.error("Error al generar proforma:", e);
-      alert(`Error: ${e.message}`);
+      showToast(`Error: ${e.message}`, "error");
     }
   };
 
@@ -839,10 +842,10 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
         prev.filter((c: Cotizacion) => c.codigo !== form.codigo)
       );
       setShowModalDetalle(false);
-      alert("Cotización eliminada correctamente.");
+      showToast("Cotización eliminada correctamente.", "success");
     } catch (e: any) {
       console.error(e);
-      alert(e.message);
+      showToast(e.message, "error");
     }
   };
 
@@ -879,7 +882,7 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
       await GeneradorPDF.generarCotizacionPDF(datosPDF);
     } catch (error) {
       console.error('Error generando PDF:', error);
-      alert('Error al generar el PDF. Por favor, intenta de nuevo.');
+      showToast('Error al generar el PDF. Por favor, intenta de nuevo.', 'error');
     }
   };
 
