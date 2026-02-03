@@ -3,8 +3,46 @@ import React, { useEffect, useState, useMemo, useRef } from "react";
 import '../styles/pages/GestionCotizacion.css';
 import '../styles/Botones.css';
 import { useToast } from '../components/ToastContainer';
-import { cotizacionService, type Cotizacion as CotizacionAPI } from '../services/cotizacion.service';
+import { cotizacionService, type Cotizacion as CotizacionDB } from '../services/cotizacion.service';
 import GeneradorPDF from './GeneradorPDF';
+
+// Adaptadores para convertir entre camelCase (frontend) y snake_case (API)
+const toCamelCase = (cot: CotizacionDB): Cotizacion => ({
+  id: cot.id,
+  codigo: cot.codigo,
+  clienteNombre: cot.cliente_nombre,
+  clienteCedula: cot.cliente_cedula,
+  vehiculoPlaca: cot.vehiculo_placa,
+  fechaCreacion: cot.fecha_creacion || '',
+  descuentoManoObra: cot.descuento_mano_obra,
+  subtotalRepuestos: cot.subtotal_repuestos,
+  subtotalManoObra: cot.subtotal_mano_obra,
+  iva: cot.iva,
+  total: cot.total,
+  estado: cot.estado,
+  esProforma: cot.es_proforma,
+  codigoOrdenTrabajo: cot.codigo_orden_trabajo || undefined,
+  mecanicoOrdenTrabajo: cot.mecanico_orden_trabajo || '',
+  repuestos: [],
+  manoObra: []
+});
+
+const toSnakeCase = (cot: Partial<Cotizacion>): Partial<CotizacionDB> => ({
+  ...(cot.id && { id: cot.id }),
+  ...(cot.codigo && { codigo: cot.codigo }),
+  ...(cot.clienteNombre && { cliente_nombre: cot.clienteNombre }),
+  ...(cot.clienteCedula && { cliente_cedula: cot.clienteCedula }),
+  ...(cot.vehiculoPlaca && { vehiculo_placa: cot.vehiculoPlaca }),
+  ...(cot.descuentoManoObra !== undefined && { descuento_mano_obra: cot.descuentoManoObra }),
+  ...(cot.subtotalRepuestos !== undefined && { subtotal_repuestos: cot.subtotalRepuestos }),
+  ...(cot.subtotalManoObra !== undefined && { subtotal_mano_obra: cot.subtotalManoObra }),
+  ...(cot.iva !== undefined && { iva: cot.iva }),
+  ...(cot.total !== undefined && { total: cot.total }),
+  ...(cot.estado && { estado: cot.estado }),
+  ...(cot.esProforma !== undefined && { es_proforma: cot.esProforma }),
+  ...(cot.codigoOrdenTrabajo !== undefined && { codigo_orden_trabajo: cot.codigoOrdenTrabajo || null }),
+  ...(cot.mecanicoOrdenTrabajo !== undefined && { mecanico_orden_trabajo: cot.mecanicoOrdenTrabajo || null }),
+});
 
 // Interfaces
 interface Repuesto {
@@ -24,10 +62,25 @@ interface ManoObra {
   tarifa: number;
 }
 
-// Usar la interfaz de la API (snake_case)
-interface Cotizacion extends CotizacionAPI {
-  repuestos?: Repuesto[];
-  manoObra?: ManoObra[];
+// Usar la interfaz camelCase para el frontend (más fácil de mantener)
+interface Cotizacion {
+  id?: number;
+  codigo: string;
+  clienteNombre: string;
+  clienteCedula: string;
+  vehiculoPlaca: string;
+  fechaCreacion: string;
+  repuestos: Repuesto[];
+  manoObra: ManoObra[];
+  descuentoManoObra: number;
+  subtotalRepuestos: number;
+  subtotalManoObra: number;
+  iva: number;
+  total: number;
+  estado: 'borrador' | 'pendiente' | 'aprobada' | 'rechazada';
+  esProforma: boolean;
+  codigoOrdenTrabajo?: string;
+  mecanicoOrdenTrabajo: string;
 }
 
 interface Vehiculo {
@@ -72,23 +125,110 @@ interface Session {
   rol: 'admin' | 'mecanico' | 'recepcionista';
 }
 
-// CORREGIDO: FormCotizacion ahora usa snake_case para coincidir con la API
+// CORREGIDO: FormCotizacion usando camelCase
 interface FormCotizacion {
   id?: number;
   codigo: string;
-  cliente_nombre: string;
-  cliente_cedula: string;
-  vehiculo_placa: string;
-  descuento_mano_obra: number;
+  clienteNombre: string;
+  clienteCedula: string;
+  vehiculoPlaca: string;
+  descuentoManoObra: number;
   repuestos: Repuesto[];
-  manoObra: ManoObra[];  // Estos no se guardan en la tabla cotizaciones
-  es_proforma: boolean;
+  manoObra: ManoObra[];
+  esProforma: boolean;
   estado: 'borrador' | 'pendiente' | 'aprobada' | 'rechazada';
-  codigo_orden_trabajo?: string;
-  mecanico_orden_trabajo: string;
+  codigoOrdenTrabajo?: string;
+  mecanicoOrdenTrabajo: string;
 }
 
-// APIs reales - ya no usar mocks
+// API adaptada para usar cotizacionService
+const apiCotizaciones = {
+  getAll: async (usuario: string | null = null): Promise<Cotizacion[]> => {
+    try {
+      const filtros = usuario ? { mecanico: usuario } : undefined;
+      const response = await cotizacionService.getCotizaciones(filtros);
+      
+      if (response.success && response.data) {
+        return response.data.map(toCamelCase);
+      }
+      return [];
+    } catch (error) {
+      console.error('Error cargando cotizaciones:', error);
+      return [];
+    }
+  },
+
+  create: async (payload: Omit<Cotizacion, 'codigo' | 'fechaCreacion'>): Promise<{ ok: boolean; cotizacion?: Cotizacion }> => {
+    try {
+      const codigo = `COT-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
+      const cotizacionDB = toSnakeCase({ ...payload, codigo }) as Omit<CotizacionDB, 'id' | 'fecha_creacion'>;
+      
+      const response = await cotizacionService.createCotizacion(cotizacionDB);
+      
+      if (response.success && response.data) {
+        return { ok: true, cotizacion: toCamelCase(response.data) };
+      }
+      return { ok: false };
+    } catch (error) {
+      console.error('Error creando cotización:', error);
+      return { ok: false };
+    }
+  },
+
+  update: async (codigo: string, payload: Partial<Cotizacion>): Promise<{ ok: boolean; cotizacion?: Cotizacion }> => {
+    try {
+      // Buscar el ID de la cotización por código
+      const cotizaciones = await cotizacionService.getCotizaciones();
+      const cotizacion = cotizaciones.data?.find(c => c.codigo === codigo);
+      
+      if (!cotizacion || !cotizacion.id) {
+        return { ok: false };
+      }
+      
+      const cotizacionDB = toSnakeCase(payload);
+      const response = await cotizacionService.updateCotizacion(cotizacion.id, cotizacionDB);
+      
+      if (response.success && response.data) {
+        return { ok: true, cotizacion: toCamelCase(response.data) };
+      }
+      return { ok: false };
+    } catch (error) {
+      console.error('Error actualizando cotización:', error);
+      return { ok: false };
+    }
+  },
+
+  toProforma: async (codigo: string): Promise<{ ok: boolean; cotizacion?: Cotizacion }> => {
+    return apiCotizaciones.update(codigo, { esProforma: true });
+  },
+
+  remove: async (codigo: string): Promise<{ ok: boolean }> => {
+    try {
+      const cotizaciones = await cotizacionService.getCotizaciones();
+      const cotizacion = cotizaciones.data?.find(c => c.codigo === codigo);
+      
+      if (!cotizacion || !cotizacion.id) {
+        return { ok: false };
+      }
+      
+      const response = await cotizacionService.deleteCotizacion(cotizacion.id);
+      return { ok: response.success };
+    } catch (error) {
+      console.error('Error eliminando cotización:', error);
+      return { ok: false };
+    }
+  },
+
+  verificarStock: async (codigo: string): Promise<{ ok: boolean; stockSuficiente: boolean; verificacion?: any[] }> => {
+    // TODO: Implementar verificación real de stock
+    console.log('Verificando stock para:', codigo);
+    return { 
+      ok: true, 
+      stockSuficiente: true,
+      verificacion: []
+    };
+  }
+};
 
 const apiVehiculos = {
   getAll: async (): Promise<Vehiculo[]> => {
