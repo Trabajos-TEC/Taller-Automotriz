@@ -84,7 +84,9 @@ export const handler: Handler = async (event) => {
           estado,
           es_proforma,
           codigo_orden_trabajo,
-          mecanico_orden_trabajo
+          mecanico_orden_trabajo,
+          repuestos,
+          mano_obra
         } = JSON.parse(event.body || '{}');
 
         // Validaciones
@@ -119,7 +121,9 @@ export const handler: Handler = async (event) => {
             estado,
             es_proforma,
             codigo_orden_trabajo,
-            mecanico_orden_trabajo
+            mecanico_orden_trabajo,
+            repuestos,
+            mano_obra
           )
           VALUES (
             ${codigo},
@@ -134,7 +138,9 @@ export const handler: Handler = async (event) => {
             ${estado || 'borrador'},
             ${es_proforma || false},
             ${codigo_orden_trabajo || null},
-            ${mecanico_orden_trabajo || null}
+            ${mecanico_orden_trabajo || null},
+            ${JSON.stringify(repuestos || [])},
+            ${JSON.stringify(mano_obra || [])}
           )
           RETURNING *
         `;
@@ -169,6 +175,8 @@ export const handler: Handler = async (event) => {
           'subtotal_mano_obra',
           'iva',
           'total',
+          'repuestos',
+          'mano_obra',
           'estado',
           'es_proforma',
           'codigo_orden_trabajo',
@@ -177,8 +185,13 @@ export const handler: Handler = async (event) => {
 
         for (const field of allowedFields) {
           if (body[field] !== undefined) {
+            // Convertir arrays a JSON para campos repuestos y mano_obra
+            if (field === 'repuestos' || field === 'mano_obra') {
+              values.push(JSON.stringify(body[field]));
+            } else {
+              values.push(body[field]);
+            }
             updates.push(`${field} = $${paramCount}`);
-            values.push(body[field]);
             paramCount++;
           }
         }

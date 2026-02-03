@@ -17,6 +17,8 @@ export interface Cotizacion {
   es_proforma: boolean;
   codigo_orden_trabajo?: string | null;
   mecanico_orden_trabajo?: string | null;
+  repuestos?: any[]; // Array de repuestos
+  mano_obra?: any[]; // Array de servicios
 }
 
 // Servicio para gestión de cotizaciones

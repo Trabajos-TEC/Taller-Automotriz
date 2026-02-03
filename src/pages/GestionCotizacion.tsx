@@ -23,8 +23,8 @@ const toCamelCase = (cot: CotizacionDB): Cotizacion => ({
   esProforma: cot.es_proforma,
   codigoOrdenTrabajo: cot.codigo_orden_trabajo || undefined,
   mecanicoOrdenTrabajo: cot.mecanico_orden_trabajo || '',
-  repuestos: [],
-  manoObra: []
+  repuestos: cot.repuestos || [],
+  manoObra: cot.mano_obra || []
 });
 
 const toSnakeCase = (cot: Partial<Cotizacion>): Partial<CotizacionDB> => ({
@@ -42,6 +42,8 @@ const toSnakeCase = (cot: Partial<Cotizacion>): Partial<CotizacionDB> => ({
   ...(cot.esProforma !== undefined && { es_proforma: cot.esProforma }),
   ...(cot.codigoOrdenTrabajo !== undefined && { codigo_orden_trabajo: cot.codigoOrdenTrabajo || null }),
   ...(cot.mecanicoOrdenTrabajo !== undefined && { mecanico_orden_trabajo: cot.mecanicoOrdenTrabajo || null }),
+  ...(cot.repuestos !== undefined && { repuestos: cot.repuestos }),
+  ...(cot.manoObra !== undefined && { mano_obra: cot.manoObra }),
 });
 
 // Interfaces
