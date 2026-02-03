@@ -24,7 +24,7 @@ interface Trabajo {
     subtotal: number;
   }[];
   serviciosRealizados?: {
-    codigo: string;
+    codigo: string;  // SIN id aquí
     nombre: string;
     precio: number;
     descripcion: string;
@@ -35,10 +35,9 @@ interface Trabajo {
     fecha: string;
   }[];
   idCita?: string;
-  // Campos internos para sincronizar con la API
   _ordenId?: number;
   _vehiculoClienteId?: number;
-  _citaId?: number; // Para relación con citas reales
+  _citaId?: number;
 }
 
 // Interface Cita extendida para frontend
@@ -120,44 +119,44 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
   };
 
   const cargarOrdenes = async () => {
-    try {
-      setError(null);
-      const response = await ordenTrabajoService.getOrdenes();
+  try {
+    setError(null);
+    const response = await ordenTrabajoService.getOrdenes();
+    
+    if (response.success && response.data) {
+      const trabajosConvertidos: Trabajo[] = response.data.map(orden => ({
+        codigoOrden: `OT-${String(orden.id).padStart(3, '0')}`,
+        clienteNombre: orden.cliente_nombre || 'N/A',
+        clienteCedula: orden.cliente_cedula || 'N/A',
+        placa: orden.vehiculo_placa || 'N/A',
+        fechaCreacion: orden.fecha_entrada ? new Date(orden.fecha_entrada).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        estado: mapEstadoFromAPI(orden.estado),
+        observacionesIniciales: orden.descripcion || 'Sin observaciones',
+        repuestosUtilizados: [],
+        serviciosRealizados: orden.servicio_nombre ? [{
+          codigo: `S${orden.servicio_id || '000'}`,
+          nombre: orden.servicio_nombre,
+          precio: orden.costo || 0,
+          descripcion: orden.tipo_servicio || ''
+        }] : [],
+        notasDiagnostico: orden.notas ? [{
+          id: orden.id || 0,
+          texto: orden.notas,
+          fecha: orden.created_at ? new Date(orden.created_at).toLocaleString('es-ES') : ''
+        }] : [],
+        _ordenId: orden.id,
+        _vehiculoClienteId: orden.vehiculo_cliente_id
+      }));
       
-      if (response.success && response.data) {
-        const trabajosConvertidos: Trabajo[] = response.data.map(orden => ({
-          codigoOrden: `OT-${String(orden.id).padStart(3, '0')}`,
-          clienteNombre: orden.cliente_nombre || 'N/A',
-          clienteCedula: orden.cliente_cedula || 'N/A',
-          placa: orden.vehiculo_placa || 'N/A',
-          fechaCreacion: orden.fecha_entrada ? new Date(orden.fecha_entrada).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          estado: mapEstadoFromAPI(orden.estado),
-          observacionesIniciales: orden.descripcion || 'Sin observaciones',
-          repuestosUtilizados: [],
-          serviciosRealizados: orden.servicio_nombre ? [{
-            codigo: `S${orden.servicio_id || '000'}`,
-            nombre: orden.servicio_nombre,
-            precio: orden.costo || 0,
-            descripcion: orden.tipo_servicio || ''
-          }] : [],
-          notasDiagnostico: orden.notas ? [{
-            id: orden.id || 0,
-            texto: orden.notas,
-            fecha: orden.created_at ? new Date(orden.created_at).toLocaleString('es-ES') : ''
-          }] : [],
-          _ordenId: orden.id,
-          _vehiculoClienteId: orden.vehiculo_cliente_id
-        }));
-        
-        setTrabajos(trabajosConvertidos);
-      } else {
-        setError(response.error || 'Error al cargar órdenes de trabajo');
-      }
-    } catch (err) {
-      console.error('Error cargando órdenes:', err);
-      setError('Error de conexión al cargar órdenes de trabajo');
+      setTrabajos(trabajosConvertidos);
+    } else {
+      setError(response.error || 'Error al cargar órdenes de trabajo');
     }
-  };
+  } catch (err) {
+    console.error('Error cargando órdenes:', err);
+    setError('Error de conexión al cargar órdenes de trabajo');
+  }
+};
 
 const cargarCitas = async () => {
   try {
@@ -301,7 +300,6 @@ const crearOrdenDesdeCita = async () => {
     return;
   }
 
-  // Buscar cita por idFormateado
   const citaSeleccionada = citasReales.find(c => c.idFormateado === codigoCita);
   
   if (!citaSeleccionada || !citaSeleccionada.id) {
@@ -311,7 +309,6 @@ const crearOrdenDesdeCita = async () => {
 
   const citaIdNumero = citaSeleccionada.id;
 
-  // Verificar permisos
   if (session.rol !== 'admin' && citaSeleccionada.mecanico !== session.nombre) {
     alert('No tienes permisos para crear una orden para esta cita');
     return;
@@ -320,7 +317,6 @@ const crearOrdenDesdeCita = async () => {
   try {
     setLoading(true);
     
-    // Obtener vehículo_cliente_id de la cita
     const citaDetalleResponse = await citaService.getCitaById(citaIdNumero);
     
     if (!citaDetalleResponse.success || !citaDetalleResponse.data) {
@@ -330,11 +326,12 @@ const crearOrdenDesdeCita = async () => {
 
     const citaDetalle = citaDetalleResponse.data;
     
-    // Crear nueva orden de trabajo
+    // ORDEN SIMPLE con servicio_id: 0
     const nuevaOrden: Omit<OrdenTrabajo, 'id' | 'created_at' | 'updated_at'> = {
       vehiculo_cliente_id: citaDetalle.vehiculo_cliente_id,
+      servicio_id: 0, // ← SOLO ESTO ES NECESARIO
       tipo_servicio: 'Servicio general',
-      descripcion: observacionesIniciales.trim() || `Orden creada desde cita ${citaSeleccionada.idFormateado}`,
+      descripcion: observacionesIniciales.trim() || `Orden desde cita ${citaSeleccionada.idFormateado}`,
       fecha_entrada: new Date().toISOString(),
       costo: 0,
       estado: 'pendiente',
@@ -344,15 +341,15 @@ const crearOrdenDesdeCita = async () => {
     const response = await ordenTrabajoService.createOrden(nuevaOrden);
     
     if (response.success && response.data) {
-      // Actualizar estado de la cita a "Completada"
       await citaService.updateEstado(citaIdNumero, 'Completada');
       
       // Recargar datos
-      await Promise.all([cargarOrdenes(), cargarCitas()]);
+      await cargarOrdenes();
+      await cargarCitas();
       
       setNewOT({ codigoCita: '', observacionesIniciales: '' });
       setShowModalNuevaOT(false);
-      alert(`Orden creada exitosamente desde la cita ${citaSeleccionada.idFormateado}`);
+      alert(`Orden creada exitosamente`);
     } else {
       alert(response.error || 'Error al crear la orden de trabajo');
     }
@@ -455,42 +452,40 @@ const crearOrdenDesdeCita = async () => {
   };
 
   /* === AGREGAR SERVICIO A ORDEN === */
-  const agregarServicioTrabajo = () => {
-    if (!selected || !servicioSeleccionado) return;
+const agregarServicioTrabajo = () => {
+  if (!selected || !servicioSeleccionado) return;
 
-    // Usar datos mockeados de servicios (como solicitaste)
-    const servicio = manoDeObra.find(s => s.codigo === servicioSeleccionado);
-    if (!servicio) {
-      alert('Servicio no encontrado');
-      return;
-    }
+  const servicio = manoDeObra.find(s => s.codigo === servicioSeleccionado);
+  if (!servicio) {
+    alert('Servicio no encontrado');
+    return;
+  }
 
-    const trabajoActualizado = { ...selected };
-    
-    if (!trabajoActualizado.serviciosRealizados) {
-      trabajoActualizado.serviciosRealizados = [];
-    }
+  const trabajoActualizado = { ...selected };
+  
+  if (!trabajoActualizado.serviciosRealizados) {
+    trabajoActualizado.serviciosRealizados = [];
+  }
 
-    // Verificar si ya existe
-    const servicioExistente = trabajoActualizado.serviciosRealizados.find(s => s.codigo === servicioSeleccionado);
-    
-    if (!servicioExistente) {
-      trabajoActualizado.serviciosRealizados.push({
-        codigo: servicio.codigo,
-        nombre: servicio.nombre,
-        precio: servicio.precio,
-        descripcion: servicio.descripcion
-      });
-    }
+  const servicioExistente = trabajoActualizado.serviciosRealizados.find(s => s.codigo === servicioSeleccionado);
+  
+  if (!servicioExistente) {
+    trabajoActualizado.serviciosRealizados.push({
+      codigo: servicio.codigo,
+      nombre: servicio.nombre,
+      precio: servicio.precio,
+      descripcion: servicio.descripcion
+    });
+  }
 
-    setSelected(trabajoActualizado);
-    setTrabajos(trabajos.map(t => 
-      t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
-    ));
+  setSelected(trabajoActualizado);
+  setTrabajos(trabajos.map(t => 
+    t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
+  ));
 
-    setServicioSeleccionado('');
-    alert('Servicio agregado exitosamente');
-  };
+  setServicioSeleccionado('');
+  alert('Servicio agregado exitosamente');
+};
 
   /* === ELIMINAR SERVICIO === */
   const eliminarServicio = (index: number) => {
@@ -552,39 +547,40 @@ const crearOrdenDesdeCita = async () => {
 
   /* === GUARDAR CAMBIOS === */
   const guardarDetalleTrabajo = async () => {
-    if (!selected || !selected._ordenId) {
-      alert('No se puede actualizar: orden no identificada');
-      return;
-    }
+  if (!selected || !selected._ordenId) {
+    alert('No se puede actualizar: orden no identificada');
+    return;
+  }
 
-    try {
-      setLoading(true);
-      
-      // Calcular costo total
-      const costoTotal = calcularTotal(selected);
-      
-      const datosActualizados: Partial<OrdenTrabajo> = {
-        descripcion: selected.observacionesIniciales,
-        costo: costoTotal,
-        notas: selected.notasDiagnostico?.map(n => n.texto).join(' | ') || null
-      };
+  try {
+    setLoading(true);
+    
+    const costoTotal = calcularTotal(selected);
+    
+    // Siempre mantener servicio_id: 0
+    const datosActualizados: Partial<OrdenTrabajo> = {
+      servicio_id: 0, // ← SIEMPRE 0
+      descripcion: selected.observacionesIniciales,
+      costo: costoTotal,
+      notas: selected.notasDiagnostico?.map(n => n.texto).join(' | ') || null
+    };
 
-      const response = await ordenTrabajoService.updateOrden(selected._ordenId, datosActualizados);
-      
-      if (response.success) {
-        await cargarOrdenes();
-        setShowModalDetalle(false);
-        alert('Orden actualizada correctamente');
-      } else {
-        alert(response.error || 'Error al actualizar la orden');
-      }
-    } catch (err) {
-      console.error('Error actualizando orden:', err);
-      alert('Error de conexión al actualizar la orden');
-    } finally {
-      setLoading(false);
+    const response = await ordenTrabajoService.updateOrden(selected._ordenId, datosActualizados);
+    
+    if (response.success) {
+      await cargarOrdenes();
+      setShowModalDetalle(false);
+      alert('Orden actualizada correctamente');
+    } else {
+      alert(response.error || 'Error al actualizar la orden');
     }
-  };
+  } catch (err) {
+    console.error('Error actualizando orden:', err);
+    alert('Error de conexión al actualizar la orden');
+  } finally {
+    setLoading(false);
+  }
+};
 
   /* === CAMBIAR ESTADO === */
   const guardarNuevoEstado = async () => {
