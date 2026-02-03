@@ -52,6 +52,8 @@ interface Cita {
   vehiculoPlaca: string;
   estado: string;
   mecanico: string;
+  _citaId?: number;
+  _vehiculoClienteId?: number;
 }
 
 const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
@@ -80,12 +82,8 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
     { codigo: 'S006', nombre: 'Cambio de Batería', precio: 10000, descripcion: 'Cambio e instalación de batería' }
   ]);
 
-  // Datos mockeados de citas
-  const [citas] = useState<Cita[]>([
-    { id: 'CITA-006', clienteNombre: 'Luis Fernández', clienteCedula: '654987321', vehiculoPlaca: 'MNO-345', estado: 'Aceptada', mecanico: 'Mecánico 1' },
-    { id: 'CITA-007', clienteNombre: 'Sofía Castro', clienteCedula: '987321654', vehiculoPlaca: 'PQR-678', estado: 'Aceptada', mecanico: 'Mecánico 2' },
-    { id: 'CITA-008', clienteNombre: 'Roberto Díaz', clienteCedula: '123987456', vehiculoPlaca: 'STU-901', estado: 'Pendiente', mecanico: 'Mecánico 1' }
-  ]);
+  // Cargar citas desde el API
+  const [citas, setCitas] = useState<Cita[]>([]);
 
   // Estados para búsqueda y selección
   const [search, setSearch] = useState('');
@@ -115,7 +113,35 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
   // Cargar órdenes de trabajo desde el API
   useEffect(() => {
     cargarOrdenes();
+    cargarCitas();
   }, []);
+
+  const cargarCitas = async () => {
+    try {
+      const response = await fetch('/.netlify/functions/citas');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          // Transformar citas del API al formato esperado
+          const citasTransformadas: Cita[] = data.data
+            .filter((c: any) => c.estado === 'Aceptada')
+            .map((c: any) => ({
+              id: `CITA-${String(c.id).padStart(3, '0')}`,
+              clienteNombre: c.cliente_nombre || 'N/A',
+              clienteCedula: c.cliente_cedula || 'N/A',
+              vehiculoPlaca: c.vehiculo_placa || 'N/A',
+              estado: c.estado,
+              mecanico: c.mecanico_nombre || 'Sin asignar',
+              _citaId: c.id,
+              _vehiculoClienteId: c.vehiculo_cliente_id
+            }));
+          setCitas(citasTransformadas);
+        }
+      }
+    } catch (error) {
+      console.error('Error cargando citas:', error);
+    }
+  };
 
   const cargarOrdenes = async () => {
     try {
@@ -237,10 +263,11 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
     try {
       setLoading(true);
       
-      // Nota: Necesitaríamos el vehiculo_cliente_id real de la cita
-      // Por ahora usaremos un valor temporal que debe ser reemplazado
+      // Obtener vehiculo_cliente_id de la cita seleccionada
+      const vehiculoClienteId = citaSeleccionada._vehiculoClienteId || 1;
+      
       const nuevaOrden: Omit<OrdenTrabajo, 'id' | 'created_at' | 'updated_at'> = {
-        vehiculo_cliente_id: 1, // TODO: Obtener de la cita real
+        vehiculo_cliente_id: vehiculoClienteId,
         tipo_servicio: 'Servicio general',
         descripcion: observacionesIniciales.trim() || 'Sin observaciones iniciales',
         fecha_entrada: new Date().toISOString(),

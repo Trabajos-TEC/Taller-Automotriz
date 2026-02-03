@@ -262,47 +262,45 @@ const apiManoDeObra = {
 
 const apiOrdenesTrabajo = {
   getAll: async (usuario: string | null = null): Promise<OrdenTrabajo[]> => {
-    const mockOrdenes: OrdenTrabajo[] = [
-      {
-        codigoOrden: 'OT-001',
-        clienteNombre: 'Juan Pérez',
-        clienteCedula: '123456789',
-        placa: 'ABC-123',
-        fechaCreacion: '2024-03-15',
-        estado: 'Pendiente',
-        observacionesIniciales: 'Cambio de aceite y filtro',
-        repuestosUtilizados: [
-          { codigo: 'R001', nombre: 'Aceite Motor 5W-30', cantidad: 1, precio: 25000, subtotal: 25000 },
-          { codigo: 'R002', nombre: 'Filtro de Aceite', cantidad: 1, precio: 12000, subtotal: 12000 }
-        ],
-        serviciosRealizados: [
-          { codigo: 'S001', nombre: 'Cambio de Aceite', precio: 15000, descripcion: 'Cambio completo de aceite' }
-        ],
-        mecanico: 'Mecánico 1'
-      },
-      {
-        codigoOrden: 'OT-002',
-        clienteNombre: 'María García',
-        clienteCedula: '987654321',
-        placa: 'XYZ-789',
-        fechaCreacion: '2024-03-16',
-        estado: 'En proceso',
-        observacionesIniciales: 'Revisión de frenos',
-        repuestosUtilizados: [
-          { codigo: 'R003', nombre: 'Pastillas de Freno Delanteras', cantidad: 2, precio: 18000, subtotal: 36000 }
-        ],
-        serviciosRealizados: [
-          { codigo: 'S002', nombre: 'Revisión de Frenos', precio: 20000, descripcion: 'Revisión completa del sistema de frenos' },
-          { codigo: 'S003', nombre: 'Cambio de Pastillas', precio: 15000, descripcion: 'Cambio de pastillas delanteras' }
-        ],
-        mecanico: 'Mecánico 2'
+    try {
+      const response = await fetch('/.netlify/functions/ordenes-trabajo');
+      if (!response.ok) {
+        console.error('Error cargando órdenes de trabajo');
+        return [];
       }
-    ];
-    
-    if (usuario) {
-      return mockOrdenes.filter(ot => ot.mecanico === usuario);
+      
+      const data = await response.json();
+      if (data.success && data.data) {
+        // Transformar datos del API al formato esperado
+        const ordenesTransformadas: OrdenTrabajo[] = data.data.map((orden: any) => ({
+          codigoOrden: `OT-${String(orden.id).padStart(3, '0')}`,
+          clienteNombre: orden.cliente_nombre || 'N/A',
+          clienteCedula: orden.cliente_cedula || 'N/A',
+          placa: orden.vehiculo_placa || 'N/A',
+          fechaCreacion: orden.fecha_entrada ? new Date(orden.fecha_entrada).toISOString().split('T')[0] : '',
+          estado: orden.estado || 'Pendiente',
+          observacionesIniciales: orden.descripcion || '',
+          repuestosUtilizados: [],
+          serviciosRealizados: orden.servicio_nombre ? [{
+            codigo: `S${orden.servicio_id || '000'}`,
+            nombre: orden.servicio_nombre,
+            precio: orden.costo || 0,
+            descripcion: orden.tipo_servicio || ''
+          }] : [],
+          mecanico: orden.mecanico_nombre || 'Sin asignar'
+        }));
+        
+        // Filtrar por usuario si es necesario
+        if (usuario) {
+          return ordenesTransformadas.filter(ot => ot.mecanico === usuario);
+        }
+        return ordenesTransformadas;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error en apiOrdenesTrabajo.getAll:', error);
+      return [];
     }
-    return mockOrdenes;
   }
 };
 
@@ -1435,7 +1433,7 @@ const GestionCotizacion: React.FC<{ session: Session }> = ({ session }) => {
                         };
                         generarPDFCotizacion(cotizacionCompleta);
                       }}>
-                        📄Generar PDF
+                        Generar PDF
                       </button>
                     )}
                     {editMode && (
