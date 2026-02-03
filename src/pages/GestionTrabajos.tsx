@@ -4,7 +4,7 @@ import '../styles/Botones.css';
 import { ordenTrabajoService, type OrdenTrabajo } from '../services/ordenTrabajo.service';
 import { citaService, type Cita } from '../services/cita.service';
 import { inventarioService, type Producto } from '../services/inventario.service';
-import { clienteService } from '../services/cliente.service';
+//import { clienteService } from '../services/cliente.service';
 import { vehiculoClienteService, type VehiculoClienteCompleto } from '../services/vehiculo_cliente.service';
 
 // Interfaces
@@ -61,7 +61,7 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
   const [loadingCitas, setLoadingCitas] = useState(false);
   const [loadingInventario, setLoadingInventario] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+   vehiculosClientes;
   // Datos mockeados de servicios (como solicitaste, NO cambiar esto)
   const [manoDeObra] = useState([
     { codigo: 'S001', nombre: 'Cambio de Aceite', precio: 15000, descripcion: 'Cambio completo de aceite' },
@@ -211,29 +211,29 @@ const cargarCitas = async () => {
   };
 
   // Obtener vehículo por ID
-  const obtenerVehiculoPorId = (id: number) => {
-    return vehiculosClientes.find(v => v.id === id);
-  };
-
+//  const obtenerVehiculoPorId = (id: number) => {
+//    return vehiculosClientes.find(v => v.id === id);
+//  };
+//  obtenerVehiculoPorId(5);
   // Obtener cliente por ID
-  const obtenerClientePorId = async (id: number) => {
-    try {
+//  const obtenerClientePorId = async (id: number) => {
+//    try {
       // Nota: Necesitamos una función en clienteService para obtener por ID
       // Por ahora usamos el array de vehículos que ya tiene la info del cliente
-      const vehiculo = vehiculosClientes.find(v => v.cliente_id === id);
-      if (vehiculo) {
-        return {
-          nombre: vehiculo.cliente_nombre,
-          cedula: vehiculo.cliente_cedula
-        };
-      }
-      return null;
-    } catch (err) {
-      console.error('Error obteniendo cliente:', err);
-      return null;
-    }
-  };
-
+ //     const vehiculo = vehiculosClientes.find(v => v.cliente_id === id);
+  //    if (vehiculo) {
+  //      return {
+   //       nombre: vehiculo.cliente_nombre,
+   //       cedula: vehiculo.cliente_cedula
+   //     };
+   //   }
+   //   return null;
+   // } catch (err) {
+    //  console.error('Error obteniendo cliente:', err);
+     // return null;
+   // }
+ // };
+ // obtenerClientePorId(5);
   const mapEstadoFromAPI = (estado: string): Trabajo['estado'] => {
     const mapaEstados: Record<string, Trabajo['estado']> = {
       'pendiente': 'Pendiente',
