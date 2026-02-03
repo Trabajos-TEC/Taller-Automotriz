@@ -3,6 +3,7 @@ import React, { useEffect, useState, useMemo, useRef } from "react";
 import '../styles/pages/GestionCotizacion.css';
 import '../styles/Botones.css';
 import { useToast } from '../components/ToastContainer';
+import { cotizacionService, type Cotizacion as CotizacionAPI } from '../services/cotizacion.service';
 import GeneradorPDF from './GeneradorPDF';
 
 // Interfaces
@@ -23,23 +24,10 @@ interface ManoObra {
   tarifa: number;
 }
 
-interface Cotizacion {
-  codigo: string;
-  clienteNombre: string;
-  clienteCedula: string;
-  vehiculoPlaca: string;
-  fechaCreacion: string;
-  repuestos: Repuesto[];
-  manoObra: ManoObra[];
-  descuentoManoObra: number;
-  subtotalRepuestos: number;
-  subtotalManoObra: number;
-  iva: number;
-  total: number;
-  estado: 'borrador' | 'pendiente' | 'aprobada' | 'rechazada';
-  esProforma: boolean;
-  codigoOrdenTrabajo?: string;
-  mecanicoOrdenTrabajo: string;
+// Usar la interfaz de la API (snake_case)
+interface Cotizacion extends CotizacionAPI {
+  repuestos?: Repuesto[];
+  manoObra?: ManoObra[];
 }
 
 interface Vehiculo {
@@ -84,125 +72,23 @@ interface Session {
   rol: 'admin' | 'mecanico' | 'recepcionista';
 }
 
-// CORREGIDO: codigoOrdenTrabajo ahora puede ser string o undefined
+// CORREGIDO: FormCotizacion ahora usa snake_case para coincidir con la API
 interface FormCotizacion {
+  id?: number;
   codigo: string;
-  clienteNombre: string;
-  clienteCedula: string;
-  vehiculoPlaca: string;
-  descuentoManoObra: number;
+  cliente_nombre: string;
+  cliente_cedula: string;
+  vehiculo_placa: string;
+  descuento_mano_obra: number;
   repuestos: Repuesto[];
-  manoObra: ManoObra[];
-  esProforma: boolean;
+  manoObra: ManoObra[];  // Estos no se guardan en la tabla cotizaciones
+  es_proforma: boolean;
   estado: 'borrador' | 'pendiente' | 'aprobada' | 'rechazada';
-  codigoOrdenTrabajo?: string; // Cambiado a opcional
-  mecanicoOrdenTrabajo: string;
+  codigo_orden_trabajo?: string;
+  mecanico_orden_trabajo: string;
 }
 
-interface ApiResponse {
-  ok: boolean;
-  cotizacion?: Cotizacion;
-  error?: string;
-  stockSuficiente?: boolean;
-  verificacion?: any[];
-}
-
-// Mock APIs
-const apiCotizaciones = {
-  getAll: async (usuario: string | null = null): Promise<Cotizacion[]> => {
-    const mockCotizaciones: Cotizacion[] = [
-      {
-        codigo: "COT-001",
-        clienteNombre: "Juan Pérez",
-        clienteCedula: "123456789",
-        vehiculoPlaca: "ABC-123",
-        fechaCreacion: "2024-03-15",
-        repuestos: [
-          { codigo: 'R001', nombre: 'Aceite Motor 5W-30', cantidad: 1, precio: 25000, subtotal: 25000 },
-          { codigo: 'R002', nombre: 'Filtro de Aceite', cantidad: 1, precio: 12000, subtotal: 12000 }
-        ],
-        manoObra: [
-          { codigo: 'S001', nombre: 'Cambio de Aceite', descripcion: 'Cambio completo de aceite', horas: 1, tarifa: 15000 }
-        ],
-        descuentoManoObra: 10,
-        subtotalRepuestos: 37000,
-        subtotalManoObra: 15000,
-        iva: 6760,
-        total: 58760,
-        estado: "borrador",
-        esProforma: false,
-        codigoOrdenTrabajo: "OT-001",
-        mecanicoOrdenTrabajo: "Mecánico 1"
-      },
-      {
-        codigo: "COT-002",
-        clienteNombre: "María García",
-        clienteCedula: "987654321",
-        vehiculoPlaca: "XYZ-789",
-        fechaCreacion: "2024-03-16",
-        repuestos: [
-          { codigo: 'R003', nombre: 'Pastillas de Freno Delanteras', cantidad: 2, precio: 18000, subtotal: 36000 }
-        ],
-        manoObra: [
-          { codigo: 'S002', nombre: 'Revisión de Frenos', descripcion: 'Revisión completa del sistema de frenos', horas: 1, tarifa: 20000 },
-          { codigo: 'S003', nombre: 'Cambio de Pastillas', descripcion: 'Cambio de pastillas delanteras', horas: 1, tarifa: 15000 }
-        ],
-        descuentoManoObra: 0,
-        subtotalRepuestos: 36000,
-        subtotalManoObra: 35000,
-        iva: 9230,
-        total: 80230,
-        estado: "aprobada",
-        esProforma: true,
-        codigoOrdenTrabajo: "OT-002",
-        mecanicoOrdenTrabajo: "Mecánico 2"
-      }
-    ];
-    
-    if (usuario) {
-      return mockCotizaciones.filter(cot => cot.mecanicoOrdenTrabajo === usuario);
-    }
-    return mockCotizaciones;
-  },
-
-  create: async (payload: Omit<Cotizacion, 'codigo' | 'fechaCreacion'>): Promise<ApiResponse> => {
-    console.log('Creando cotización:', payload);
-    const nuevaCotizacion: Cotizacion = {
-      ...payload,
-      codigo: `COT-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`,
-      fechaCreacion: new Date().toISOString().split('T')[0],
-    };
-    return { ok: true, cotizacion: nuevaCotizacion };
-  },
-
-  update: async (codigo: string, payload: Partial<Cotizacion>): Promise<ApiResponse> => {
-    console.log('Actualizando cotización:', codigo, payload);
-    const actualizada: Cotizacion = {
-      ...payload as Cotizacion,
-      codigo
-    };
-    return { ok: true, cotizacion: actualizada };
-  },
-
-  toProforma: async (codigo: string): Promise<ApiResponse> => {
-    console.log('Convirtiendo a proforma:', codigo);
-    return { ok: true, cotizacion: { codigo, esProforma: true } as Cotizacion };
-  },
-
-  remove: async (codigo: string): Promise<ApiResponse> => {
-    console.log('Eliminando cotización:', codigo);
-    return { ok: true };
-  },
-
-  verificarStock: async (codigo: string): Promise<ApiResponse> => {
-    console.log('Verificando stock para:', codigo);
-    return { 
-      ok: true, 
-      stockSuficiente: true,
-      verificacion: []
-    };
-  }
-};
+// APIs reales - ya no usar mocks
 
 const apiVehiculos = {
   getAll: async (): Promise<Vehiculo[]> => {

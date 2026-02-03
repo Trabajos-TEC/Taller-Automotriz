@@ -592,7 +592,12 @@ const Citas: React.FC = () => {
                   <button 
                     className="boton boton-editar"
                     onClick={() => {
-                      setCitaEditada(selected);
+                      // Normalizar fecha al formato YYYY-MM-DD para el input date
+                      const fechaNormalizada = selected.fecha.split('T')[0];
+                      setCitaEditada({
+                        ...selected,
+                        fecha: fechaNormalizada
+                      });
                       setShowModalEditar(true);
                       limpiarErrores();
                     }}
