@@ -6,9 +6,7 @@ import { citaService, type Cita } from '../services/cita.service';
 import { inventarioService, type Producto } from '../services/inventario.service';
 //import { clienteService } from '../services/cliente.service';
 import { vehiculoClienteService, type VehiculoClienteCompleto } from '../services/vehiculo_cliente.service';
-import { servicioService, type Servicio } from '../services/servicio.service';
 
-// Interfaces
 interface Trabajo {
   codigoOrden: string;
   clienteNombre: string;
@@ -25,6 +23,7 @@ interface Trabajo {
     subtotal: number;
   }[];
   serviciosRealizados?: {
+    id: number; // ← Agregar id del servicio
     codigo: string;
     nombre: string;
     precio: number;
@@ -39,7 +38,7 @@ interface Trabajo {
   // Campos internos para sincronizar con la API
   _ordenId?: number;
   _vehiculoClienteId?: number;
-  _citaId?: number; // Para relación con citas reales
+  _citaId?: number;
 }
 
 // Interface Cita extendida para frontend
@@ -64,10 +63,15 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
   const [error, setError] = useState<string | null>(null);
    vehiculosClientes;
   // Datos mockeados de servicios (como solicitaste, NO cambiar esto)
-  const [serviciosReales, setServiciosReales] = useState<Servicio[]>([]);
-  const [loadingServicios, setLoadingServicios] = useState(false);
-  loadingServicios;
-
+// En GestionTrabajos.tsx, actualiza el mock de manoDeObra:
+const [manoDeObra] = useState([
+  { id: 1, codigo: 'S001', nombre: 'Cambio de Aceite', precio: 15000, descripcion: 'Cambio completo de aceite' },
+  { id: 2, codigo: 'S002', nombre: 'Revisión de Frenos', precio: 20000, descripcion: 'Revisión completa del sistema de frenos' },
+  { id: 3, codigo: 'S003', nombre: 'Cambio de Pastillas', precio: 15000, descripcion: 'Cambio de pastillas delanteras' },
+  { id: 4, codigo: 'S004', nombre: 'Alineación', precio: 12000, descripcion: 'Alineación de las 4 ruedas' },
+  { id: 5, codigo: 'S005', nombre: 'Balanceo', precio: 10000, descripcion: 'Balanceo de ruedas' },
+  { id: 6, codigo: 'S006', nombre: 'Cambio de Batería', precio: 10000, descripcion: 'Cambio e instalación de batería' }
+]);
 
   // Estados para búsqueda y selección
   const [search, setSearch] = useState('');
@@ -106,8 +110,7 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
         cargarOrdenes(),
         cargarCitas(),
         cargarInventario(),
-        cargarVehiculosClientes(),
-        cargarServicios(),
+        cargarVehiculosClientes()
       ]);
     } catch (err) {
       console.error('Error cargando datos:', err);
@@ -116,30 +119,30 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
       setLoading(false);
     }
   };
-  const cargarServicios = async () => {
+
+const cargarOrdenes = async () => {
   try {
-    setLoadingServicios(true);
-    const response = await servicioService.getServicios();
+    setError(null);
+    const response = await ordenTrabajoService.getOrdenes();
     
     if (response.success && response.data) {
-      setServiciosReales(response.data);
-    } else {
-      console.error('Error cargando servicios:', response.error);
-      // Mantener los mocks como fallback temporal
-    }
-  } catch (err) {
-    console.error('Error cargando servicios:', err);
-  } finally {
-    setLoadingServicios(false);
-  }
-};
-  const cargarOrdenes = async () => {
-    try {
-      setError(null);
-      const response = await ordenTrabajoService.getOrdenes();
-      
-      if (response.success && response.data) {
-        const trabajosConvertidos: Trabajo[] = response.data.map(orden => ({
+      const trabajosConvertidos: Trabajo[] = response.data.map(orden => {
+        // Buscar el servicio correspondiente en los mocks por ID o nombre
+        let servicioMock = null;
+        if (orden.servicio_id && orden.servicio_nombre) {
+          // Buscar por ID en los mocks
+          servicioMock = manoDeObra.find(serv => serv.id === orden.servicio_id);
+          
+          // Si no encuentra por ID, buscar por nombre
+          if (!servicioMock) {
+            servicioMock = manoDeObra.find(serv => 
+              serv.nombre.toLowerCase().includes(orden.servicio_nombre!.toLowerCase().split(' ')[0]) ||
+              orden.servicio_nombre!.toLowerCase().includes(serv.nombre.toLowerCase().split(' ')[0])
+            );
+          }
+        }
+        
+        return {
           codigoOrden: `OT-${String(orden.id).padStart(3, '0')}`,
           clienteNombre: orden.cliente_nombre || 'N/A',
           clienteCedula: orden.cliente_cedula || 'N/A',
@@ -148,11 +151,12 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
           estado: mapEstadoFromAPI(orden.estado),
           observacionesIniciales: orden.descripcion || 'Sin observaciones',
           repuestosUtilizados: [],
-          serviciosRealizados: orden.servicio_nombre ? [{
-            codigo: `S${orden.servicio_id || '000'}`,
-            nombre: orden.servicio_nombre,
-            precio: orden.costo || 0,
-            descripcion: orden.tipo_servicio || ''
+          serviciosRealizados: servicioMock || (orden.servicio_nombre && orden.servicio_id) ? [{
+            id: servicioMock?.id || orden.servicio_id || 0,
+            codigo: servicioMock?.codigo || `S${String(orden.servicio_id).padStart(3, '0')}`,
+            nombre: servicioMock?.nombre || orden.servicio_nombre || 'Servicio general',
+            precio: servicioMock?.precio || orden.costo || 0,
+            descripcion: servicioMock?.descripcion || orden.tipo_servicio || ''
           }] : [],
           notasDiagnostico: orden.notas ? [{
             id: orden.id || 0,
@@ -161,17 +165,18 @@ const GestionTrabajos: React.FC<{ session: any }> = ({ session }) => {
           }] : [],
           _ordenId: orden.id,
           _vehiculoClienteId: orden.vehiculo_cliente_id
-        }));
-        
-        setTrabajos(trabajosConvertidos);
-      } else {
-        setError(response.error || 'Error al cargar órdenes de trabajo');
-      }
-    } catch (err) {
-      console.error('Error cargando órdenes:', err);
-      setError('Error de conexión al cargar órdenes de trabajo');
+        };
+      });
+      
+      setTrabajos(trabajosConvertidos);
+    } else {
+      setError(response.error || 'Error al cargar órdenes de trabajo');
     }
-  };
+  } catch (err) {
+    console.error('Error cargando órdenes:', err);
+    setError('Error de conexión al cargar órdenes de trabajo');
+  }
+};
 
 const cargarCitas = async () => {
   try {
@@ -224,30 +229,6 @@ const cargarCitas = async () => {
     }
   };
 
-  // Obtener vehículo por ID
-//  const obtenerVehiculoPorId = (id: number) => {
-//    return vehiculosClientes.find(v => v.id === id);
-//  };
-//  obtenerVehiculoPorId(5);
-  // Obtener cliente por ID
-//  const obtenerClientePorId = async (id: number) => {
-//    try {
-      // Nota: Necesitamos una función en clienteService para obtener por ID
-      // Por ahora usamos el array de vehículos que ya tiene la info del cliente
- //     const vehiculo = vehiculosClientes.find(v => v.cliente_id === id);
-  //    if (vehiculo) {
-  //      return {
-   //       nombre: vehiculo.cliente_nombre,
-   //       cedula: vehiculo.cliente_cedula
-   //     };
-   //   }
-   //   return null;
-   // } catch (err) {
-    //  console.error('Error obteniendo cliente:', err);
-     // return null;
-   // }
- // };
- // obtenerClientePorId(5);
   const mapEstadoFromAPI = (estado: string): Trabajo['estado'] => {
     const mapaEstados: Record<string, Trabajo['estado']> = {
       'pendiente': 'Pendiente',
@@ -315,7 +296,6 @@ const crearOrdenDesdeCita = async () => {
     return;
   }
 
-  // Buscar cita por idFormateado
   const citaSeleccionada = citasReales.find(c => c.idFormateado === codigoCita);
   
   if (!citaSeleccionada || !citaSeleccionada.id) {
@@ -343,15 +323,15 @@ const crearOrdenDesdeCita = async () => {
 
     const citaDetalle = citaDetalleResponse.data;
     
-    // BUSCAR SERVICIO BASADO EN DESCRIPCIÓN DE CITA
+    // BUSCAR SERVICIO BASADO EN LA DESCRIPCIÓN DE LA CITA
     let servicioId: number | null = null;
     let tipoServicio = 'Servicio general';
     let precioServicio = 0;
     
     const descripcionCita = citaDetalle.descripcion?.toLowerCase() || '';
     
-    // Mapear descripción a servicios reales
-    const servicioEncontrado = serviciosReales.find(servicio => {
+    // Buscar coincidencias en servicios mock
+    const servicioEncontrado = manoDeObra.find(servicio => {
       const palabrasClave = [
         ...servicio.nombre.toLowerCase().split(' '),
         ...servicio.descripcion.toLowerCase().split(' ')
@@ -366,19 +346,12 @@ const crearOrdenDesdeCita = async () => {
       servicioId = servicioEncontrado.id;
       tipoServicio = servicioEncontrado.nombre;
       precioServicio = servicioEncontrado.precio;
-    } else {
-      // Si no encuentra, usar el primer servicio como default
-      if (serviciosReales.length > 0) {
-        servicioId = serviciosReales[0].id;
-        tipoServicio = serviciosReales[0].nombre;
-        precioServicio = serviciosReales[0].precio;
-      }
     }
     
-    // Crear nueva orden de trabajo CON servicio_id real
+    // Crear nueva orden de trabajo CON servicio_id si se encontró
     const nuevaOrden: Omit<OrdenTrabajo, 'id' | 'created_at' | 'updated_at'> = {
       vehiculo_cliente_id: citaDetalle.vehiculo_cliente_id,
-      servicio_id: servicioId,
+      servicio_id: servicioId, // ← Usar el id del servicio encontrado
       tipo_servicio: tipoServicio,
       descripcion: observacionesIniciales.trim() || 
                   `Orden creada desde cita ${citaSeleccionada.idFormateado}. ` +
@@ -393,9 +366,10 @@ const crearOrdenDesdeCita = async () => {
     const response = await ordenTrabajoService.createOrden(nuevaOrden);
     
     if (response.success && response.data) {
+      // Actualizar estado de la cita a "Completada"
       await citaService.updateEstado(citaIdNumero, 'Completada');
       
-      // Crear trabajo para estado local CON servicio real
+      // Crear el trabajo para el estado local
       const nuevoTrabajo: Trabajo = {
         codigoOrden: `OT-${String(response.data.id).padStart(3, '0')}`,
         clienteNombre: citaSeleccionada.clienteNombre || citaDetalle.cliente_nombre || 'N/A',
@@ -406,6 +380,7 @@ const crearOrdenDesdeCita = async () => {
         observacionesIniciales: observacionesIniciales.trim() || 'Sin observaciones',
         repuestosUtilizados: [],
         serviciosRealizados: servicioEncontrado ? [{
+          id: servicioEncontrado.id,
           codigo: servicioEncontrado.codigo,
           nombre: servicioEncontrado.nombre,
           precio: servicioEncontrado.precio,
@@ -417,13 +392,22 @@ const crearOrdenDesdeCita = async () => {
         _citaId: citaIdNumero
       };
       
+      // Actualizar la lista de trabajos
       setTrabajos(prev => [...prev, nuevoTrabajo]);
+      
+      // Seleccionar automáticamente la nueva orden
       setSelected(nuevoTrabajo);
-      await Promise.all([cargarOrdenes(), cargarCitas()]);
+      
+      // Recargar datos desde el API
+      await cargarOrdenes();
+      await cargarCitas();
       
       setNewOT({ codigoCita: '', observacionesIniciales: '' });
       setShowModalNuevaOT(false);
+      
       alert(`Orden ${nuevoTrabajo.codigoOrden} creada con servicio "${tipoServicio}"`);
+    } else {
+      alert(response.error || 'Error al crear la orden de trabajo');
     }
   } catch (err) {
     console.error('Error creando orden:', err);
@@ -490,13 +474,7 @@ const crearOrdenDesdeCita = async () => {
       setCantidadRep(1);
       
       alert('Repuesto agregado exitosamente');
-      
-      // Actualizar inventario (restar cantidad)
-      // Nota: En un sistema real, deberías tener una función para esto
-      // await inventarioService.updateProducto(repSeleccionado, {
-      //   cantidad: producto.cantidad - cantidadRep
-      // });
-      
+    
     } catch (err) {
       console.error('Error agregando repuesto:', err);
       alert('Error al agregar el repuesto');
@@ -524,66 +502,64 @@ const crearOrdenDesdeCita = async () => {
   };
 
   /* === AGREGAR SERVICIO A ORDEN === */
- const agregarServicioTrabajo = async () => {
+  const agregarServicioTrabajo = async () => {
   if (!selected || !servicioSeleccionado) return;
 
-  try {
-    // Buscar servicio en la base de datos
-    const servicioResponse = await servicioService.getServicioByCodigo(servicioSeleccionado);
-    
-    if (!servicioResponse.success || !servicioResponse.data) {
-      alert('Servicio no encontrado en la base de datos');
-      return;
-    }
-
-    const servicio = servicioResponse.data;
-
-    const trabajoActualizado = { ...selected };
-    
-    if (!trabajoActualizado.serviciosRealizados) {
-      trabajoActualizado.serviciosRealizados = [];
-    }
-
-    // Verificar si ya existe
-    const servicioExistente = trabajoActualizado.serviciosRealizados.find(s => s.codigo === servicioSeleccionado);
-    
-    if (!servicioExistente) {
-      trabajoActualizado.serviciosRealizados.push({
-        codigo: servicio.codigo,
-        nombre: servicio.nombre,
-        precio: servicio.precio,
-        descripcion: servicio.descripcion || ''
-      });
-      
-      // Si la orden ya tiene un ID, actualizar en el backend también
-      if (trabajoActualizado._ordenId) {
-        try {
-          // Actualizar el servicio_id en la orden de trabajo
-          await ordenTrabajoService.updateOrden(trabajoActualizado._ordenId, {
-            servicio_id: servicio.id,
-            costo: calcularTotal(trabajoActualizado) + servicio.precio
-          });
-        } catch (err) {
-          console.error('Error actualizando servicio en backend:', err);
-          // Continuar en frontend aunque falle en backend
-        }
-      }
-    } else {
-      alert('Este servicio ya fue agregado a la orden');
-      return;
-    }
-
-    setSelected(trabajoActualizado);
-    setTrabajos(trabajos.map(t => 
-      t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
-    ));
-
-    setServicioSeleccionado('');
-    alert(`Servicio "${servicio.nombre}" agregado exitosamente`);
-  } catch (err) {
-    console.error('Error agregando servicio:', err);
-    alert('Error de conexión al agregar el servicio');
+  // Buscar servicio en el mock (ahora con id)
+  const servicio = manoDeObra.find(s => s.codigo === servicioSeleccionado);
+  if (!servicio) {
+    alert('Servicio no encontrado');
+    return;
   }
+
+  const trabajoActualizado = { ...selected };
+  
+  if (!trabajoActualizado.serviciosRealizados) {
+    trabajoActualizado.serviciosRealizados = [];
+  }
+
+  // Verificar si ya existe
+  const servicioExistente = trabajoActualizado.serviciosRealizados.find(s => s.id === servicio.id);
+  
+  if (!servicioExistente) {
+    // Agregar el servicio con su ID
+    trabajoActualizado.serviciosRealizados.push({
+      id: servicio.id,
+      codigo: servicio.codigo,
+      nombre: servicio.nombre,
+      precio: servicio.precio,
+      descripcion: servicio.descripcion
+    });
+    
+    // Si la orden ya tiene un ID en la base de datos, actualizar también allá
+    if (trabajoActualizado._ordenId) {
+      try {
+        // Calcular nuevo costo total
+        const nuevoCosto = calcularTotal(trabajoActualizado);
+        
+        // Actualizar la orden en la base de datos
+        await ordenTrabajoService.updateOrden(trabajoActualizado._ordenId, {
+          servicio_id: servicio.id, // ← Aquí usamos el id del servicio
+          tipo_servicio: servicio.nombre,
+          costo: nuevoCosto
+        });
+      } catch (err) {
+        console.error('Error actualizando servicio en backend:', err);
+        // Continuar en frontend aunque falle en backend
+      }
+    }
+  } else {
+    alert('Este servicio ya fue agregado a la orden');
+    return;
+  }
+
+  setSelected(trabajoActualizado);
+  setTrabajos(trabajos.map(t => 
+    t.codigoOrden === trabajoActualizado.codigoOrden ? trabajoActualizado : t
+  ));
+
+  setServicioSeleccionado('');
+  alert(`Servicio "${servicio.nombre}" agregado exitosamente`);
 };
 
   /* === ELIMINAR SERVICIO === */
@@ -595,15 +571,26 @@ const eliminarServicio = async (index: number) => {
   
   trabajoActualizado.serviciosRealizados = trabajoActualizado.serviciosRealizados?.filter((_, i) => i !== index);
   
-  // Si se eliminó el único servicio, limpiar servicio_id en backend
-  if (trabajoActualizado._ordenId && trabajoActualizado.serviciosRealizados?.length === 0) {
+  // Si se eliminó el servicio y la orden está en la base de datos
+  if (trabajoActualizado._ordenId && servicioEliminado) {
     try {
-      await ordenTrabajoService.updateOrden(trabajoActualizado._ordenId, {
-        servicio_id: null,
-        costo: calcularTotal(trabajoActualizado)
-      });
+      const nuevoCosto = calcularTotal(trabajoActualizado);
+      
+      // Si no quedan servicios, limpiar servicio_id
+      if (trabajoActualizado.serviciosRealizados?.length === 0) {
+        await ordenTrabajoService.updateOrden(trabajoActualizado._ordenId, {
+          servicio_id: null,
+          tipo_servicio: 'Servicio general',
+          costo: nuevoCosto
+        });
+      } else {
+        // Actualizar solo el costo
+        await ordenTrabajoService.updateOrden(trabajoActualizado._ordenId, {
+          costo: nuevoCosto
+        });
+      }
     } catch (err) {
-      console.error('Error actualizando servicio en backend:', err);
+      console.error('Error actualizando backend al eliminar servicio:', err);
     }
   }
   
@@ -616,7 +603,6 @@ const eliminarServicio = async (index: number) => {
     alert(`Servicio "${servicioEliminado.nombre}" eliminado`);
   }
 };
-
   /* === AGREGAR NOTA DE DIAGNÓSTICO === */
   const agregarNotaDiagnostico = () => {
     if (!selected || !nuevaNotaDiagnostico.trim()) return;
@@ -663,41 +649,51 @@ const eliminarServicio = async (index: number) => {
   };
 
   /* === GUARDAR CAMBIOS === */
-  const guardarDetalleTrabajo = async () => {
-    if (!selected || !selected._ordenId) {
-      alert('No se puede actualizar: orden no identificada');
-      return;
+ const guardarDetalleTrabajo = async () => {
+  if (!selected || !selected._ordenId) {
+    alert('No se puede actualizar: orden no identificada');
+    return;
+  }
+
+  try {
+    setLoading(true);
+    
+    // Calcular costo total
+    const costoTotal = calcularTotal(selected);
+    
+    // Determinar servicio_id si hay servicios
+    let servicioId: number | null = null;
+    let tipoServicio = 'Servicio general';
+    
+    if (selected.serviciosRealizados && selected.serviciosRealizados.length > 0) {
+      servicioId = selected.serviciosRealizados[0].id;
+      tipoServicio = selected.serviciosRealizados[0].nombre;
     }
+    
+    const datosActualizados: Partial<OrdenTrabajo> = {
+      servicio_id: servicioId,
+      tipo_servicio: tipoServicio,
+      descripcion: selected.observacionesIniciales,
+      costo: costoTotal,
+      notas: selected.notasDiagnostico?.map(n => n.texto).join(' | ') || null
+    };
 
-    try {
-      setLoading(true);
-      
-      // Calcular costo total
-      const costoTotal = calcularTotal(selected);
-      
-      const datosActualizados: Partial<OrdenTrabajo> = {
-        descripcion: selected.observacionesIniciales,
-        costo: costoTotal,
-        notas: selected.notasDiagnostico?.map(n => n.texto).join(' | ') || null
-      };
-
-      const response = await ordenTrabajoService.updateOrden(selected._ordenId, datosActualizados);
-      
-      if (response.success) {
-        await cargarOrdenes();
-        setShowModalDetalle(false);
-        alert('Orden actualizada correctamente');
-      } else {
-        alert(response.error || 'Error al actualizar la orden');
-      }
-    } catch (err) {
-      console.error('Error actualizando orden:', err);
-      alert('Error de conexión al actualizar la orden');
-    } finally {
-      setLoading(false);
+    const response = await ordenTrabajoService.updateOrden(selected._ordenId, datosActualizados);
+    
+    if (response.success) {
+      await cargarOrdenes();
+      setShowModalDetalle(false);
+      alert('Orden actualizada correctamente');
+    } else {
+      alert(response.error || 'Error al actualizar la orden');
     }
-  };
-
+  } catch (err) {
+    console.error('Error actualizando orden:', err);
+    alert('Error de conexión al actualizar la orden');
+  } finally {
+    setLoading(false);
+  }
+};
   /* === CAMBIAR ESTADO === */
   const guardarNuevoEstado = async () => {
     if (!selected || !selected._ordenId) {
@@ -1136,22 +1132,23 @@ const eliminarServicio = async (index: number) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selected.serviciosRealizados?.map((servicio, index) => (
-                        <tr key={index}>
-                          <td>{servicio.codigo}</td>
-                          <td>{servicio.nombre}</td>
-                          <td>{servicio.descripcion}</td>
-                          <td>₡{servicio.precio.toLocaleString()}</td>
-                          <td>
-                            <button 
-                              className="boton boton-eliminar-pequeno"
-                              onClick={() => eliminarServicio(index)}
-                            >
-                              Eliminar
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+{/* En la tabla de servicios del modal */}
+{selected.serviciosRealizados?.map((servicio, index) => (
+  <tr key={servicio.id}>
+    <td>{servicio.codigo}</td>
+    <td>{servicio.nombre}</td>
+    <td>{servicio.descripcion}</td>
+    <td>₡{servicio.precio.toLocaleString()}</td>
+    <td>
+      <button 
+        className="boton boton-eliminar-pequeno"
+        onClick={() => eliminarServicio(index)}
+      >
+        Eliminar
+      </button>
+    </td>
+  </tr>
+))}
                       {(!selected.serviciosRealizados || selected.serviciosRealizados.length === 0) && (
                         <tr>
                           <td colSpan={5} className="no-items">No hay servicios agregados</td>
@@ -1170,22 +1167,21 @@ const eliminarServicio = async (index: number) => {
                       onChange={e => setServicioSeleccionado(e.target.value)}
                       list="servicios-lista"
                     />
-                  {/* En el JSX, reemplazar el datalist: */}
-                  <datalist id="servicios-lista">
-                    {serviciosReales.map(servicio => (
-                      <option key={servicio.codigo} value={servicio.codigo}>
-                        {servicio.nombre} - ₡{servicio.precio.toLocaleString()}
-                      </option>
-                    ))}
-                  </datalist>
+                    <datalist id="servicios-lista">
+                      {manoDeObra.map(serv => (
+                        <option key={serv.codigo} value={serv.codigo}>
+                          {serv.nombre} - ₡{serv.precio.toLocaleString()}
+                        </option>
+                      ))}
+                    </datalist>
                     
-                  <button 
-                    className="boton boton-agregar"
-                    onClick={agregarServicioTrabajo}
-                    disabled={!servicioSeleccionado || loadingServicios}
-                  >
-                    {loadingServicios ? 'Cargando...' : 'Agregar'}
-                  </button>
+                    <button 
+                      className="boton boton-agregar"
+                      onClick={agregarServicioTrabajo}
+                      disabled={!servicioSeleccionado}
+                    >
+                      Agregar
+                    </button>
                   </div>
                 </div>
               </div>
