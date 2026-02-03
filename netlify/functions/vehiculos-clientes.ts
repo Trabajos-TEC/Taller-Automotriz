@@ -139,7 +139,7 @@ export const handler: Handler = async (event) => {
       const { cliente_id, vehiculo_base_id, color, kilometraje, vin, notas } = body;
 
       // Si se actualiza el cliente, verificar que pertenece al taller
-      if (cliente_id) {
+      if (cliente_id !== undefined && cliente_id !== null) {
         const clienteValido = await sql`
           SELECT id FROM clientes
           WHERE id = ${cliente_id} AND taller_id = ${TALLER_ID}
@@ -150,18 +150,16 @@ export const handler: Handler = async (event) => {
         }
       }
 
-      // Actualizar solo los campos proporcionados
-      const updates: any = {};
-      if (cliente_id !== undefined) updates.cliente_id = cliente_id;
-      if (vehiculo_base_id !== undefined) updates.vehiculo_base_id = vehiculo_base_id;
-      if (color !== undefined) updates.color = color;
-      if (kilometraje !== undefined) updates.kilometraje = kilometraje;
-      if (vin !== undefined) updates.vin = vin;
-      if (notas !== undefined) updates.notas = notas;
-
+      // Actualizar solo los campos que vienen definidos
       const result = await sql`
         UPDATE vehiculos_clientes
-        SET ${sql(updates)}
+        SET 
+          cliente_id = COALESCE(${cliente_id !== undefined ? cliente_id : null}, cliente_id),
+          vehiculo_base_id = COALESCE(${vehiculo_base_id !== undefined ? vehiculo_base_id : null}, vehiculo_base_id),
+          color = COALESCE(${color !== undefined ? color : null}, color),
+          kilometraje = COALESCE(${kilometraje !== undefined ? kilometraje : null}, kilometraje),
+          vin = COALESCE(${vin !== undefined ? vin : null}, vin),
+          notas = COALESCE(${notas !== undefined ? notas : null}, notas)
         WHERE id = ${id}
         RETURNING *
       `;

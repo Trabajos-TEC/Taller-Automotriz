@@ -1,35 +1,16 @@
 // netlify/functions/orden-detalles.ts
-import { Handler, HandlerEvent } from '@netlify/functions';
-import { neon } from '@neondatabase/serverless';
+import { Handler } from '@netlify/functions';
+import { getConnection, corsHeaders, successResponse, errorResponse } from './utils/db';
+import { requireAuth } from './utils/requireAuth';
 
-const sql = neon(process.env.DATABASE_URL!);
-const TALLER_ID = 1; // ID del taller
-
-// Helpers de respuesta
-const successResponse = (data: any, statusCode = 200) => ({
-  statusCode,
-  headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-  body: JSON.stringify({ success: true, data })
-});
-
-const errorResponse = (message: string, statusCode = 400) => ({
-  statusCode,
-  headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-  body: JSON.stringify({ success: false, error: message })
-});
-
-export const handler: Handler = async (event: HandlerEvent) => {
-  // CORS
+/**
+ * Función Netlify para gestionar detalles de órdenes de trabajo
+ * Endpoint: /.netlify/functions/orden-detalles
+ * Métodos: GET, POST, DELETE
+ */
+export const handler: Handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
-      },
-      body: ''
-    };
+    return { statusCode: 200, headers: corsHeaders, body: '' };
   }
 
   try {
@@ -52,7 +33,11 @@ export const handler: Handler = async (event: HandlerEvent) => {
       INNER JOIN vehiculos_clientes vc ON ot.vehiculo_cliente_id = vc.id
       INNER JOIN clientes c ON vc.cliente_id = c.id
       WHERE ot.id = ${ordenId}
-        AND c.taller_id = ${TALLER_ID}
+        ANuser = requireAuth(event);
+    const TALLER_ID = user.taller_id;
+    const sql = getConnection();
+
+    const D c.taller_id = ${TALLER_ID}
     `;
 
     if (ordenValida.length === 0) {
@@ -171,6 +156,14 @@ export const handler: Handler = async (event: HandlerEvent) => {
 
       default:
         return errorResponse('Método no permitido', 405);
+    
+    if (error.message === 'NO_TOKEN') {
+      return errorResponse('No se proporcionó token de autenticación', 401);
+    }
+    if (error.message === 'INVALID_TOKEN') {
+      return errorResponse('Token de autenticación inválido', 401);
+    }
+    
     }
 
   } catch (error: any) {
