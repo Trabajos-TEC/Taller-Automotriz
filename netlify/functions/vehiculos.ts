@@ -6,14 +6,13 @@ import { requireAuth } from './utils/requireAuth';
  * Endpoint: /.netlify/functions/vehiculos
  */
 export const handler: Handler = async (event) => {
-  const user = requireAuth(event);
-  const TALLER_ID = user.taller_id;
-
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
 
   try {
+    const user = requireAuth(event);
+    const TALLER_ID = user.taller_id;
     const sql = getConnection();
     const search = event.queryStringParameters?.search || '';
 
@@ -70,6 +69,17 @@ export const handler: Handler = async (event) => {
 
   } catch (error) {
     console.error('Error al obtener vehículos:', error);
-    return errorResponse(error instanceof Error ? error : 'Error al obtener vehículos');
+    
+    if (error instanceof Error) {
+      if (error.message === 'NO_TOKEN') {
+        return errorResponse('No se proporcionó token de autenticación', 401);
+      }
+      if (error.message === 'INVALID_TOKEN') {
+        return errorResponse('Token de autenticación inválido', 401);
+      }
+      return errorResponse(error.message);
+    }
+    
+    return errorResponse('Error al obtener vehículos');
   }
 };

@@ -179,8 +179,12 @@ export const handler: Handler = async (event) => {
       return errorResponse('Token requerido', 401);
     }
 
+    if (err.message === 'NO_TOKEN') {
+      return errorResponse('No se proporcionó token de autenticación', 401);
+    }
+
     if (err.message === 'INVALID_TOKEN') {
-      return errorResponse('Token inválido', 401);
+      return errorResponse('Token de autenticación inválido', 401);
     }
 
     console.error('Error en clientes:', err);

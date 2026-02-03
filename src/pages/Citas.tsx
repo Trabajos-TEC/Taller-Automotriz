@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/pages/Citas.css';
 import { citaService } from '../services/cita.service';
+import { fetchApi } from '../services/api';
 
 interface Cita {
   id: number;
@@ -83,25 +84,19 @@ const Citas: React.FC = () => {
         setCitas(citasRes.data as unknown as Cita[]);
       }
 
-      // Cargar vehículos de clientes
-      const vehiculosRes = await fetch('/.netlify/functions/vehiculos-clientes');
-      if (vehiculosRes.ok) {
-        const vehiculosData = await vehiculosRes.json();
-        if (vehiculosData.success) {
-          setVehiculos(vehiculosData.data);
-        }
+      // Cargar vehículos de clientes con autenticación
+      const vehiculosRes = await fetchApi<Vehiculo[]>('/vehiculos-clientes');
+      if (vehiculosRes.success && vehiculosRes.data) {
+        setVehiculos(vehiculosRes.data);
       }
 
-      // Cargar usuarios (mecánicos)
-      const usuariosRes = await fetch('/.netlify/functions/usuarios');
-      if (usuariosRes.ok) {
-        const usuariosData = await usuariosRes.json();
-        if (usuariosData.success) {
-          const mecanicosList = usuariosData.data.filter((u: Usuario) => 
-            u.rol === 'mecanico' || u.rol === 'admin'
-          );
-          setMecanicos(mecanicosList);
-        }
+      // Cargar usuarios (mecánicos) con autenticación
+      const usuariosRes = await fetchApi<Usuario[]>('/usuarios');
+      if (usuariosRes.success && usuariosRes.data) {
+        const mecanicosList = usuariosRes.data.filter((u: Usuario) => 
+          u.rol === 'mecanico' || u.rol === 'admin'
+        );
+        setMecanicos(mecanicosList);
       }
     } catch (error) {
       console.error('Error cargando datos:', error);
